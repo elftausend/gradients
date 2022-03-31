@@ -1,4 +1,6 @@
-use custos::{Matrix, cpu::TBlas, number::Float, get_device};
+use custos::{Matrix, cpu::TBlas, number::Float, opencl::GenericOCL};
+use custos_math::{Additional, Row, Sum, Transpose, nn::Activations};
+use crate::RandMatrix;
 
 #[derive(Clone, Copy)]
 pub struct Linear<T> {
@@ -9,30 +11,27 @@ pub struct Linear<T> {
     inputs: Option<Matrix<T>>,
 }
 
-impl <T: Float+TBlas>Linear<T> {
+impl <T: Float+TBlas+GenericOCL>Linear<T> {
     pub fn new(input_size: usize, output_size: usize, weight_size: T) -> Linear<T> {
-        let device = get_device!();
-        let mut weights = Matrix::<T>::new((input_size, output_size));
+        let mut weights = Matrix::<T>::from((input_size, output_size));
         
         weights.rand();
-        let weights = weights * weight_size;
+        
+        let weights = weights.muls(weight_size);
         //let weights = weights + (T::one() / T::from_usize(100));
 
-        let bias = Matrix::<T>::new((1, output_size));
+        let bias = Matrix::<T>::from((1, output_size));
 
         Linear { weights, bias, dweights: None, dbias: None, inputs: None }
     }
-    pub fn set_weights(&mut self, weights: &[T]) {
-        self.weights.copy_from_slice(weights)
-    }
-
+    
     pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
         self.inputs = Some(inputs);
-        inputs.gemm(self.weights).row_op(self.bias, |x, b| x+b)
+        inputs.gemm(self.weights).add_row(self.bias)
     }
 
     pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T> {
-        self.dbias = Some(grad.sum_axis(Axis::Rows));
+        self.dbias = Some(grad.sum_rows());
         self.dweights = Some(self.inputs.unwrap().T().gemm(grad));
         grad.gemm(self.weights.T())
     }
@@ -40,6 +39,9 @@ impl <T: Float+TBlas>Linear<T> {
     pub fn sgd(&mut self, lr: T) {
         let dweights = self.dweights.unwrap();
         let dbias = self.dbias.unwrap();
+
+
+        /* 
         for (idx, value) in self.weights.as_mut_slice().iter_mut().enumerate() {
             *value -= dweights.as_slice()[idx] * lr;
         }
@@ -47,6 +49,7 @@ impl <T: Float+TBlas>Linear<T> {
         for (idx, value) in self.bias.as_mut_slice().iter_mut().enumerate() {
             *value -= dbias.as_slice()[idx] * lr;
         }
+        */
         
     }
 }
@@ -56,7 +59,7 @@ pub struct ReLU<T> {
     inputs: Option<Matrix<T>>
 }
 
-impl <T: Float>ReLU<T> {
+impl <T: Float+GenericOCL>ReLU<T> {
     pub fn new() -> ReLU<T> {
         ReLU {
             inputs: None,
@@ -71,7 +74,7 @@ impl <T: Float>ReLU<T> {
     }
 }
 
-
+/*
 #[derive(Clone, Copy)]
 pub struct Tanh<T> {
     inputs: Option<Matrix<T>>
@@ -91,6 +94,6 @@ impl <T: Float>Tanh<T> {
         self.inputs.unwrap().tanh_grad() * grad
     }
 }
-
+*/
 
 

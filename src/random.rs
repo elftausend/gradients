@@ -1,5 +1,15 @@
-use custos::{Device, Matrix, InternCPU, number::Float, InternCLDevice, VecRead, opencl::cl_write};
+use custos::{Device, Matrix, InternCPU, number::Float, InternCLDevice, VecRead, opencl::cl_write, get_device};
 use rand::{thread_rng, Rng};
+
+pub trait RandMatrix {
+    fn rand(&mut self);
+}
+impl <T: Float>RandMatrix for Matrix<T> {
+    fn rand(&mut self) {
+        let device = get_device!(RandOp, T).unwrap();
+        device.rand(self)
+    }
+}
 
 pub trait RandOp<T>: Device<T> {
     fn rand(&self, x: &mut Matrix<T>);
