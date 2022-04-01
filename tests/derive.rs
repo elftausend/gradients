@@ -1,7 +1,7 @@
 use custos_math::{Additional, nn::{cce_grad, cce}};
-use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp};
-use gradients_deriv::NeuralNetwork;
-use purpur::{number::Float, LoaderBuilder, CSV, CSVLoaderOps, CSVReturn};
+use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param};
+use gradients_derive::NeuralNetwork;
+use purpur::{number::Float, LoaderBuilder, CSV, CSVLoaderOps};
 use custos::{Matrix, opencl::GenericOCL, cpu::TBlas, CLDevice, AsDev, range};
 
 #[derive(NeuralNetwork)]

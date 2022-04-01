@@ -12,4 +12,4 @@ custos-math = {path = "../custos-math"}
 purpur = {path = "../purpur"}
 rand = "*"
 
-gradients-deriv = {path = "../gradients-deriv"}
+gradients-derive = {path = "../gradients-derive"}

@@ -1,15 +1,36 @@
 mod layers;
 mod random;
 mod onehot;
+mod opt;
 
 use custos::{Matrix, Device};
 pub use random::*;
 pub use layers::*;
 pub use onehot::*;
+pub use opt::*;
+
+pub trait GetParam<T> {
+    fn get_params(&self) -> Option<Param<T>>;
+}
+
+#[derive(Clone, Copy)]
+pub struct Param<T> {
+    weights: Matrix<T>,
+    bias: Matrix<T>,
+    dweights: Matrix<T>,
+    dbias: Matrix<T>,
+}
+
+impl <T>Param<T> {
+    pub fn new(weights: Matrix<T>, bias: Matrix<T>, dweights: Matrix<T>, dbias: Matrix<T>) -> Param<T> {
+        Param { weights, bias, dweights, dbias }
+    }
+}
 
 pub trait NeuralNetwork<T> {
     fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T>;
     fn backward(&mut self, grad: Matrix<T>) -> Matrix<T>;
+    fn params(&mut self) -> Vec<Param<T>>;
 }
 
 /*pub struct Network<T> {

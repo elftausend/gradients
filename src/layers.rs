@@ -1,7 +1,6 @@
 use custos::{Matrix, cpu::TBlas, number::Float, opencl::GenericOCL};
 use custos_math::{Additional, Row, Sum, Transpose, nn::{Activations, Softmax as TSoftmax}};
-use crate::RandMatrix;
-
+use crate::{RandMatrix, GetParam, Param};
 
 #[derive(Clone, Copy)]
 pub struct Linear<T> {
@@ -57,6 +56,12 @@ impl <T: Float+TBlas+GenericOCL>Linear<T> {
     }
 }
 
+impl <T: Copy>GetParam<T> for Linear<T> {
+    fn get_params(&self) -> Option<Param<T>> {
+        Some(Param::new(self.weights, self.bias, self.dweights.unwrap(), self.dbias.unwrap()))
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct ReLU<T> {
     inputs: Option<Matrix<T>>
@@ -64,9 +69,7 @@ pub struct ReLU<T> {
 
 impl <T: Float+GenericOCL>ReLU<T> {
     pub fn new() -> ReLU<T> {
-        ReLU {
-            inputs: None,
-        }
+        ReLU { inputs: None }
     }
     pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
         self.inputs = Some(inputs);
@@ -74,6 +77,12 @@ impl <T: Float+GenericOCL>ReLU<T> {
     }
     pub fn backward(&self, grad: Matrix<T>) -> Matrix<T> {
         self.inputs.unwrap().relu_grad() * grad
+    }
+}
+
+impl <T: Copy>GetParam<T> for ReLU<T> {
+    fn get_params(&self) -> Option<Param<T>> {
+        None
     }
 }
 
@@ -94,6 +103,12 @@ impl <T: GenericOCL+TBlas>Softmax<T> {
 
     pub fn backward(&self, grad: Matrix<T>) -> Matrix<T> {
         grad.softmax_grad(self.activated.unwrap())
+    }
+}
+
+impl <T: Copy>GetParam<T> for Softmax<T> {
+    fn get_params(&self) -> Option<Param<T>> {
+        None
     }
 }
 
