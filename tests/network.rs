@@ -1,21 +1,21 @@
 use custos::{Matrix, CPU, AsDev, range, CLDevice};
 use custos_math::{Additional, nn::{Softmax, cce, cce_grad, mse, mse_grad}};
-use gradients::{onehot, Linear, ReLU, onehot_cl, create_sine};
+use gradients::{Linear, ReLU, create_sine, OnehotOp};
 use purpur::{LoaderBuilder, CSV, CSVReturn, CSVLoaderOps};
 
 #[test]
 fn test_sine() {
-    let device = CPU::new().select();
-    //let device = CLDevice::get(0).unwrap().select();
+    //let device = CPU::new().select();
+    let device = CLDevice::get(0).unwrap().select();
 
     let (x, y) = create_sine(&device, 0, 1000);
-    let mut lin1 = Linear::new(1, 64, 0.);
+    let mut lin1 = Linear::new(1, 64, 1.);
     let mut relu1 = ReLU::<f32>::new();
-    let mut lin2 = Linear::new(64, 64, 0.);
+    let mut lin2 = Linear::new(64, 64, 1.);
     let mut relu2 = ReLU::<f32>::new();
-    let mut lin3 = Linear::new(64, 1, 0.);
+    let mut lin3 = Linear::new(64, 1, 1.);
 
-    for epoch in range(800) {
+    for epoch in range(21000) {
         let x = lin1.forward(x);
         let x = relu1.forward(x);
         let x = lin2.forward(x);
@@ -24,8 +24,10 @@ fn test_sine() {
         
         let loss = mse(&device, x, y);
 
-        println!("epoch: {epoch}, loss: {loss}");
-
+        if epoch % 100 == 0 {
+            println!("epoch: {epoch}, loss: {loss:?}");
+        }
+    
         let grad = mse_grad(&device, x, y);
 
         let x = lin3.backward(grad);
@@ -34,9 +36,9 @@ fn test_sine() {
         let x = relu2.backward(x);
         lin1.backward(x);
 
-        lin1.sgd(0.01);
-        lin2.sgd(0.01);
-        lin3.sgd(0.01);
+        lin1.sgd(0.001);
+        lin2.sgd(0.001);
+        lin3.sgd(0.001);
 
     }
 }
@@ -44,8 +46,8 @@ fn test_sine() {
 
 #[test]
 fn test_mnist() {
-    let device = CPU::new().select();
-    //let device = CLDevice::get(0).unwrap().select();
+    //let device = CPU::new().select();
+    let device = CLDevice::get(0).unwrap().select();
 
     let loader = LoaderBuilder::<CSV>::new()
         .set_shuffle(true)
@@ -57,7 +59,7 @@ fn test_mnist() {
     let i = i.divs(255.);
 
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), loaded_data.y));
-    let y = onehot(&device, y);
+    let y = device.onehot(y);
 
     let mut lin1 = Linear::<f32>::new(784, 512, 0.1);
     let mut relu1 = ReLU::<f32>::new();
@@ -85,9 +87,9 @@ fn test_mnist() {
         let x = relu1.backward(x);
         lin1.backward(x);
 
-        lin1.sgd(0.01);
-        lin2.sgd(0.01);
-        lin3.sgd(0.01);
+        lin1.sgd(0.1);
+        lin2.sgd(0.1);
+        lin3.sgd(0.1);
 
         println!("epoch: {epoch}, loss: {loss}");
     }
