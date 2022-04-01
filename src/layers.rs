@@ -40,6 +40,8 @@ impl <T: Float+TBlas+GenericOCL>Linear<T> {
         let dweights = self.dweights.unwrap();
         let dbias = self.dbias.unwrap();
 
+        self.weights -= dweights.muls(lr);
+        self.bias -= dbias.muls(lr);
 
         /* 
         for (idx, value) in self.weights.as_mut_slice().iter_mut().enumerate() {
