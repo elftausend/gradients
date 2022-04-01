@@ -15,10 +15,10 @@ pub trait GetParam<T> {
 
 #[derive(Clone, Copy)]
 pub struct Param<T> {
-    weights: Matrix<T>,
-    bias: Matrix<T>,
-    dweights: Matrix<T>,
-    dbias: Matrix<T>,
+    pub weights: Matrix<T>,
+    pub bias: Matrix<T>,
+    pub dweights: Matrix<T>,
+    pub dbias: Matrix<T>,
 }
 
 impl <T>Param<T> {
