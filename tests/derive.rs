@@ -1,8 +1,8 @@
 use custos_math::{Additional, nn::{cce_grad, cce}};
-use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param};
+use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param, Adam};
 use gradients_derive::NeuralNetwork;
 use purpur::{number::Float, LoaderBuilder, CSV, CSVLoaderOps};
-use custos::{Matrix, opencl::GenericOCL, cpu::TBlas, CLDevice, AsDev, range};
+use custos::{Matrix, opencl::GenericOCL, cpu::TBlas, CLDevice, AsDev, range, CPU};
 
 #[derive(NeuralNetwork)]
 pub struct Network<T> {
@@ -29,7 +29,8 @@ impl Network<f32> {
 
 #[test]
 fn test_net() {
-    let device = CLDevice::get(0).unwrap().select();
+    let device = CPU::new().select();
+    //let device = CLDevice::get(0).unwrap().select();
 
     let loader = LoaderBuilder::<CSV>::new()
         .set_shuffle(true)
@@ -44,6 +45,7 @@ fn test_net() {
     let y = device.onehot(y);
 
     let mut net = Network::new();
+    let mut opt = Adam::new(0.01);
 
     for epoch in range(200) {
         let preds = net.forward(i);
@@ -53,5 +55,6 @@ fn test_net() {
 
         let grad = cce_grad(&device, preds, y);
         net.backward(grad);
+        opt.step(&device, net.params());
     }
 }
