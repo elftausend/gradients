@@ -11,3 +11,5 @@ custos-math = {path = "../custos-math"}
 
 purpur = {path = "../purpur"}
 rand = "*"
+
+gradients-deriv = {path = "../gradients-deriv"}

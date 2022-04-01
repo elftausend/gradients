@@ -7,6 +7,11 @@ pub use random::*;
 pub use layers::*;
 pub use onehot::*;
 
+pub trait NeuralNetwork<T> {
+    fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T>;
+    fn backward(&mut self, grad: Matrix<T>) -> Matrix<T>;
+}
+
 /*pub struct Network<T> {
     layers: Vec<Box<dyn Layer<T>>>,
 }*/

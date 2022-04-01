@@ -1,6 +1,6 @@
-use custos::{Matrix, CPU, AsDev, range, CLDevice};
-use custos_math::{Additional, nn::{SoftmaxOps, cce, cce_grad, mse, mse_grad}};
-use gradients::{Linear, ReLU, create_sine, OnehotOp};
+use custos::{Matrix, AsDev, range, CLDevice};
+use custos_math::{Additional, nn::{cce, cce_grad, mse, mse_grad}};
+use gradients::{Linear, ReLU, create_sine, OnehotOp, Softmax};
 use purpur::{LoaderBuilder, CSV, CSVReturn, CSVLoaderOps};
 
 #[test]
@@ -10,9 +10,9 @@ fn test_sine() {
 
     let (x, y) = create_sine(&device, 0, 1000);
     let mut lin1 = Linear::new(1, 64, 1.);
-    let mut relu1 = ReLU::<f32>::new();
+    let mut relu1 = ReLU::new();
     let mut lin2 = Linear::new(64, 64, 1.);
-    let mut relu2 = ReLU::<f32>::new();
+    let mut relu2 = ReLU::new();
     let mut lin3 = Linear::new(64, 1, 1.);
 
     for epoch in range(21000) {
@@ -59,11 +59,12 @@ fn test_mnist() {
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), loaded_data.y));
     let y = device.onehot(y);
 
-    let mut lin1 = Linear::<f32>::new(784, 512, 0.1);
-    let mut relu1 = ReLU::<f32>::new();
-    let mut lin2 = Linear::<f32>::new(512, 10, 0.1);
-    let mut relu2 = ReLU::<f32>::new();
-    let mut lin3 = Linear::<f32>::new(10, 10, 0.1);
+    let mut lin1 = Linear::new(784, 512, 0.1);
+    let mut relu1 = ReLU::new();
+    let mut lin2 = Linear::new(512, 10, 0.1);
+    let mut relu2 = ReLU::new();
+    let mut lin3 = Linear::new(10, 10, 0.1);
+    let mut softmax = Softmax::new();
 
     for epoch in range(500) {
         let x = lin1.forward(i);
@@ -72,12 +73,12 @@ fn test_mnist() {
         let x = relu2.forward(x);
         let x = lin3.forward(x);
 
-        let x = device.softmax(x);
+        let x = softmax.forward(x);
         
         let loss = cce(&device, x, y);
         let grad = cce_grad(&device, x, y);
         
-        let x = device.softmax_grad(x, grad);
+        let x = softmax.backward(grad);
 
         let x = lin3.backward(x);
         let x = relu2.backward(x);
