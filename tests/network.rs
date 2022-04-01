@@ -1,5 +1,5 @@
 use custos::{Matrix, CPU, AsDev, range, CLDevice};
-use custos_math::{Additional, nn::{Softmax, cce, cce_grad, mse, mse_grad}};
+use custos_math::{Additional, nn::{SoftmaxOps, cce, cce_grad, mse, mse_grad}};
 use gradients::{Linear, ReLU, create_sine, OnehotOp};
 use purpur::{LoaderBuilder, CSV, CSVReturn, CSVLoaderOps};
 
@@ -39,10 +39,8 @@ fn test_sine() {
         lin1.sgd(0.001);
         lin2.sgd(0.001);
         lin3.sgd(0.001);
-
     }
 }
-
 
 #[test]
 fn test_mnist() {
@@ -67,7 +65,7 @@ fn test_mnist() {
     let mut relu2 = ReLU::<f32>::new();
     let mut lin3 = Linear::<f32>::new(10, 10, 0.1);
 
-    for epoch in range(200) {
+    for epoch in range(500) {
         let x = lin1.forward(i);
         let x = relu1.forward(x);
         let x = lin2.forward(x);

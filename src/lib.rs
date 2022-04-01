@@ -7,6 +7,11 @@ pub use random::*;
 pub use layers::*;
 pub use onehot::*;
 
+/*pub struct Network<T> {
+    layers: Vec<Box<dyn Layer<T>>>,
+}*/
+
+
 pub fn create_sine<D: Device<f32>>(device: &D, min: usize, max: usize) -> (Matrix<f32>, Matrix<f32>) {
     let mut x: Vec<f32> = Vec::new(); 
     let mut add = 0f32;

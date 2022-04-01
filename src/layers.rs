@@ -1,6 +1,7 @@
 use custos::{Matrix, cpu::TBlas, number::Float, opencl::GenericOCL};
-use custos_math::{Additional, Row, Sum, Transpose, nn::Activations};
+use custos_math::{Additional, Row, Sum, Transpose, nn::{Activations, Softmax as TSoftmax}};
 use crate::RandMatrix;
+
 
 #[derive(Clone, Copy)]
 pub struct Linear<T> {
@@ -73,6 +74,26 @@ impl <T: Float+GenericOCL>ReLU<T> {
     }
     pub fn backward(&self, grad: Matrix<T>) -> Matrix<T> {
         self.inputs.unwrap().relu_grad() * grad
+    }
+}
+
+pub struct Softmax<T> {
+    activated: Option<Matrix<T>>,
+}
+
+impl <T: GenericOCL+TBlas>Softmax<T> {
+    pub fn new() -> Softmax<T> {
+        Softmax { activated: None }
+    }
+
+    pub fn forward(&mut self, x: Matrix<T>) -> Matrix<T> {
+        let activated = x.softmax();
+        self.activated = Some(activated);
+        activated
+    }
+
+    pub fn backward(&self, grad: Matrix<T>) -> Matrix<T> {
+        grad.softmax_grad(self.activated.unwrap())
     }
 }
 
