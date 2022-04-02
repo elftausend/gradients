@@ -29,8 +29,8 @@ impl Network<f32> {
 
 #[test]
 fn test_net() {
-    let device = CPU::new().select();
-    //let device = CLDevice::get(0).unwrap().select();
+    //let device = CPU::new().select();
+    let device = CLDevice::get(0).unwrap().select();
 
     let loader = LoaderBuilder::<CSV>::new()
         .set_shuffle(true)

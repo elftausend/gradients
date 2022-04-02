@@ -12,7 +12,7 @@ impl <T: Number+purpur::number::Number>OnehotOp<T> for InternCPU {
     
         let data = matrix.as_cpu_slice();
     
-        let max = max(&data).as_usize()+1;
+        let max = max(data).as_usize()+1;
         let mut onehot = vec![T::default(); matrix.rows()*max];
     
         for (row, idx) in data.iter().enumerate() {
