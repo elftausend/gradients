@@ -66,7 +66,7 @@ impl <T: GenericOCL>AdamOp<T> for InternCLDevice {
 
         for (idx, layer_data) in params.iter_mut().enumerate() {
 
-            let output = KernelOptions::new(self.clone(),layer_data.weights, [layer_data.weights.size(), 0, 0], &src)
+            let output = KernelOptions::new(self,layer_data.weights, [layer_data.weights.size(), 0, 0], &src)
                 .add_arg(&layer_data.dweights)
                 .add_arg(&adam.weight_momentum[idx])
                 .add_arg(&adam.weight_cache[idx])
@@ -80,7 +80,7 @@ impl <T: GenericOCL>AdamOp<T> for InternCLDevice {
             
             self.sub_assign(&mut layer_data.weights, output);
 
-            let output = KernelOptions::new(self.clone(), layer_data.bias, [layer_data.bias.size(), 0, 0], &src)
+            let output = KernelOptions::new(self, layer_data.bias, [layer_data.bias.size(), 0, 0], &src)
                 .add_arg(&layer_data.dbias)
                 .add_arg(&adam.bias_momentum[idx])
                 .add_arg(&adam.bias_cache[idx])

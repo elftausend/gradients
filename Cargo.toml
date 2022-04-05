@@ -1,15 +1,5 @@
-[package]
-name = "gradients"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-custos = {path = "../custos"}
-custos-math = {path = "../custos-math"}
-
-purpur = {path = "../purpur"}
-rand = "*"
-
-gradients-derive = {path = "../gradients-derive"}
+[workspace]
+members = [
+    "gradients",
+    "gradients-derive"
+]

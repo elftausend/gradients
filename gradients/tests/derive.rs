@@ -22,7 +22,7 @@ fn test_net() {
     let device = CLDevice::get(0).unwrap().select();
 
     let loader = CSVLoader::new(true);
-    let loaded_data = loader.load("../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
+    let loaded_data = loader.load("../../datasets/mnist/mnist_train.csv").unwrap();
 
     let i = Matrix::from((&device, (loaded_data.sample_count, loaded_data.features), loaded_data.x));
     let i = i.divs(255.);
@@ -30,7 +30,7 @@ fn test_net() {
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), loaded_data.y));
     let y = device.onehot(y);
 
-    let mut net = Network {
+    let mut net: Network<f32> = Network {
         lin1: Linear::new(784, 128, 0.1),
         relu1: ReLU::new(),
         lin2: Linear::new(128, 10, 0.1),
