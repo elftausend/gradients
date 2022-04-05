@@ -6,7 +6,7 @@ Deep Learning library using [custos] and [custos-math].
 [custos-math]: https://github.com/elftausend/custos-math
 
 ## MNIST [example] 
-[example]: https://github.com/elftausend/gradients/blob/main/examples/mnist.rs
+[example]: https://github.com/elftausend/gradients/blob/main/gradients/examples/mnist.rs
 Use a struct that implements the NeuralNetwork trait to define which layers you want to use:
 
 ```rust
