@@ -28,7 +28,9 @@ pub struct Network<T> {
 }
 ```
 Load [data] and create an instance of Network:
+
 [data]: https://www.kaggle.com/datasets/oddrationale/mnist-in-csv
+
 ```rust
 //or use cpu: let device = CPU::new().select();
 let device = CLDevice::get(0).unwrap().select();
