@@ -1,7 +1,8 @@
 use custos::{Matrix, AsDev, range, CLDevice};
 use custos_math::{Additional, nn::{cce, cce_grad, mse, mse_grad}};
 use gradients::{Linear, ReLU, create_sine, OnehotOp, Softmax};
-use purpur::{LoaderBuilder, CSV, CSVReturn, CSVLoaderOps};
+use purpur::{CSVReturn, CSVLoader};
+
 
 #[test]
 fn test_sine() {
@@ -47,9 +48,7 @@ fn test_mnist() {
     //let device = CPU::new().select();
     let device = CLDevice::get(0).unwrap().select();
 
-    let loader = LoaderBuilder::<CSV>::new()
-        .set_shuffle(true)
-        .build();
+    let loader = CSVLoader::new(true);
 
     let loaded_data: CSVReturn<f32> = loader.load("../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
 

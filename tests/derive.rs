@@ -1,8 +1,10 @@
 use custos_math::{Additional, nn::{cce_grad, cce}};
 use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param, Adam};
 use gradients_derive::NeuralNetwork;
-use purpur::{number::Float, LoaderBuilder, CSV, CSVLoaderOps};
-use custos::{Matrix, opencl::GenericOCL, cpu::TBlas, CLDevice, AsDev, range, CPU};
+
+use custos::{number::Float, Matrix, opencl::GenericOCL, cpu::TBlas, CLDevice, AsDev, range};
+use purpur::CSVLoader;
+
 
 #[derive(NeuralNetwork)]
 pub struct Network<T> {
@@ -32,9 +34,7 @@ fn test_net() {
     //let device = CPU::new().select();
     let device = CLDevice::get(0).unwrap().select();
 
-    let loader = LoaderBuilder::<CSV>::new()
-        .set_shuffle(true)
-        .build();
+    let loader = CSVLoader::new(true);
 
     let loaded_data = loader.load("../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
 
