@@ -24,7 +24,8 @@ impl <T: Number>OnehotOp<T> for InternCPU {
                 }
             }
         }
-        Matrix::from((self, (data.len(), max), onehot)) 
+        
+        Matrix::from((self, (data.len(), max), onehot))
     }
 }
 

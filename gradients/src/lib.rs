@@ -2,12 +2,14 @@ mod layers;
 mod random;
 mod onehot;
 mod opt;
+mod accuracy;
 
 use custos::{Matrix, Device};
 pub use random::*;
 pub use layers::*;
 pub use onehot::*;
 pub use opt::*;
+pub use accuracy::*;
 
 pub trait GetParam<T> {
     fn get_params(&self) -> Option<Param<T>>;
