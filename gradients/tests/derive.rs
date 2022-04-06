@@ -46,7 +46,6 @@ fn test_net() {
         let correct_training = correct_classes( &loaded_data.y.as_usize(), preds) as f32;
         
         let loss = cce(&device, preds, y);
-        println!("epoch: {epoch}, loss: {loss}");
         println!("epoch: {epoch}, loss: {loss}, training_acc: {acc}", acc=correct_training / loaded_data.sample_count() as f32);
         
         let grad = cce_grad(&device, preds, y);
