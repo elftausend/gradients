@@ -1,4 +1,4 @@
-use custos::{Matrix, cpu::TBlas, number::Float, opencl::GenericOCL};
+use custos::{Matrix, cpu::TBlas, number::Float, GenericOCL};
 use custos_math::{Additional, Row, Sum, Transpose, nn::{Activations, Softmax as TSoftmax}};
 use crate::{RandMatrix, GetParam, Param};
 
