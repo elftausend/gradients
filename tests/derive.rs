@@ -45,9 +45,9 @@ fn test_net() {
     let y = device.onehot(y);
 
     let mut net = Network::new();
-    let mut opt = Adam::new(0.01);
+    let mut opt = Adam::new(0.002);
 
-    for epoch in range(200) {
+    for epoch in range(1000) {
         let preds = net.forward(i);
 
         let loss = cce(&device, preds, y);
