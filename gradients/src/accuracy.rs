@@ -1,4 +1,4 @@
-use custos::{Matrix, opencl::GenericOCL};
+use custos::{Matrix, GenericOCL};
 use custos_math::Max;
 
 

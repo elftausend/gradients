@@ -1,4 +1,4 @@
-use custos::{number::Number, Matrix, InternCPU, InternCLDevice, opencl::GenericOCL};
+use custos::{number::Number, Matrix, InternCPU, InternCLDevice, GenericOCL};
 use custos_math::switch_to_cpu_help_s;
 use purpur::utils::max;
 

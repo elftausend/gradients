@@ -1,4 +1,4 @@
-use custos::{number::Float, Matrix, Device, InternCPU, BaseOps, opencl::{GenericOCL, KernelOptions}, AssignOps, InternCLDevice};
+use custos::{number::Float, Matrix, Device, InternCPU, BaseOps, opencl::KernelOptions, AssignOps, InternCLDevice, GenericOCL};
 use custos_math::{AdditionalOps, scalar_apply};
 
 use crate::Param;
