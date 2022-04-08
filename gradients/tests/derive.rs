@@ -22,7 +22,9 @@ fn test_net() {
     let device = CLDevice::get(0).unwrap().select();
 
     let loader = CSVLoader::new(true);
-    let loaded_data = loader.load("../../../datasets/mnist/mnist_train.csv").unwrap();
+
+    let loaded_data = loader.load("../../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
+    //let loaded_data = loader.load("../../../datasets/mnist/mnist_train.csv").unwrap();
 
     let i = Matrix::from((&device, (loaded_data.sample_count, loaded_data.features), &loaded_data.x));
     let i = i.divs(255.);

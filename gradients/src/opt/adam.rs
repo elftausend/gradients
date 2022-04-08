@@ -11,26 +11,26 @@ impl <T: Float+GenericOCL>AdamOp<T> for InternCPU {
     fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
         
         for (idx, param) in params.iter_mut().enumerate() {
-            adam.weight_momentum[idx] = self.add(self.muls(adam.weight_momentum[idx], adam.beta1), self.muls(param.dweights, T::one()-adam.beta1));
-            adam.bias_momentum[idx] = self.add(self.muls(adam.bias_momentum[idx], adam.beta1), self.muls(param.dbias, T::one()-adam.beta1));
+            adam.weight_momentum[idx] = self.add(&self.muls(adam.weight_momentum[idx], adam.beta1), &self.muls(param.dweights, T::one()-adam.beta1));
+            adam.bias_momentum[idx] = self.add(&self.muls(adam.bias_momentum[idx], adam.beta1), &self.muls(param.dbias, T::one()-adam.beta1));
 
             let weight_momentum_corrected = self.divs(adam.weight_momentum[idx], T::one() - adam.beta1.powi((adam.iters as i32) + 1));
             let bias_momentum_corrected = self.divs(adam.bias_momentum[idx], T::one() - adam.beta1.powi((adam.iters as i32) + 1));
 
             let map_dweights = scalar_apply(self, param.dweights, T::zero(), |c, a, _| *c = a.powi(2) * (T::one() - adam.beta2));
-            adam.weight_cache[idx] = self.add(self.muls(adam.weight_cache[idx], adam.beta2), map_dweights);
+            adam.weight_cache[idx] = self.add(&self.muls(adam.weight_cache[idx], adam.beta2), &map_dweights);
 
             let map_dbias = scalar_apply(self, param.dbias, T::zero(), |c, a, _| *c = a.powi(2) * (T::one() - adam.beta2));
-            adam.bias_cache[idx] = self.add(self.muls(adam.bias_cache[idx], adam.beta2),map_dbias);
+            adam.bias_cache[idx] = self.add(&self.muls(adam.bias_cache[idx], adam.beta2),&map_dbias);
 
             let weight_cache_corrected = self.divs(adam.weight_cache[idx], T::one() - adam.beta2.powi((adam.iters as i32) + 1));
             let bias_cache_corrected = self.divs(adam.bias_cache[idx], T::one() - adam.beta2.powi((adam.iters as i32) + 1));
 
             let map_weight_cache_corrected = scalar_apply(self, weight_cache_corrected, T::zero(), |c, a, _| *c = a.sqrt() + adam.epsilon);
-            self.sub_assign(&mut param.weights, self.div(self.muls(weight_momentum_corrected, adam.lr), map_weight_cache_corrected));
+            self.sub_assign(&mut param.weights, &self.div(&self.muls(weight_momentum_corrected, adam.lr), &map_weight_cache_corrected));
 
             let map_bias_cache_corrected = scalar_apply(self, bias_cache_corrected, T::zero(), |c, a, _| *c = a.sqrt() + adam.epsilon);
-            self.sub_assign(&mut param.bias, self.div(self.muls(bias_momentum_corrected, adam.lr), map_bias_cache_corrected));
+            self.sub_assign(&mut param.bias, &self.div(&self.muls(bias_momentum_corrected, adam.lr), &map_bias_cache_corrected));
 
         }
         let iters = &mut adam.iters;
@@ -66,7 +66,7 @@ impl <T: GenericOCL>AdamOp<T> for InternCLDevice {
 
         for (idx, layer_data) in params.iter_mut().enumerate() {
 
-            let output = KernelOptions::new(self,layer_data.weights, [layer_data.weights.size(), 0, 0], &src)
+            let output = KernelOptions::new(self,&layer_data.weights, [layer_data.weights.size(), 0, 0], &src)
                 .add_arg(&layer_data.dweights)
                 .add_arg(&adam.weight_momentum[idx])
                 .add_arg(&adam.weight_cache[idx])
@@ -78,9 +78,9 @@ impl <T: GenericOCL>AdamOp<T> for InternCLDevice {
                 .with_output(layer_data.weights.dims())
                 .run().unwrap();
             
-            self.sub_assign(&mut layer_data.weights, output);
+            self.sub_assign(&mut layer_data.weights, &output);
 
-            let output = KernelOptions::new(self, layer_data.bias, [layer_data.bias.size(), 0, 0], &src)
+            let output = KernelOptions::new(self, &layer_data.bias, [layer_data.bias.size(), 0, 0], &src)
                 .add_arg(&layer_data.dbias)
                 .add_arg(&adam.bias_momentum[idx])
                 .add_arg(&adam.bias_cache[idx])
@@ -92,7 +92,7 @@ impl <T: GenericOCL>AdamOp<T> for InternCLDevice {
                 .with_output(layer_data.bias.dims())
                 .run().unwrap();
             
-            self.sub_assign(&mut layer_data.bias, output);
+            self.sub_assign(&mut layer_data.bias, &output);
         }
     }
 }

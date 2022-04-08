@@ -5,15 +5,17 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-#purpur = {git = "https://github.com/elftausend/purpur.git"}
 [dependencies]
 
-custos = {path = "../../custos"}
+custos = {path = "../../custos", features=["opencl"]}
 custos-math = {path = "../../custos-math"}
+purpur = {path = "../../purpur"}
+
 gradients-derive = {path = "../gradients-derive"}
 
-purpur = {path = "../../purpur"}
+
 rand = "*"
 
 #custos = {git = "https://github.com/elftausend/custos.git"}
 #custos-math = {git = "https://github.com/elftausend/custos-math.git"}
+#purpur = {git = "https://github.com/elftausend/purpur.git"}

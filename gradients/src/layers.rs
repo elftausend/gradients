@@ -27,21 +27,21 @@ impl <T: Float+TBlas+GenericOCL>Linear<T> {
     
     pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
         self.inputs = Some(inputs);
-        inputs.gemm(self.weights).add_row(self.bias)
+        inputs.gemm(&self.weights).add_row(self.bias)
     }
 
     pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T> {
         self.dbias = Some(grad.sum_rows());
-        self.dweights = Some(self.inputs.unwrap().T().gemm(grad));
-        grad.gemm(self.weights.T())
+        self.dweights = Some(self.inputs.unwrap().T().gemm(&grad));
+        grad.gemm(&self.weights.T())
     }
 
     pub fn sgd(&mut self, lr: T) {
         let dweights = self.dweights.unwrap();
         let dbias = self.dbias.unwrap();
 
-        self.weights -= dweights.muls(lr);
-        self.bias -= dbias.muls(lr);
+        self.weights -= &dweights.muls(lr);
+        self.bias -= &dbias.muls(lr);
 
         /* 
         for (idx, value) in self.weights.as_mut_slice().iter_mut().enumerate() {
