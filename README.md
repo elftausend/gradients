@@ -16,8 +16,8 @@ use custos_math::{Additional, nn::{cce_grad, cce}};
 use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param, Adam, correct_classes};
 use gradients_derive::NeuralNetwork;
 
-use custos::{number::Float, Matrix, GenericOCL, cpu::TBlas, CLDevice, AsDev, range};
-use purpur::{CSVLoader, Converter};
+use custos::{number::Float, Matrix, cpu::TBlas, CLDevice, AsDev, range, GenericOCL};
+use purpur::{CSVLoader, Converter, CSVReturn};
 
 #[derive(NeuralNetwork)]
 pub struct Network<T> {
@@ -38,7 +38,7 @@ Load [data] and create an instance of Network:
 let device = CLDevice::get(0).unwrap().select();
 
 let loader = CSVLoader::new(true);
-let loaded_data = loader.load("../datasets/mnist/_train.csv").unwrap(); //you will need to download the dataset
+let loaded_data: CSVReturn<f32> = loader.load("../datasets/mnist/_train.csv").unwrap(); //you will need to download the dataset
 
 let i = Matrix::from((&device, (loaded_data.sample_count, loaded_data.features), &loaded_data.x));
 let i = i.divs(255.);

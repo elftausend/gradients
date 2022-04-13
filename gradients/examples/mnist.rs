@@ -3,7 +3,7 @@ use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param,
 use gradients_derive::NeuralNetwork;
 
 use custos::{number::Float, Matrix, cpu::TBlas, CLDevice, AsDev, range, GenericOCL};
-use purpur::{CSVLoader, Converter};
+use purpur::{CSVLoader, Converter, CSVReturn};
 
 
 #[derive(NeuralNetwork)]
@@ -21,7 +21,7 @@ fn main() {
     let device = CLDevice::get(0).unwrap().select();
 
     let loader = CSVLoader::new(true);
-    let loaded_data = loader.load("PATH/TO/DATASET/mnist_train.csv").unwrap();
+    let loaded_data: CSVReturn<f32> = loader.load("PATH/TO/DATASET/mnist_train.csv").unwrap();
 
     let i = Matrix::from((&device, (loaded_data.sample_count, loaded_data.features), &loaded_data.x));
     let i = i.divs(255.);
