@@ -7,8 +7,8 @@ edition = "2021"
 
 [dependencies]
 
-custos = {path = "../../custos", features=["opencl"]}
-custos-math = {path = "../../custos-math"}
+custos = {path = "../../custos", features=["opencl",]}
+custos-math = {path = "../../custos-math", features=[]}
 purpur = {path = "../../purpur"}
 
 gradients-derive = {path = "../gradients-derive"}

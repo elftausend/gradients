@@ -2,7 +2,7 @@ use custos::{Matrix, cpu::TBlas, number::Float, GenericOCL};
 use custos_math::{Additional, Row, Sum, Transpose, nn::{Activations, Softmax as TSoftmax}};
 use crate::{RandMatrix, GetParam, Param};
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Linear<T> {
     pub weights: Matrix<T>,
     pub bias: Matrix<T>,
@@ -62,7 +62,7 @@ impl <T: Copy>GetParam<T> for Linear<T> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct ReLU<T> {
     inputs: Option<Matrix<T>>
 }

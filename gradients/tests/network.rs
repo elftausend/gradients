@@ -75,8 +75,8 @@ fn test_mnist() {
 
         let x = softmax.forward(x);
         
-        let loss = cce(&device, x, y);
-        let grad = cce_grad(&device, x, y);
+        let loss = cce(&device, &x, &y);
+        let grad = cce_grad(&device, &x, &y);
         
         let x = softmax.backward(grad);
 

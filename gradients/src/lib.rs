@@ -15,7 +15,7 @@ pub trait GetParam<T> {
     fn get_params(&self) -> Option<Param<T>>;
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, )]
 pub struct Param<T> {
     pub weights: Matrix<T>,
     pub bias: Matrix<T>,
