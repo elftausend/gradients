@@ -18,8 +18,8 @@ pub struct Network<T> {
 
 #[test]
 fn test_net() {
-    let device = CPU::new().select();
-    //let device = CLDevice::get(0).unwrap().select();
+    let _device = CPU::new().select();
+    let device = CLDevice::get(0).unwrap().select();
 
     let loader = CSVLoader::new(true);
 

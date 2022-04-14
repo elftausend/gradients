@@ -62,6 +62,12 @@ impl <T: Copy>GetParam<T> for Linear<T> {
     }
 }
 
+impl<T> Default for Linear<T> {
+    fn default() -> Self {
+        Self { weights: Default::default(), bias: Default::default(), dweights: Default::default(), dbias: Default::default(), inputs: Default::default() }
+    }
+}
+
 #[derive(Clone)]
 pub struct ReLU<T> {
     inputs: Option<Matrix<T>>
@@ -83,6 +89,11 @@ impl <T: Float+GenericOCL>ReLU<T> {
 impl <T: Copy>GetParam<T> for ReLU<T> {
     fn get_params(&self) -> Option<Param<T>> {
         None
+    }
+}
+impl <T>Default for ReLU<T> {
+    fn default() -> Self {
+        Self { inputs: Default::default() }
     }
 }
 
@@ -109,6 +120,12 @@ impl <T: GenericOCL+TBlas>Softmax<T> {
 impl <T: Copy>GetParam<T> for Softmax<T> {
     fn get_params(&self) -> Option<Param<T>> {
         None
+    }
+}
+
+impl<T> Default for Softmax<T> {
+    fn default() -> Self {
+        Self { activated: Default::default() }
     }
 }
 

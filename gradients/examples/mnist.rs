@@ -6,7 +6,7 @@ use custos::{number::Float, Matrix, cpu::TBlas, CLDevice, AsDev, range, GenericO
 use purpur::{CSVLoader, Converter, CSVReturn};
 
 
-#[derive(NeuralNetwork)]
+#[derive(NeuralNetwork, Default)]
 pub struct Network<T> {
     lin1: Linear<T>,
     relu1: ReLU<T>,
@@ -31,11 +31,9 @@ fn main() {
 
     let mut net = Network {
         lin1: Linear::new(784, 128, 0.1),
-        relu1: ReLU::new(),
         lin2: Linear::new(128, 10, 0.1),
-        relu2: ReLU::new(),
         lin3: Linear::new(10, 10, 0.1),
-        softmax: Softmax::new(),
+        ..Default::default()
     };
 
     let mut opt = Adam::new(0.01);
