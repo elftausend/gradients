@@ -1,8 +1,8 @@
 use custos_math::{Additional, nn::{cce_grad, cce}};
-use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param, Adam, correct_classes};
+use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param, correct_classes, SGD};
 use gradients_derive::NeuralNetwork;
 
-use custos::{number::Float, Matrix, GenericOCL, cpu::TBlas, CLDevice, AsDev, range, CPU};
+use custos::{number::Float, Matrix, GenericOCL, cpu::TBlas, CLDevice, AsDev, range};
 use purpur::{CSVLoader, Converter};
 
 
@@ -18,7 +18,7 @@ pub struct Network<T> {
 
 #[test]
 fn test_net() {
-    let _device = CPU::new().select();
+    //let device = custos::CPU::new().select();
     let device = CLDevice::get(0).unwrap().select();
 
     let loader = CSVLoader::new(true);
@@ -39,9 +39,10 @@ fn test_net() {
         ..Default::default()
     };
 
-    let mut opt = Adam::new(0.002);
+    //let mut opt = gradients::Adam::new(0.002);
+    let mut opt = SGD::new(0.1).momentum(0.8);
 
-    for epoch in range(30) {
+    for epoch in range(300) {
         let preds = net.forward(i);
         let correct_training = correct_classes( &loaded_data.y.as_usize(), preds) as f32;
         
