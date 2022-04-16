@@ -10,11 +10,11 @@ fn test_sine() {
     let device = CLDevice::get(0).unwrap().select();
 
     let (x, y) = create_sine(&device, 0, 1000);
-    let mut lin1 = Linear::new(1, 64, 1.);
+    let mut lin1 = Linear::new(1, 64);
     let mut relu1 = ReLU::new();
-    let mut lin2 = Linear::new(64, 64, 1.);
+    let mut lin2 = Linear::new(64, 64);
     let mut relu2 = ReLU::new();
-    let mut lin3 = Linear::new(64, 1, 1.);
+    let mut lin3 = Linear::new(64, 1);
 
     for epoch in range(21000) {
         let x = lin1.forward(x);
@@ -58,11 +58,11 @@ fn test_mnist() {
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), loaded_data.y));
     let y = device.onehot(y);
     
-    let mut lin1 = Linear::new(784, 512, 0.1);
+    let mut lin1 = Linear::new(784, 512);
     let mut relu1 = ReLU::new();
-    let mut lin2 = Linear::new(512, 10, 0.1);
+    let mut lin2 = Linear::new(512, 10);
     let mut relu2 = ReLU::new();
-    let mut lin3 = Linear::new(10, 10, 0.1);
+    let mut lin3 = Linear::new(10, 10);
     let mut softmax = Softmax::new();
 
     for epoch in range(500) {

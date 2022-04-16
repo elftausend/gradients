@@ -12,12 +12,13 @@ pub struct Linear<T> {
 }
 
 impl<T: Float+TBlas+GenericOCL> Linear<T> {
-    pub fn new(input_size: usize, output_size: usize, weight_size: T) -> Linear<T> {
+    pub fn new(input_size: usize, output_size: usize) -> Linear<T> {
         let mut weights = Matrix::<T>::from((input_size, output_size));
         
-        weights.rand();
+        let init = (T::from_usize(6) / T::from_usize(input_size + output_size)).sqrt();
+        weights.rand(init.negate(), init);
         
-        let weights = weights.muls(weight_size);
+        //let weights = weights.muls(weight_size);
         //let weights = weights + (T::one() / T::from_usize(100));
 
         let bias = Matrix::<T>::from((1, output_size));

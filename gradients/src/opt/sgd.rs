@@ -3,7 +3,6 @@ use custos_math::Additional;
 
 use crate::Param;
 
-
 pub struct SGD<T> {
     lr: T,
     weight_momentum: Vec<Matrix<T>>,

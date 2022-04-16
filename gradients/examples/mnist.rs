@@ -30,9 +30,9 @@ fn main() {
     let y = device.onehot(y);
 
     let mut net = Network {
-        lin1: Linear::new(784, 128, 0.1),
-        lin2: Linear::new(128, 10, 0.1),
-        lin3: Linear::new(10, 10, 0.1),
+        lin1: Linear::new(784, 128),
+        lin2: Linear::new(128, 10),
+        lin3: Linear::new(10, 10),
         ..Default::default()
     };
 
