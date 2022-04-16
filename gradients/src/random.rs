@@ -15,7 +15,7 @@ pub trait RandOp<T>: Device<T> {
     fn rand(&self, x: &mut Matrix<T>);
 }
 
-impl <T: Float>RandOp<T> for InternCPU {
+impl<T: Float> RandOp<T> for InternCPU {
     fn rand(&self, x: &mut Matrix<T>) {
         let mut rng = thread_rng();
         for value in x.as_cpu_slice_mut() {
@@ -24,7 +24,7 @@ impl <T: Float>RandOp<T> for InternCPU {
     }
 }
 
-impl <T: Float>RandOp<T> for InternCLDevice {
+impl<T: Float> RandOp<T> for InternCLDevice {
     fn rand(&self, x: &mut Matrix<T>) {
         let mut rng = thread_rng();
         let mut data = self.read(x.data());

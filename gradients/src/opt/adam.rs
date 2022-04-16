@@ -3,11 +3,54 @@ use custos_math::{AdditionalOps, scalar_apply};
 
 use crate::Param;
 
+pub struct Adam<T> {
+    lr: T,
+    epsilon: T,
+    beta1: T,
+    beta2: T,
+    pub iters: u64,
+    weight_momentum: Vec<Matrix<T>>,
+    weight_cache: Vec<Matrix<T>>,
+    bias_momentum: Vec<Matrix<T>>,
+    bias_cache: Vec<Matrix<T>>,
+}
+
+impl<T: Float> Adam<T> {
+    pub fn new(lr: T) -> Adam<T> {
+        Adam {
+            lr,
+            epsilon: T::as_generic(1e-7),
+            beta1: T::as_generic(0.9),
+            beta2: T::as_generic(0.999),
+            iters: 0,
+            weight_momentum: Vec::new(),
+            weight_cache: Vec::new(),
+            bias_momentum: Vec::new(),
+            bias_cache: Vec::new(),
+        }
+    }
+    pub fn step<D: Device<T>+AdamOp<T>+Clone>(&mut self, device: &D, params: Vec<Param<T>>) {
+        if self.weight_cache.len() < params.len() {
+        
+            for param in params.iter() {
+                self.weight_cache.push(Matrix::new(device.clone(), param.weights.dims()));
+                self.weight_momentum.push(Matrix::new(device.clone(), param.weights.dims()));
+    
+                self.bias_cache.push(Matrix::new(device.clone(), param.bias.dims()));
+                self.bias_momentum.push(Matrix::new(device.clone(), param.bias.dims()));
+            }
+        }
+        device.step(self, params);
+
+    }
+}
+
+
 pub trait AdamOp<T> {
     fn step(&self, adam: &mut Adam<T>, params: Vec<Param<T>>);
 }
 
-impl <T: Float+GenericOCL>AdamOp<T> for InternCPU {
+impl<T: Float+GenericOCL> AdamOp<T> for InternCPU {
     fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
         
         for (idx, param) in params.iter_mut().enumerate() {
@@ -38,7 +81,7 @@ impl <T: Float+GenericOCL>AdamOp<T> for InternCPU {
     }
 }
 
-impl <T: GenericOCL>AdamOp<T> for InternCLDevice {
+impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
     fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
 
         let src = format!("__kernel void adam(
@@ -94,47 +137,5 @@ impl <T: GenericOCL>AdamOp<T> for InternCLDevice {
             
             self.sub_assign(&mut layer_data.bias, &output);
         }
-    }
-}
-
-pub struct Adam<T> {
-    lr: T,
-    epsilon: T,
-    beta1: T,
-    beta2: T,
-    pub iters: u64,
-    weight_momentum: Vec<Matrix<T>>,
-    weight_cache: Vec<Matrix<T>>,
-    bias_momentum: Vec<Matrix<T>>,
-    bias_cache: Vec<Matrix<T>>,
-}
-
-impl <T: Float>Adam<T> {
-    pub fn new(lr: T) -> Adam<T> {
-        Adam {
-            lr,
-            epsilon: T::as_generic(1e-7),
-            beta1: T::as_generic(0.9),
-            beta2: T::as_generic(0.999),
-            iters: 0,
-            weight_momentum: Vec::new(),
-            weight_cache: Vec::new(),
-            bias_momentum: Vec::new(),
-            bias_cache: Vec::new(),
-        }
-    }
-    pub fn step<D: Device<T>+AdamOp<T>+Clone>(&mut self, device: &D, params: Vec<Param<T>>) {
-        if self.weight_cache.len() < params.len() {
-        
-            for param in params.iter() {
-                self.weight_cache.push(Matrix::new(device.clone(), param.weights.dims()));
-                self.weight_momentum.push(Matrix::new(device.clone(), param.weights.dims()));
-    
-                self.bias_cache.push(Matrix::new(device.clone(), param.bias.dims()));
-                self.bias_momentum.push(Matrix::new(device.clone(), param.bias.dims()));
-            }
-        }
-        device.step(self, params);
-
     }
 }

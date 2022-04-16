@@ -11,7 +11,7 @@ pub struct Linear<T> {
     inputs: Option<Matrix<T>>,
 }
 
-impl <T: Float+TBlas+GenericOCL>Linear<T> {
+impl<T: Float+TBlas+GenericOCL> Linear<T> {
     pub fn new(input_size: usize, output_size: usize, weight_size: T) -> Linear<T> {
         let mut weights = Matrix::<T>::from((input_size, output_size));
         
@@ -56,7 +56,7 @@ impl <T: Float+TBlas+GenericOCL>Linear<T> {
     }
 }
 
-impl <T: Copy>GetParam<T> for Linear<T> {
+impl<T: Copy> GetParam<T> for Linear<T> {
     fn get_params(&self) -> Option<Param<T>> {
         Some(Param::new(self.weights, self.bias, self.dweights.unwrap(), self.dbias.unwrap()))
     }
@@ -73,7 +73,7 @@ pub struct ReLU<T> {
     inputs: Option<Matrix<T>>
 }
 
-impl <T: Float+GenericOCL>ReLU<T> {
+impl<T: Float+GenericOCL> ReLU<T> {
     pub fn new() -> ReLU<T> {
         ReLU { inputs: None }
     }
@@ -86,12 +86,12 @@ impl <T: Float+GenericOCL>ReLU<T> {
     }
 }
 
-impl <T: Copy>GetParam<T> for ReLU<T> {
+impl<T: Copy> GetParam<T> for ReLU<T> {
     fn get_params(&self) -> Option<Param<T>> {
         None
     }
 }
-impl <T>Default for ReLU<T> {
+impl<T> Default for ReLU<T> {
     fn default() -> Self {
         Self { inputs: Default::default() }
     }
@@ -101,7 +101,7 @@ pub struct Softmax<T> {
     activated: Option<Matrix<T>>,
 }
 
-impl <T: GenericOCL+TBlas>Softmax<T> {
+impl<T: GenericOCL+TBlas> Softmax<T> {
     pub fn new() -> Softmax<T> {
         Softmax { activated: None }
     }
@@ -117,7 +117,7 @@ impl <T: GenericOCL+TBlas>Softmax<T> {
     }
 }
 
-impl <T: Copy>GetParam<T> for Softmax<T> {
+impl<T: Copy> GetParam<T> for Softmax<T> {
     fn get_params(&self) -> Option<Param<T>> {
         None
     }

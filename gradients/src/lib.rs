@@ -14,8 +14,6 @@ pub use accuracy::*;
 pub trait GetParam<T> {
     fn get_params(&self) -> Option<Param<T>>;
 }
-
-#[derive(Clone, )]
 pub struct Param<T> {
     pub weights: Matrix<T>,
     pub bias: Matrix<T>,
@@ -23,7 +21,7 @@ pub struct Param<T> {
     pub dbias: Matrix<T>,
 }
 
-impl <T>Param<T> {
+impl<T> Param< T> {
     pub fn new(weights: Matrix<T>, bias: Matrix<T>, dweights: Matrix<T>, dbias: Matrix<T>) -> Param<T> {
         Param { weights, bias, dweights, dbias }
     }
@@ -34,11 +32,6 @@ pub trait NeuralNetwork<T> {
     fn backward(&mut self, grad: Matrix<T>) -> Matrix<T>;
     fn params(&mut self) -> Vec<Param<T>>;
 }
-
-/*pub struct Network<T> {
-    layers: Vec<Box<dyn Layer<T>>>,
-}*/
-
 
 pub fn create_sine<D: Device<f32>>(device: &D, min: usize, max: usize) -> (Matrix<f32>, Matrix<f32>) {
     let mut x: Vec<f32> = Vec::new(); 

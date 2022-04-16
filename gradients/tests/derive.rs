@@ -34,11 +34,9 @@ fn test_net() {
 
     let mut net: Network<f32> = Network {
         lin1: Linear::new(784, 128, 0.1),
-        relu1: ReLU::new(),
         lin2: Linear::new(128, 10, 0.1),
-        relu2: ReLU::new(),
         lin3: Linear::new(10, 10, 0.1),
-        softmax: Softmax::new(),
+        ..Default::default()
     };
 
     let mut opt = Adam::new(0.002);

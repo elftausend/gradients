@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 
-custos = {path = "../../custos", features=["opencl",]}
+custos = {path = "../../custos", features=["opencl"]}
 custos-math = {path = "../../custos-math", features=[]}
 purpur = {path = "../../purpur"}
 

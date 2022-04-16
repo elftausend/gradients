@@ -6,7 +6,7 @@ use custos::{number::Float, Matrix, cpu::TBlas, CLDevice, AsDev, range, GenericO
 use purpur::{CSVLoader, Converter, CSVReturn};
 
 
-#[derive(NeuralNetwork, Default)]
+#[derive(NeuralNetwork)]
 pub struct Network<T> {
     lin1: Linear<T>,
     relu1: ReLU<T>,

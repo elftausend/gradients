@@ -25,16 +25,10 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
         quote!(self.#name.forward(#acc))
     });
 
-    /*
-    let mut field_iter = fields.iter();
-    let first_field = &field_iter.next().unwrap().ident;
-    let first_forward = quote!(let a = self.#first_field.forward2(inputs););
-     
-    let forward_chain2 = field_iter.fold(quote!(a), |acc, f| {
+    let default_chain = fields.iter().map(|f| {
         let name = &f.ident;
-        quote!(self.#name.forward(&#acc))
-    });
-    */
+        quote!(#name: Default::default(),)
+    }).collect::<TokenStream>();
 
     let backward_chain = fields.iter().rev().fold(quote!(grad), |acc, f| {
         let name = &f.ident;
@@ -53,7 +47,13 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
     
 
     quote! {
-        impl <T: Float+GenericOCL+TBlas>NeuralNetwork<T> for #name<T> {
+        impl<T> Default for #name<T> {
+            fn default() -> Self {
+                Self { #default_chain }
+            }
+        }
+
+        impl<T: Float+GenericOCL+TBlas> NeuralNetwork<T> for #name<T> {
             fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
                 #forward_chain
             }
