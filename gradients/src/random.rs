@@ -1,4 +1,6 @@
-use custos::{Device, Matrix, InternCPU, number::Float, InternCLDevice, VecRead, opencl::cl_write, get_device};
+use custos::{
+    get_device, number::Float, opencl::cl_write, Device, InternCLDevice, InternCPU, Matrix, VecRead,
+};
 use rand::{thread_rng, Rng, distributions::uniform::SampleUniform};
 
 pub trait RandMatrix<T> {
@@ -28,7 +30,7 @@ impl<T: Float + SampleUniform> RandOp<T> for InternCLDevice {
     fn rand(&self, x: &mut Matrix<T>, lo: T, hi: T) {
         let mut rng = thread_rng();
         let mut data = self.read(x.data());
-        
+
         for value in data.iter_mut() {
             *value = rng.gen_range(lo..hi);
         }

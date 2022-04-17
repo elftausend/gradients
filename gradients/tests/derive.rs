@@ -1,10 +1,14 @@
-use custos_math::{Additional, nn::{cce_grad, cce}};
-use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param, correct_classes, SGD};
+use custos_math::{
+    nn::{cce, cce_grad},
+    Additional,
+};
+use gradients::{
+    correct_classes, GetParam, Linear, NeuralNetwork, OnehotOp, Param, ReLU, Softmax, SGD,
+};
 use gradients_derive::NeuralNetwork;
 
 use custos::{Matrix, CLDevice, AsDev, range};
 use purpur::{CSVLoader, Converter};
-
 
 #[derive(NeuralNetwork)]
 pub struct Network<T> {
@@ -23,10 +27,16 @@ fn test_net() {
 
     let loader = CSVLoader::new(true);
 
-    let loaded_data = loader.load("../../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
+    let loaded_data = loader
+        .load("../../gradients-fallback/datasets/digit-recognizer/train.csv")
+        .unwrap();
     //let loaded_data = loader.load("../../../datasets/mnist/mnist_train.csv").unwrap();
 
-    let i = Matrix::from((&device, (loaded_data.sample_count, loaded_data.features), &loaded_data.x));
+    let i = Matrix::from((
+        &device,
+        (loaded_data.sample_count, loaded_data.features),
+        &loaded_data.x,
+    ));
     let i = i.divs(255.);
 
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
@@ -44,11 +54,14 @@ fn test_net() {
 
     for epoch in range(300) {
         let preds = net.forward(i);
-        let correct_training = correct_classes( &loaded_data.y.as_usize(), preds) as f32;
-        
+        let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
+
         let loss = cce(&device, &preds, &y);
-        println!("epoch: {epoch}, loss: {loss}, training_acc: {acc}", acc=correct_training / loaded_data.sample_count() as f32);
-        
+        println!(
+            "epoch: {epoch}, loss: {loss}, training_acc: {acc}",
+            acc = correct_training / loaded_data.sample_count() as f32
+        );
+
         let grad = cce_grad(&device, &preds, &y);
         net.backward(grad);
         opt.step(&device, net.params());

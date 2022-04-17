@@ -1,8 +1,10 @@
-use custos::{Matrix, GenericOCL};
+use custos::{GenericOCL, Matrix};
 use custos_math::Max;
 
-
-pub fn find_idxs<T: Copy+Default+PartialEq>(search_for: Matrix<T>, search_with: Matrix<T>) -> Vec<usize> {
+pub fn find_idxs<T: Copy + Default + PartialEq>(
+    search_for: Matrix<T>,
+    search_with: Matrix<T>,
+) -> Vec<usize> {
     let rows = search_for.rows();
     let search_for = search_for.read();
     let search_with = search_with.read();

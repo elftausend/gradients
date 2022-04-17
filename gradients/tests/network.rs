@@ -1,8 +1,10 @@
-use custos::{Matrix, AsDev, range, CLDevice, CPU};
-use custos_math::{Additional, nn::{cce, cce_grad, mse, mse_grad}};
-use gradients::{Linear, ReLU, create_sine, OnehotOp, Softmax};
-use purpur::{CSVReturn, CSVLoader};
-
+use custos::{range, AsDev, CLDevice, Matrix, CPU};
+use custos_math::{
+    nn::{cce, cce_grad, mse, mse_grad},
+    Additional,
+};
+use gradients::{create_sine, Linear, OnehotOp, ReLU, Softmax};
+use purpur::{CSVLoader, CSVReturn};
 
 #[test]
 fn test_sine() {
@@ -22,13 +24,13 @@ fn test_sine() {
         let x = lin2.forward(x);
         let x = relu2.forward(x);
         let x = lin3.forward(x);
-        
+
         let loss = mse(&device, x, y);
 
         if epoch % 100 == 0 {
             println!("epoch: {epoch}, loss: {loss:?}");
         }
-    
+
         let grad = mse_grad(&device, x, y);
 
         let x = lin3.backward(grad);
@@ -50,14 +52,20 @@ fn test_mnist() {
 
     let loader = CSVLoader::new(true);
 
-    let loaded_data: CSVReturn<f32> = loader.load("../../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
+    let loaded_data: CSVReturn<f32> = loader
+        .load("../../gradients-fallback/datasets/digit-recognizer/train.csv")
+        .unwrap();
 
-    let i = Matrix::from((&device, (loaded_data.sample_count, loaded_data.features), loaded_data.x));
+    let i = Matrix::from((
+        &device,
+        (loaded_data.sample_count, loaded_data.features),
+        loaded_data.x,
+    ));
     let i = i.divs(255.);
 
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), loaded_data.y));
     let y = device.onehot(y);
-    
+
     let mut lin1 = Linear::new(784, 512);
     let mut relu1 = ReLU::new();
     let mut lin2 = Linear::new(512, 10);
@@ -66,7 +74,6 @@ fn test_mnist() {
     let mut softmax = Softmax::new();
 
     for epoch in range(500) {
-        
         let x = lin1.forward(i);
         let x = relu1.forward(x);
         let x = lin2.forward(x);
@@ -74,10 +81,10 @@ fn test_mnist() {
         let x = lin3.forward(x);
 
         let x = softmax.forward(x);
-        
+
         let loss = cce(&device, &x, &y);
         let grad = cce_grad(&device, &x, &y);
-        
+
         let x = softmax.backward(grad);
 
         let x = lin3.backward(x);
@@ -92,5 +99,4 @@ fn test_mnist() {
 
         println!("epoch: {epoch}, loss: {loss}");
     }
-
 }

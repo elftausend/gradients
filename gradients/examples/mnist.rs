@@ -1,5 +1,8 @@
-use custos_math::{Additional, nn::{cce_grad, cce}};
-use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param, Adam, correct_classes};
+use custos_math::{
+    nn::{cce, cce_grad},
+    Additional,
+};
+use gradients::{correct_classes, Adam, GetParam, Linear, NeuralNetwork, OnehotOp, Param, ReLU, Softmax};
 use gradients_derive::NeuralNetwork;
 
 use custos::{Matrix, CLDevice, AsDev, range};
@@ -22,7 +25,11 @@ fn main() {
     let loader = CSVLoader::new(true);
     let loaded_data: CSVReturn<f32> = loader.load("PATH/TO/DATASET/mnist_train.csv").unwrap();
 
-    let i = Matrix::from((&device, (loaded_data.sample_count, loaded_data.features), &loaded_data.x));
+    let i = Matrix::from((
+        &device,
+        (loaded_data.sample_count, loaded_data.features),
+        &loaded_data.x,
+    ));
     let i = i.divs(255.);
 
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
@@ -39,10 +46,13 @@ fn main() {
 
     for epoch in range(200) {
         let preds = net.forward(i);
-        let correct_training = correct_classes( &loaded_data.y.as_usize(), preds) as f32;
+        let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
 
         let loss = cce(&device, &preds, &y);
-        println!("epoch: {epoch}, loss: {loss}, training_acc: {acc}", acc=correct_training / loaded_data.sample_count() as f32);
+        println!(
+            "epoch: {epoch}, loss: {loss}, training_acc: {acc}",
+            acc = correct_training / loaded_data.sample_count() as f32
+        );
 
         let grad = cce_grad(&device, &preds, &y);
         net.backward(grad);
