@@ -47,12 +47,10 @@ let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
 let y = device.onehot(y);
 
 let mut net: Network<f32> = Network {
-    lin1: Linear::new(784, 128, 0.1),
-    relu1: ReLU::new(),
-    lin2: Linear::new(128, 10, 0.1),
-    relu2: ReLU::new(),
-    lin3: Linear::new(10, 10, 0.1),
-    softmax: Softmax::new(),
+    lin1: Linear::new(784, 128),
+    lin2: Linear::new(128, 10),
+    lin3: Linear::new(10, 10),
+    ..Default::default()
 };
 ```
 

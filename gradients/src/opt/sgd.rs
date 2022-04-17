@@ -1,4 +1,4 @@
-use custos::{Matrix, InternCPU, GenericOCL, InternCLDevice, opencl::KernelOptions};
+use custos::{opencl::KernelOptions, GenericOCL, InternCLDevice, InternCPU, Matrix};
 use custos_math::Additional;
 
 use crate::Param;
@@ -7,12 +7,17 @@ pub struct SGD<T> {
     lr: T,
     weight_momentum: Vec<Matrix<T>>,
     bias_momentum: Vec<Matrix<T>>,
-    momentum: T
+    momentum: T,
 }
 
 impl<T: GenericOCL> SGD<T> {
     pub fn new(lr: T) -> Self {
-        SGD { lr, weight_momentum: Vec::new(), bias_momentum: Vec::new(), momentum: T::one() / T::two() }
+        SGD {
+            lr,
+            weight_momentum: Vec::new(),
+            bias_momentum: Vec::new(),
+            momentum: T::one() / T::two(),
+        }
     }
 
     pub fn momentum(mut self, momentum: T) -> Self {
@@ -22,10 +27,10 @@ impl<T: GenericOCL> SGD<T> {
 
     pub fn step<D: SGDOp<T>>(&mut self, device: &D, params: Vec<Param<T>>) {
         if self.momentum > T::zero() {
-
             if self.weight_momentum.len() < params.len() {
                 for param in &params {
-                    self.weight_momentum.push(Matrix::from(param.weights.dims()));
+                    self.weight_momentum
+                        .push(Matrix::from(param.weights.dims()));
                     self.bias_momentum.push(Matrix::from(param.bias.dims()));
                 }
             }
@@ -47,19 +52,19 @@ pub trait SGDOp<T: GenericOCL> {
     fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>);
 }
 
-impl <T: GenericOCL>SGDOp<T> for InternCPU {
+impl<T: GenericOCL> SGDOp<T> for InternCPU {
     fn step_momentum(&self, sgd: &mut SGD<T>, mut params: Vec<Param<T>>) {
-        
         for (layer_idx, param) in params.iter_mut().enumerate() {
-        
             for (idx, w) in param.weights.as_cpu_slice_mut().iter_mut().enumerate() {
-                let update = sgd.momentum * sgd.weight_momentum[layer_idx].as_cpu_slice()[idx] + param.dweights.as_cpu_slice()[idx] * sgd.lr;
+                let update = sgd.momentum * sgd.weight_momentum[layer_idx].as_cpu_slice()[idx]
+                    + param.dweights.as_cpu_slice()[idx] * sgd.lr;
                 *w -= update;
                 sgd.weight_momentum[layer_idx].as_cpu_slice_mut()[idx] = update;
             }
-        
+
             for (idx, b) in param.bias.as_cpu_slice_mut().iter_mut().enumerate() {
-                let update = sgd.momentum * sgd.bias_momentum[layer_idx].as_cpu_slice()[idx] + param.dbias.as_cpu_slice()[idx] * sgd.lr;
+                let update = sgd.momentum * sgd.bias_momentum[layer_idx].as_cpu_slice()[idx]
+                    + param.dbias.as_cpu_slice()[idx] * sgd.lr;
                 *b -= update;
                 sgd.bias_momentum[layer_idx].as_cpu_slice_mut()[idx] = update;
             }
@@ -67,9 +72,10 @@ impl <T: GenericOCL>SGDOp<T> for InternCPU {
     }
 }
 
-impl <T: GenericOCL>SGDOp<T> for InternCLDevice {
+impl<T: GenericOCL> SGDOp<T> for InternCLDevice {
     fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>) {
-        let src = format!("
+        let src = format!(
+            "
             __kernel void sgd_momentum(
                 __global {dt}* values, 
                 __global const {dt}* dvalues, 
@@ -83,7 +89,9 @@ impl <T: GenericOCL>SGDOp<T> for InternCLDevice {
                     values[i] -= value_update;
                     value_momentum[i] = value_update;
                 }}
-        ", dt=T::as_ocl_type_str());
+        ",
+            dt = T::as_ocl_type_str()
+        );
 
         for (idx, param) in params.iter().enumerate() {
             KernelOptions::new(self, &param.weights, [param.weights.size(), 0, 0], &src)
@@ -91,15 +99,16 @@ impl <T: GenericOCL>SGDOp<T> for InternCLDevice {
                 .add_arg(&sgd.weight_momentum[idx])
                 .add_arg(&sgd.momentum)
                 .add_arg(&sgd.lr)
-                .run().unwrap();
+                .run()
+                .unwrap();
 
             KernelOptions::new(self, &param.bias, [param.bias.size(), 0, 0], &src)
                 .add_arg(&param.dbias)
                 .add_arg(&sgd.bias_momentum[idx])
                 .add_arg(&sgd.momentum)
                 .add_arg(&sgd.lr)
-                .run().unwrap();
+                .run()
+                .unwrap();
         }
     }
 }
-

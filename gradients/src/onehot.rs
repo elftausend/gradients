@@ -1,4 +1,4 @@
-use custos::{number::Number, Matrix, InternCPU, InternCLDevice, GenericOCL};
+use custos::{number::Number, GenericOCL, InternCLDevice, InternCPU, Matrix};
 use custos_math::switch_to_cpu_help_s;
 use purpur::utils::max;
 
@@ -9,22 +9,22 @@ pub trait OnehotOp<T> {
 impl<T: Number> OnehotOp<T> for InternCPU {
     fn onehot(&self, matrix: Matrix<T>) -> Matrix<T> {
         assert!(matrix.cols() == 1);
-    
+
         let data = matrix.as_cpu_slice();
-    
-        let max = max(data).as_usize()+1;
-        let mut onehot = vec![T::default(); matrix.rows()*max];
-    
+
+        let max = max(data).as_usize() + 1;
+        let mut onehot = vec![T::default(); matrix.rows() * max];
+
         for (row, idx) in data.iter().enumerate() {
             for i in 0..max {
                 if i == idx.as_usize() {
-                    onehot[row*max+i] = T::one();
+                    onehot[row * max + i] = T::one();
                 } else {
-                    onehot[row*max+i] = T::zero();
+                    onehot[row * max + i] = T::zero();
                 }
             }
         }
-        
+
         Matrix::from((self, (data.len(), max), onehot))
     }
 }
