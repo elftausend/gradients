@@ -2,7 +2,7 @@ use custos_math::{Additional, nn::{cce_grad, cce}};
 use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param, correct_classes, SGD};
 use gradients_derive::NeuralNetwork;
 
-use custos::{number::Float, Matrix, GenericOCL, cpu::TBlas, CLDevice, AsDev, range};
+use custos::{Matrix, CLDevice, AsDev, range};
 use purpur::{CSVLoader, Converter};
 
 

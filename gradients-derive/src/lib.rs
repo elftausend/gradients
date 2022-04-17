@@ -53,7 +53,7 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
             }
         }
 
-        impl<T: Float+GenericOCL+TBlas> NeuralNetwork<T> for #name<T> {
+        impl<T: custos::number::Float+custos::GenericOCL+custos::cpu::TBlas+rand::distributions::uniform::SampleUniform> NeuralNetwork<T> for #name<T> {
             fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
                 #forward_chain
             }

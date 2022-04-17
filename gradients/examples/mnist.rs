@@ -2,9 +2,8 @@ use custos_math::{Additional, nn::{cce_grad, cce}};
 use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param, Adam, correct_classes};
 use gradients_derive::NeuralNetwork;
 
-use custos::{number::Float, Matrix, cpu::TBlas, CLDevice, AsDev, range, GenericOCL};
+use custos::{Matrix, CLDevice, AsDev, range};
 use purpur::{CSVLoader, Converter, CSVReturn};
-
 
 #[derive(NeuralNetwork)]
 pub struct Network<T> {

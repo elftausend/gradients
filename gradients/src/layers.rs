@@ -1,5 +1,6 @@
 use custos::{Matrix, cpu::TBlas, number::Float, GenericOCL};
 use custos_math::{Additional, Row, Sum, Transpose, nn::{Activations, Softmax as TSoftmax}};
+use rand::distributions::uniform::SampleUniform;
 use crate::{RandMatrix, GetParam, Param};
 
 #[derive(Clone)]
@@ -11,7 +12,7 @@ pub struct Linear<T> {
     inputs: Option<Matrix<T>>,
 }
 
-impl<T: Float+TBlas+GenericOCL> Linear<T> {
+impl<T: Float+TBlas+GenericOCL+SampleUniform> Linear<T> {
     pub fn new(input_size: usize, output_size: usize) -> Linear<T> {
         let mut weights = Matrix::<T>::from((input_size, output_size));
         
