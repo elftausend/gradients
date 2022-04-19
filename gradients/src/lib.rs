@@ -28,7 +28,6 @@ impl<T> Param<T> {
         dweights: Matrix<T>,
         dbias: Matrix<T>,
     ) -> Param<T> {
-        
         Param { weights, bias, dweights, dbias }
     }
 }
