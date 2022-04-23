@@ -2,13 +2,11 @@ use custos_math::{
     nn::{cce, cce_grad},
     Additional,
 };
-use gradients::{
-    correct_classes, Adam, GetParam, Linear, NeuralNetwork, OnehotOp, Param, ReLU, Softmax,
-};
+use gradients::{correct_classes, Adam, GetParam, Linear, NeuralNetwork, OnehotOp, Param, ReLU, Softmax};
 use gradients_derive::NeuralNetwork;
 
-use custos::{cpu::TBlas, number::Float, range, AsDev, CLDevice, GenericOCL, Matrix};
-use purpur::{CSVLoader, CSVReturn, Converter};
+use custos::{Matrix, CLDevice, AsDev, range};
+use purpur::{CSVLoader, Converter, CSVReturn};
 
 #[derive(NeuralNetwork)]
 pub struct Network<T> {

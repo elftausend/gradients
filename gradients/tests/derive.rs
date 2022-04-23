@@ -7,7 +7,7 @@ use gradients::{
 };
 use gradients_derive::NeuralNetwork;
 
-use custos::{cpu::TBlas, number::Float, range, AsDev, CLDevice, GenericOCL, Matrix};
+use custos::{Matrix, CLDevice, AsDev, range};
 use purpur::{CSVLoader, Converter};
 
 #[derive(NeuralNetwork)]

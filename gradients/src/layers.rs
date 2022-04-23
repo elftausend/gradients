@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 use crate::{GetParam, Param, RandMatrix};
 use custos::{cpu::TBlas, number::Float, GenericOCL, Matrix, get_device, Device};
 use custos_math::{
     nn::{Activations, Softmax as TSoftmax},
     Additional, Row, Sum, Transpose,
 };
+=======
+use custos::{Matrix, cpu::TBlas, number::Float, GenericOCL};
+use custos_math::{Additional, Row, Sum, Transpose, nn::{Activations, Softmax as TSoftmax}};
+use rand::distributions::uniform::SampleUniform;
+use crate::{RandMatrix, GetParam, Param};
+>>>>>>> f4bdcad409ac527fadc4610e8be327ddc3e01003
 
 pub struct Conv2D<T> {
     bias: Vec<Matrix<T>>,
@@ -49,7 +56,7 @@ pub struct Linear<T> {
     inputs: Option<Matrix<T>>,
 }
 
-impl<T: Float + TBlas + GenericOCL> Linear<T> {
+impl<T: Float+TBlas+GenericOCL+SampleUniform> Linear<T> {
     pub fn new(input_size: usize, output_size: usize) -> Linear<T> {
         let mut weights = Matrix::<T>::from((input_size, output_size));
 

@@ -36,14 +36,14 @@ impl<T: Float> Adam<T> {
         if self.weight_cache.len() < params.len() {
             for param in params.iter() {
                 self.weight_cache
-                    .push(Matrix::new(device.clone(), param.weights.dims()));
+                    .push(Matrix::new(device, param.weights.dims()));
                 self.weight_momentum
-                    .push(Matrix::new(device.clone(), param.weights.dims()));
+                    .push(Matrix::new(device, param.weights.dims()));
 
                 self.bias_cache
-                    .push(Matrix::new(device.clone(), param.bias.dims()));
+                    .push(Matrix::new(device, param.bias.dims()));
                 self.bias_momentum
-                    .push(Matrix::new(device.clone(), param.bias.dims()));
+                    .push(Matrix::new(device, param.bias.dims()));
             }
         }
         device.step(self, params);

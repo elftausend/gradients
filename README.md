@@ -16,7 +16,7 @@ use custos_math::{Additional, nn::{cce_grad, cce}};
 use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param, Adam, correct_classes};
 use gradients_derive::NeuralNetwork;
 
-use custos::{number::Float, Matrix, cpu::TBlas, CLDevice, AsDev, range, GenericOCL};
+use custos::{Matrix, CLDevice, AsDev, range};
 use purpur::{CSVLoader, Converter, CSVReturn};
 
 #[derive(NeuralNetwork)]
@@ -34,7 +34,7 @@ Load [data] and create an instance of Network:
 [data]: https://www.kaggle.com/datasets/oddrationale/mnist-in-csv
 
 ```rust
-//or use cpu: let device = CPU::new().select();
+//or use cpu: let device = custos::CPU::new().select();
 let device = CLDevice::get(0).unwrap().select();
 
 let loader = CSVLoader::new(true);
@@ -63,10 +63,10 @@ for epoch in range(200) {
     let preds = net.forward(i);
     let correct_training = correct_classes( &loaded_data.y.as_usize(), preds) as f32;
 
-    let loss = cce(&device, preds, y);
+    let loss = cce(&device, &preds, &y);
     println!("epoch: {epoch}, loss: {loss}, training_acc: {acc}", acc=correct_training / loaded_data.sample_count() as f32);
 
-    let grad = cce_grad(&device, preds, y);
+    let grad = cce_grad(&device, &preds, &y);
     net.backward(grad);
     opt.step(&device, net.params());
 }
