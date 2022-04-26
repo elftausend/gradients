@@ -3,11 +3,11 @@ use custos_math::{
     Additional,
 };
 use gradients::{
-    correct_classes, GetParam, Linear, NeuralNetwork, OnehotOp, Param, ReLU, Softmax, SGD,
+    correct_classes, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax, SGD,
 };
 use gradients_derive::NeuralNetwork;
 
-use custos::{Matrix, CLDevice, AsDev, range};
+use custos::{CLDevice, AsDev, range};
 use purpur::{CSVLoader, Converter};
 
 #[derive(NeuralNetwork)]

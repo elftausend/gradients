@@ -2,10 +2,10 @@ use custos_math::{
     nn::{cce, cce_grad},
     Additional,
 };
-use gradients::{correct_classes, Adam, GetParam, Linear, NeuralNetwork, OnehotOp, Param, ReLU, Softmax};
+use gradients::{correct_classes, Adam, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax};
 use gradients_derive::NeuralNetwork;
 
-use custos::{Matrix, CLDevice, AsDev, range};
+use custos::{CLDevice, AsDev, range};
 use purpur::{CSVLoader, Converter, CSVReturn};
 
 #[derive(NeuralNetwork)]

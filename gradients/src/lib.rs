@@ -49,7 +49,6 @@ pub fn create_sine<D: Device<f32>>(
         x.push(add / 1000.);
         add += 1.
     }
-
     let y = x.iter().map(|v| (v).sin()).collect::<Vec<f32>>();
     let x = Matrix::from((device, (max - min, 1), x));
     let y = Matrix::from((device, (max - min, 1), y));
