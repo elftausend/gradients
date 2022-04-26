@@ -1,8 +1,6 @@
 use custos::{CPU, AsDev};
 use gradients::Conv2D;
 
-
-
 #[test]
 fn test_conv() {
     let _device = CPU::new().select();

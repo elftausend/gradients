@@ -12,11 +12,14 @@ dependencies: OpenCL
 Use a struct that implements the NeuralNetwork trait to define which layers you want to use:
 
 ```rust
-use custos_math::{Additional, nn::{cce_grad, cce}};
-use gradients::{Linear, ReLU, NeuralNetwork, Softmax, OnehotOp, GetParam, Param, Adam, correct_classes};
+use custos_math::{
+    nn::{cce, cce_grad},
+    Additional,
+};
+use gradients::{correct_classes, Adam, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax};
 use gradients_derive::NeuralNetwork;
 
-use custos::{Matrix, CLDevice, AsDev, range};
+use custos::{CLDevice, AsDev, range};
 use purpur::{CSVLoader, Converter, CSVReturn};
 
 #[derive(NeuralNetwork)]
