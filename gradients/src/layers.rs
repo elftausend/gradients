@@ -1,23 +1,17 @@
-<<<<<<< HEAD
 use crate::{GetParam, Param, RandMatrix};
-use custos::{cpu::TBlas, number::Float, GenericOCL, Matrix, get_device, Device};
+use custos::{cpu::TBlas, number::Float, GenericOCL, Matrix};
 use custos_math::{
     nn::{Activations, Softmax as TSoftmax},
     Additional, Row, Sum, Transpose,
 };
-=======
-use custos::{Matrix, cpu::TBlas, number::Float, GenericOCL};
-use custos_math::{Additional, Row, Sum, Transpose, nn::{Activations, Softmax as TSoftmax}};
 use rand::distributions::uniform::SampleUniform;
-use crate::{RandMatrix, GetParam, Param};
->>>>>>> f4bdcad409ac527fadc4610e8be327ddc3e01003
 
 pub struct Conv2D<T> {
     bias: Vec<Matrix<T>>,
     kernels: Matrix<Matrix<T>>
 }
 
-impl<T: Float> Conv2D<T> {
+impl<T: Float+SampleUniform> Conv2D<T> {
     pub fn new(inputs_size: (usize, usize, usize), kernel_size: usize, depth: usize) -> Self {
         let (input_depth, input_height, input_width) = inputs_size;
         let output_dims = (input_height - kernel_size+1, input_width - kernel_size+1);
@@ -41,8 +35,9 @@ impl<T: Float> Conv2D<T> {
         Conv2D { bias, kernels }
     }
 
-    pub fn forward(&mut self, inputs: Vec<Matrix<T>>) {
-        let bias = self.bias[0];
+    pub fn forward(&mut self, _inputs: Vec<Matrix<T>>) {
+        let _bias = self.bias[0];
+        let _kernels = self.kernels;
         //let output = Matrix::from((bias.dims(), bias.read()));
     }
 }
