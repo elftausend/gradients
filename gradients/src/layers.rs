@@ -1,7 +1,51 @@
+<<<<<<< HEAD
+use crate::{GetParam, Param, RandMatrix};
+use custos::{cpu::TBlas, number::Float, GenericOCL, Matrix, get_device, Device};
+use custos_math::{
+    nn::{Activations, Softmax as TSoftmax},
+    Additional, Row, Sum, Transpose,
+};
+=======
 use custos::{Matrix, cpu::TBlas, number::Float, GenericOCL};
 use custos_math::{Additional, Row, Sum, Transpose, nn::{Activations, Softmax as TSoftmax}};
 use rand::distributions::uniform::SampleUniform;
 use crate::{RandMatrix, GetParam, Param};
+>>>>>>> f4bdcad409ac527fadc4610e8be327ddc3e01003
+
+pub struct Conv2D<T> {
+    bias: Vec<Matrix<T>>,
+    kernels: Matrix<Matrix<T>>
+}
+
+impl<T: Float> Conv2D<T> {
+    pub fn new(inputs_size: (usize, usize, usize), kernel_size: usize, depth: usize) -> Self {
+        let (input_depth, input_height, input_width) = inputs_size;
+        let output_dims = (input_height - kernel_size+1, input_width - kernel_size+1);
+        
+        let mut kernels = Matrix::<Matrix<T>>::from((depth, input_depth));
+
+        for kernel in kernels.as_cpu_slice_mut() {
+            let mut matrix = Matrix::<T>::from((kernel_size, kernel_size));
+            matrix.rand(T::one().negate(), T::one());
+            *kernel = matrix;
+        }
+
+        let mut bias = Vec::with_capacity(depth);
+
+        for _ in 0..depth {
+            let mut matrix = Matrix::<T>::from(output_dims);
+            matrix.rand(T::one().negate(), T::one());
+            bias.push(matrix)
+        }
+
+        Conv2D { bias, kernels }
+    }
+
+    pub fn forward(&mut self, inputs: Vec<Matrix<T>>) {
+        let bias = self.bias[0];
+        //let output = Matrix::from((bias.dims(), bias.read()));
+    }
+}
 
 #[derive(Clone)]
 pub struct Linear<T> {
