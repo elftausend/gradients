@@ -24,8 +24,6 @@ fn test_berries_net() -> Result<(), std::io::Error>{
 
     trans.apply("../../gradients-fallback/datasets/berries_aug_6xx/train")?;
 
-    println!("ir: {}", ir.features());
-
     let device = CPU::new().select();
 
     let x = Matrix::from((&device, (ir.sample_count(), ir.features()), ir.data.as_f32()));
@@ -41,7 +39,7 @@ fn test_berries_net() -> Result<(), std::io::Error>{
         ..Default::default()
     };
 
-    let mut opt = Adam::new(1e-3);
+    let mut opt = Adam::new(1e-4);
 
     for epoch in range(1000) {
         let predicted = net.forward(x);
@@ -52,8 +50,6 @@ fn test_berries_net() -> Result<(), std::io::Error>{
         opt.step(&device, net.params());
         
         println!("epoch: {epoch}, loss: {loss}");
-        
     }
-
     Ok(())
 }

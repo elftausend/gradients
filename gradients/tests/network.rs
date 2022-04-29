@@ -1,4 +1,4 @@
-use custos::{range, AsDev, CLDevice, Matrix, CPU};
+use custos::{range, AsDev, Matrix};
 use custos_math::{
     nn::{cce, cce_grad, mse, mse_grad},
     Additional,
@@ -8,8 +8,8 @@ use purpur::{CSVLoader, CSVReturn};
 
 #[test]
 fn test_sine() {
-    //let device = CPU::new().select();
-    let device = CLDevice::get(0).unwrap().select();
+    let device = custos::CPU::new().select();
+    //let device = CLDevice::get(0).unwrap().select();
 
     let (x, y) = create_sine(&device, 0, 1000);
     let mut lin1 = Linear::new(1, 64);
@@ -47,7 +47,7 @@ fn test_sine() {
 
 #[test]
 fn test_mnist() {
-    let device = CPU::new().select();
+    let device = custos::CPU::new().select();
     //let device = CLDevice::get(0).unwrap().select();
 
     let loader = CSVLoader::new(true);
