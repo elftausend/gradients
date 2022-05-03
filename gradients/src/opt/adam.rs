@@ -142,27 +142,28 @@ impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
 
         for (idx, layer_data) in params.iter_mut().enumerate() {
             let output = KernelOptions::new(
-                self,
-                &layer_data.weights,
-                [layer_data.weights.size(), 0, 0],
-                &src,
-            )
-            .add_arg(&layer_data.dweights)
-            .add_arg(&adam.weight_momentum[idx])
-            .add_arg(&adam.weight_cache[idx])
-            .add_arg(&adam.beta1)
-            .add_arg(&adam.beta2)
-            .add_arg(&adam.epsilon)
-            .add_arg(&T::from_u64(adam.iters + 1))
-            .add_arg(&adam.lr)
-            .with_output(layer_data.weights.dims())
-            .run()
-            .unwrap();
+                    self,
+                    layer_data.weights.data(),
+                    [layer_data.weights.size(), 0, 0],
+                    &src,
+                )
+                .add_arg(&layer_data.dweights)
+                .add_arg(&adam.weight_momentum[idx])
+                .add_arg(&adam.weight_cache[idx])
+                .add_arg(&adam.beta1)
+                .add_arg(&adam.beta2)
+                .add_arg(&adam.epsilon)
+                .add_arg(&T::from_u64(adam.iters + 1))
+                .add_arg(&adam.lr)
+                .with_output(layer_data.weights.size())
+                .run()
+                .unwrap();
 
-            self.sub_assign(&mut layer_data.weights, &output);
+            let dims = layer_data.weights.dims();
+            self.sub_assign(&mut layer_data.weights, &(output, dims).into());
 
             let output =
-                KernelOptions::new(self, &layer_data.bias, [layer_data.bias.size(), 0, 0], &src)
+                KernelOptions::new(self, layer_data.bias.data(), [layer_data.bias.size(), 0, 0], &src)
                     .add_arg(&layer_data.dbias)
                     .add_arg(&adam.bias_momentum[idx])
                     .add_arg(&adam.bias_cache[idx])
@@ -171,11 +172,12 @@ impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
                     .add_arg(&adam.epsilon)
                     .add_arg(&T::from_u64(adam.iters + 1))
                     .add_arg(&adam.lr)
-                    .with_output(layer_data.bias.dims())
+                    .with_output(layer_data.bias.size())
                     .run()
                     .unwrap();
 
-            self.sub_assign(&mut layer_data.bias, &output);
+            let dims = layer_data.bias.dims();
+            self.sub_assign(&mut layer_data.bias, &(output, dims).into());
         }
     }
 }
