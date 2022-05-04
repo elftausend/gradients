@@ -10,7 +10,7 @@ impl<T: Number> OnehotOp<T> for InternCPU {
     fn onehot(&self, matrix: Matrix<T>) -> Matrix<T> {
         assert!(matrix.cols() == 1);
 
-        let data = matrix.as_cpu_slice();
+        let data = matrix.as_slice();
 
         let max = max(data).as_usize() + 1;
         let mut onehot = vec![T::default(); matrix.rows() * max];

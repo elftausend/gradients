@@ -55,18 +55,18 @@ pub trait SGDOp<T: GenericOCL> {
 impl<T: GenericOCL> SGDOp<T> for InternCPU {
     fn step_momentum(&self, sgd: &mut SGD<T>, mut params: Vec<Param<T>>) {
         for (layer_idx, param) in params.iter_mut().enumerate() {
-            for (idx, w) in param.weights.as_cpu_slice_mut().iter_mut().enumerate() {
-                let update = sgd.momentum * sgd.weight_momentum[layer_idx].as_cpu_slice()[idx]
-                    + param.dweights.as_cpu_slice()[idx] * sgd.lr;
+            for (idx, w) in param.weights.as_mut_slice().iter_mut().enumerate() {
+                let update = sgd.momentum * sgd.weight_momentum[layer_idx].as_slice()[idx]
+                    + param.dweights.as_slice()[idx] * sgd.lr;
                 *w -= update;
-                sgd.weight_momentum[layer_idx].as_cpu_slice_mut()[idx] = update;
+                sgd.weight_momentum[layer_idx].as_mut_slice()[idx] = update;
             }
 
-            for (idx, b) in param.bias.as_cpu_slice_mut().iter_mut().enumerate() {
-                let update = sgd.momentum * sgd.bias_momentum[layer_idx].as_cpu_slice()[idx]
-                    + param.dbias.as_cpu_slice()[idx] * sgd.lr;
+            for (idx, b) in param.bias.as_mut_slice().iter_mut().enumerate() {
+                let update = sgd.momentum * sgd.bias_momentum[layer_idx].as_slice()[idx]
+                    + param.dbias.as_slice()[idx] * sgd.lr;
                 *b -= update;
-                sgd.bias_momentum[layer_idx].as_cpu_slice_mut()[idx] = update;
+                sgd.bias_momentum[layer_idx].as_mut_slice()[idx] = update;
             }
         }
     }

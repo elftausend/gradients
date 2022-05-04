@@ -18,7 +18,7 @@ impl<T: Float+SampleUniform> Conv2D<T> {
         
         let mut kernels = Matrix::<Matrix<T>>::from((depth, input_depth));
 
-        for kernel in kernels.as_cpu_slice_mut() {
+        for kernel in kernels.as_mut_slice() {
             let mut matrix = Matrix::<T>::from((kernel_size, kernel_size));
             matrix.rand(T::one().negate(), T::one());
             *kernel = matrix;

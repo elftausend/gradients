@@ -20,7 +20,7 @@ pub trait RandOp<T>: Device<T> {
 impl<T: Float + SampleUniform> RandOp<T> for InternCPU {
     fn rand(&self, x: &mut Matrix<T>, lo: T, hi: T) {
         let mut rng = thread_rng();
-        for value in x.as_cpu_slice_mut() {
+        for value in x.as_mut_slice() {
             *value = rng.gen_range(lo..hi);
         }
     }
