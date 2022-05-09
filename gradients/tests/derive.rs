@@ -3,7 +3,7 @@ use custos_math::{
     Additional,
 };
 use gradients::{
-    correct_classes, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax, SGD,
+    correct_classes, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax,
 };
 use gradients_derive::NeuralNetwork;
 
@@ -50,7 +50,7 @@ fn test_net() {
     };
 
     //let mut opt = gradients::Adam::new(0.002);
-    let mut opt = SGD::new(0.1).momentum(0.8);
+    let mut opt = gradients::SGD::new(0.1).momentum(0.8);
 
     for epoch in range(300) {
         let preds = net.forward(i);

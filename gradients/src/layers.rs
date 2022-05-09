@@ -1,8 +1,8 @@
-use crate::{GetParam, Param, RandMatrix};
+use crate::{GetParam, Param};
 use custos::{cpu::TBlas, number::Float, GenericOCL, Matrix};
 use custos_math::{
     nn::{Activations, Softmax as TSoftmax},
-    Additional, Row, Sum, Transpose,
+    Additional, Row, Sum, Transpose, RandMatrix
 };
 use rand::distributions::uniform::SampleUniform;
 
