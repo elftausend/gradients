@@ -47,15 +47,16 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
         .map(|f| {
             let name = &f.ident;
             quote!(
-                if self.#name.get_params().is_some() {
-                vec.push(self.#name.get_params().unwrap())
-            })
+                if let Some(params) = self.#name.get_params() {
+                    vec.push(params);
+                }
+             )
         })
         .collect::<TokenStream>();
     let return_vec = quote! {vec};
 
     quote! {
-        use gradients::{GetParam, Param};
+        use gradients::{GetParam, Param, SampleUniform};
         use custos::Matrix;
 
         impl<T> Default for #name<T> {
@@ -63,7 +64,7 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
                 Self { #default_chain }
             }
         }
-        impl<T: custos::number::Float+custos::GenericOCL+custos::cpu::TBlas+rand::distributions::uniform::SampleUniform> NeuralNetwork<T> for #name<T> {
+        impl<T: custos::number::Float+custos::GenericOCL+custos::cpu::TBlas+SampleUniform> NeuralNetwork<T> for #name<T> {
             fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
                 #forward_chain
             }

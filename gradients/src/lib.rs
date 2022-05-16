@@ -9,6 +9,8 @@ pub use layers::*;
 pub use onehot::*;
 pub use opt::*;
 
+pub use rand::distributions::uniform::SampleUniform;
+
 pub trait GetParam<T> {
     fn get_params(&self) -> Option<Param<T>>;
 }

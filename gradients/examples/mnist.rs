@@ -18,12 +18,12 @@ pub struct Network<T> {
     softmax: Softmax<T>,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     //let device = CPU::new().select();
-    let device = CLDevice::get(0).unwrap().select();
+    let device = CLDevice::get(0)?.select();
 
     let loader = CSVLoader::new(true);
-    let loaded_data: CSVReturn<f32> = loader.load("PATH/TO/DATASET/mnist_train.csv").unwrap();
+    let loaded_data: CSVReturn<f32> = loader.load("PATH/TO/DATASET/mnist_train.csv")?;
 
     let i = Matrix::from((
         &device,
@@ -58,4 +58,5 @@ fn main() {
         net.backward(grad);
         opt.step(&device, net.params());
     }
+    Ok(())
 }
