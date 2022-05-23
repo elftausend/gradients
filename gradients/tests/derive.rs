@@ -55,7 +55,7 @@ fn test_net() {
     for epoch in range(300) {
         let preds = net.forward(i);
         let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
-
+        
         let loss = cce(&device, &preds, &y);
         println!(
             "epoch: {epoch}, loss: {loss}, training_acc: {acc}",
