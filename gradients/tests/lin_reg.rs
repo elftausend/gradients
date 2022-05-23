@@ -1,6 +1,7 @@
 use custos::{CPU, AsDev, Matrix, range};
 use custos_math::{Additional, Sum, nn::mse_grad};
 use gradients::LinearReg;
+use graplot::Scatter;
 
 #[test]
 fn test_lg() {
@@ -41,19 +42,20 @@ fn test_lg() {
 fn test_lg_struct() {
     let device = CPU::new().select();
 
-    let x = Matrix::from((&device, (1, 13), [5.,7.,8.,7.,2.,17.,2.,9.,4.,11.,12.,9.,6.]))
+    let x = Matrix::from((&device, (1, 13), [5.,4.,3.,6.,2.,5.,2.,9.,7.,11.,12.,13.,9.]))
         .divs(17.);
-    let y = Matrix::from((&device, (1, 13), [99.,86.,87.,88.,111.,86.,70.,87.,94.,78.,77.,85.,86.]))
-        .divs(111.);
+
+    let y = Matrix::from((&device, (1, 13), [20., 40., 50., 60., 55., 100., 140., 120., 155., 85., 97., 119., 111.,]))
+        .divs(155.);
 
     let mut lg = LinearReg::new(x, y);
     
-    for _ in range(1800) {
+    for _ in range(4000) {
         let loss = lg.step(0.001);
         println!("loss: {loss}");
     }
 
-    //let scatter = Scatter::new((&x.read().iter().map(|x| *x as f64).collect::<Vec<f64>>(), &y.read().iter().map(|x| *x as f64).collect::<Vec<f64>>()));
-    //let plot = Plot::new(|x| lg.k as f64 * x + lg.d as f64);
-    //plot.show();
+    let mut scatter = Scatter::new((x.read(), y.read()));
+    scatter.add((|x| lg.k as f64 * x + lg.d as f64, "-b"));
+    scatter.show()
 }

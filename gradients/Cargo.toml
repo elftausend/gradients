@@ -21,4 +21,4 @@ rand = "*"
 #purpur = {git = "https://github.com/elftausend/purpur.git"}
 
 [dev-dependencies]
-graplot = "0.1.16"
+graplot = {path = "../../graplot"}
