@@ -2,12 +2,14 @@ mod accuracy;
 mod layers;
 mod onehot;
 mod opt;
+mod ml;
 
 pub use accuracy::*;
 use custos::{Device, Matrix};
 pub use layers::*;
 pub use onehot::*;
 pub use opt::*;
+pub use ml::*;
 
 pub use rand::distributions::uniform::SampleUniform;
 

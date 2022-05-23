@@ -19,3 +19,6 @@ rand = "*"
 #custos = {git = "https://github.com/elftausend/custos.git"}
 #custos-math = {git = "https://github.com/elftausend/custos-math.git"}
 #purpur = {git = "https://github.com/elftausend/purpur.git"}
+
+[dev-dependencies]
+graplot = "0.1.16"
