@@ -27,8 +27,8 @@ impl<T: GenericOCL> LinearReg<T> {
         
         let loss = y_preds - self.ys;
         
-        self.k -= (loss * self.xs.muls(lr)).sum();
-        self.d -= loss.muls(lr).sum();
+        self.k -= (loss * self.xs.muls(lr * T::two())).sum();
+        self.d -= loss.muls(lr * T::two()).sum();
 
         (loss * loss).mean()
     }
