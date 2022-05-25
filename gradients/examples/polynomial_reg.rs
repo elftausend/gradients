@@ -1,10 +1,9 @@
-use custos::{Matrix, CPU, AsDev, range};
+use custos::{CPU, AsDev, Matrix, range};
 use custos_math::Additional;
 use gradients::{PolynomialReg, LinearReg};
 use graplot::Scatter;
 
-#[test]
-fn test_poly() {
+fn main() {
     let device = CPU::new().select();
 
     let xs = Matrix::from((&device, (1, 26), [1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13.,
@@ -17,17 +16,12 @@ fn test_poly() {
 
     
     let mut poly = PolynomialReg::new(xs, ys, 2);
-    let mut loss_poly = 0.;
-
     let mut lg = LinearReg::new(xs, ys);
-    let mut loss_lin = 0.;
     
-    for _ in range(4000) {
-        loss_lin = lg.step(0.001);
-        loss_poly = poly.step(0.001);
+    for _ in range(1000) {
+        lg.step(0.001);
+        poly.step(0.001);
     }
-
-    println!("loss_lin: {loss_lin}, loss_poly: {loss_poly}");
 
     let mut scatter = Scatter::new((xs.read(), ys.read()));
     scatter.set_title("linear vs. polynomial regression");
