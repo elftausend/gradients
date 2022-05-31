@@ -146,7 +146,7 @@ impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
                     layer_data.weights.as_buf(),
                     [layer_data.weights.size(), 0, 0],
                     &src,
-                )
+                ).unwrap()
                 .add_arg(&layer_data.dweights)
                 .add_arg(&adam.weight_momentum[idx])
                 .add_arg(&adam.weight_cache[idx])
@@ -163,7 +163,7 @@ impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
             self.sub_assign(&mut layer_data.weights, &(output, dims).into());
 
             let output =
-                KernelOptions::new(self, layer_data.bias.as_buf(), [layer_data.bias.size(), 0, 0], &src)
+                KernelOptions::new(self, layer_data.bias.as_buf(), [layer_data.bias.size(), 0, 0], &src).unwrap()
                     .add_arg(&layer_data.dbias)
                     .add_arg(&adam.bias_momentum[idx])
                     .add_arg(&adam.bias_cache[idx])

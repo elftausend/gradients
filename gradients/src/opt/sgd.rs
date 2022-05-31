@@ -94,7 +94,7 @@ impl<T: GenericOCL> SGDOp<T> for InternCLDevice {
         );
 
         for (idx, param) in params.iter().enumerate() {
-            KernelOptions::new(self, param.weights.as_buf(), [param.weights.size(), 0, 0], &src)
+            KernelOptions::new(self, param.weights.as_buf(), [param.weights.size(), 0, 0], &src).unwrap()
                 .add_arg(&param.dweights)
                 .add_arg(&sgd.weight_momentum[idx])
                 .add_arg(&sgd.momentum)
@@ -102,7 +102,7 @@ impl<T: GenericOCL> SGDOp<T> for InternCLDevice {
                 .run()
                 .unwrap();
 
-            KernelOptions::new(self, param.bias.as_buf(), [param.bias.size(), 0, 0], &src)
+            KernelOptions::new(self, param.bias.as_buf(), [param.bias.size(), 0, 0], &src).unwrap()
                 .add_arg(&param.dbias)
                 .add_arg(&sgd.bias_momentum[idx])
                 .add_arg(&sgd.momentum)

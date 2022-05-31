@@ -30,9 +30,8 @@ impl<T: GenericOCL+Float> PolynomialReg<T> {
 
     pub fn predict(&self, xs: Matrix<T>) -> Matrix<T> {
         let mut sum = Matrix::from((custos::cached::<T>(xs.size()), xs.dims()));
-        for val in sum.as_mut_slice() {
-            *val = T::zero();
-        }
+        sum.clear();
+        
         let mut pow = self.coeffs.len();
 
         for coeff in &self.coeffs {
