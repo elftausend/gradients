@@ -1,10 +1,60 @@
-use custos::{range, AsDev, Matrix};
 use custos_math::{
-    nn::{cce, cce_grad, mse, mse_grad},
+    nn::{cce, cce_grad, mse_grad, mse},
     Additional,
 };
-use gradients::{create_sine, Linear, OnehotOp, ReLU, Softmax};
+use gradients::{
+    Linear, NeuralNetwork, OnehotOp, ReLU, Softmax, create_sine, Adam, Tanh,
+};
+use gradients_derive::NeuralNetwork;
+
+use custos::{AsDev, range};
 use purpur::{CSVLoader, CSVReturn};
+
+#[derive(NeuralNetwork)]
+struct Xor<T> {
+    lin1: Linear<T>,
+    relu1: Tanh<T>,
+    lin2: Linear<T>,
+}
+
+#[test]
+fn test_xor() {
+    let device = custos::CPU::new().select();
+
+    let xs = Matrix::from((&device, 4, 2, 
+        [0., 0.,
+        0., 1.,
+        1., 0.,
+        1., 1.,])
+    );
+
+    let ys = Matrix::from((&device, 4, 1, 
+        [0.,
+        1.,
+        1.,
+        0.,])
+    );
+
+    let mut net: Xor<f32> = Xor {
+        lin1: Linear::new(2, 4),
+        lin2: Linear::new(4, 1),
+        ..Default::default()
+    };
+
+    let mut adam = Adam::new(0.0001);
+
+    for epoch in range(10000) {
+        let preds = net.forward(xs);
+        let loss = mse(&device, preds, ys);
+        let grad = mse_grad(&device, preds, ys);
+        net.backward(grad);
+        adam.step(&device, net.params());
+        println!("epoch: {epoch}, loss: {loss}");
+    }
+
+        
+    
+}
 
 #[test]
 fn test_sine() {

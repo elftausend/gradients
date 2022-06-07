@@ -143,11 +143,7 @@ impl<T: Float + GenericOCL> ReLU<T> {
     }
 }
 
-impl<T: Copy> GetParam<T> for ReLU<T> {
-    fn get_params(&self) -> Option<Param<T>> {
-        None
-    }
-}
+impl<T: Copy> GetParam<T> for ReLU<T> {}
 impl<T> Default for ReLU<T> {
     fn default() -> Self {
         Self {
@@ -176,11 +172,7 @@ impl<T: GenericOCL + TBlas> Softmax<T> {
     }
 }
 
-impl<T: Copy> GetParam<T> for Softmax<T> {
-    fn get_params(&self) -> Option<Param<T>> {
-        None
-    }
-}
+impl<T: Copy> GetParam<T> for Softmax<T> {}
 
 impl<T> Default for Softmax<T> {
     fn default() -> Self {
@@ -190,13 +182,12 @@ impl<T> Default for Softmax<T> {
     }
 }
 
-/*
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Tanh<T> {
     inputs: Option<Matrix<T>>
 }
 
-impl <T: Float>Tanh<T> {
+impl <T: Float + GenericOCL>Tanh<T> {
     pub fn new() -> Tanh<T> {
         Tanh {
             inputs: None,
@@ -210,4 +201,13 @@ impl <T: Float>Tanh<T> {
         self.inputs.unwrap().tanh_grad() * grad
     }
 }
-*/
+
+impl<T: Copy> GetParam<T> for Tanh<T> {}
+
+impl<T> Default for Tanh<T> {
+    fn default() -> Self {
+        Self {
+            inputs: Default::default(),
+        }
+    }
+}

@@ -22,7 +22,7 @@ fn main() {
         lg.step(0.001);
         poly.step(0.001);
     }
-
+    
     let mut scatter = Scatter::new((xs.read(), ys.read()));
     scatter.set_title("linear vs. polynomial regression");
     scatter.add((|x| lg.k as f64 * x + lg.d as f64, "-b"));

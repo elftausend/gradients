@@ -1,5 +1,5 @@
 use custos::{
-    number::Float, opencl::KernelOptions, AssignOps, BaseOps, Device, GenericOCL, InternCLDevice,
+    number::Float, opencl::{KernelOptions, KernelRunner}, AssignOps, BaseOps, Device, GenericOCL, InternCLDevice,
     InternCPU, Matrix,
 };
 use custos_math::{scalar_apply, AdditionalOps};
@@ -125,7 +125,7 @@ impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
             const {dt} beta1,
             const {dt} beta2,
             const {dt} epsilon,
-            const {dt} iters,
+            const ulong iters,
             const {dt} lr, 
             __global {dt}* output) 
             
@@ -141,23 +141,24 @@ impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
             }}", dt=T::as_ocl_type_str());
 
         for (idx, layer_data) in params.iter_mut().enumerate() {
-            let output = KernelOptions::new(
-                    self,
-                    layer_data.weights.as_buf(),
-                    [layer_data.weights.size(), 0, 0],
+            let gws = [layer_data.weights.size(), 0, 0];
+            let output = KernelRunner::new(
+                    self, 
+                    layer_data.weights.as_mut_buf(), 
+                    gws, 
                     &src,
                 ).unwrap()
-                .add_arg(&layer_data.dweights)
-                .add_arg(&adam.weight_momentum[idx])
-                .add_arg(&adam.weight_cache[idx])
-                .add_arg(&adam.beta1)
-                .add_arg(&adam.beta2)
-                .add_arg(&adam.epsilon)
-                .add_arg(&T::from_u64(adam.iters + 1))
-                .add_arg(&adam.lr)
-                .with_output(layer_data.weights.size())
+                .add_arg(&mut layer_data.dweights)
+                .add_arg(&mut adam.weight_momentum[idx])
+                .add_arg(&mut adam.weight_cache[idx])
+                .add_arg(&mut adam.beta1)
+                .add_arg(&mut adam.beta2)
+                .add_arg(&mut adam.epsilon)
+                .add_arg(&mut (adam.iters + 1))
+                .add_arg(&mut adam.lr)
+                .with_output(gws[0])
                 .run()
-                .unwrap();
+                .unwrap().unwrap();
 
             let dims = layer_data.weights.dims();
             self.sub_assign(&mut layer_data.weights, &(output, dims).into());

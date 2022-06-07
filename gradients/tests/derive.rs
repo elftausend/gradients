@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use custos_math::{
     nn::{cce, cce_grad},
     Additional,
@@ -49,10 +51,13 @@ fn test_net() {
         ..Default::default()
     };
 
-    //let mut opt = gradients::Adam::new(0.002);
-    let mut opt = gradients::SGD::new(0.1).momentum(0.8);
+    let mut opt = gradients::Adam::new(0.002);
+    //let mut opt = gradients::SGD::new(0.1).momentum(0.8);
 
-    for epoch in range(300) {
+
+    let start = Instant::now();
+
+    for epoch in range(10) {
         let preds = net.forward(i);
         let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
         
@@ -66,4 +71,6 @@ fn test_net() {
         net.backward(grad);
         opt.step(&device, net.params());
     }
+
+    println!("training duration: {:?}", start.elapsed())
 }
