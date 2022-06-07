@@ -4,6 +4,7 @@ use custos_math::{
     nn::{Activations, Softmax as TSoftmax},
     Additional, Row, Sum, Transpose, RandMatrix
 };
+use gradients_derive::NoParams;
 use rand::distributions::uniform::SampleUniform;
 
 pub struct Conv2D<T> {
@@ -103,7 +104,7 @@ impl<T: Float+TBlas+GenericOCL+SampleUniform> Linear<T> {
 }
 
 impl<T: Copy> GetParam<T> for Linear<T> {
-    fn get_params(&self) -> Option<Param<T>> {
+    fn params(&self) -> Option<Param<T>> {
         Some(Param::new(
             self.weights,
             self.bias,
@@ -125,7 +126,7 @@ impl<T> Default for Linear<T> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, NoParams)]
 pub struct ReLU<T> {
     inputs: Option<Matrix<T>>,
 }
@@ -143,7 +144,6 @@ impl<T: Float + GenericOCL> ReLU<T> {
     }
 }
 
-impl<T: Copy> GetParam<T> for ReLU<T> {}
 impl<T> Default for ReLU<T> {
     fn default() -> Self {
         Self {
@@ -152,6 +152,7 @@ impl<T> Default for ReLU<T> {
     }
 }
 
+#[derive(NoParams)]
 pub struct Softmax<T> {
     activated: Option<Matrix<T>>,
 }
@@ -172,7 +173,6 @@ impl<T: GenericOCL + TBlas> Softmax<T> {
     }
 }
 
-impl<T: Copy> GetParam<T> for Softmax<T> {}
 
 impl<T> Default for Softmax<T> {
     fn default() -> Self {
@@ -182,7 +182,7 @@ impl<T> Default for Softmax<T> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, NoParams)]
 pub struct Tanh<T> {
     inputs: Option<Matrix<T>>
 }
@@ -201,8 +201,6 @@ impl <T: Float + GenericOCL>Tanh<T> {
         self.inputs.unwrap().tanh_grad() * grad
     }
 }
-
-impl<T: Copy> GetParam<T> for Tanh<T> {}
 
 impl<T> Default for Tanh<T> {
     fn default() -> Self {

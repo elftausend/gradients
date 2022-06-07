@@ -14,7 +14,7 @@ pub use ml::*;
 pub use rand::distributions::uniform::SampleUniform;
 
 pub trait GetParam<T> {
-    fn get_params(&self) -> Option<Param<T>> {
+    fn params(&self) -> Option<Param<T>> {
         None
     }
 }

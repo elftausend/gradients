@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use custos_math::{
     nn::{cce, cce_grad, mse_grad, mse},
     Additional,
@@ -18,8 +20,9 @@ struct Xor<T> {
 }
 
 #[test]
-fn test_xor() {
-    let device = custos::CPU::new().select();
+fn test_xor() -> custos::Result<()> {
+    //let device = custos::CPU::new().select();
+    let device = custos::CLDevice::get(0)?.select();
 
     let xs = Matrix::from((&device, 4, 2, 
         [0., 0.,
@@ -28,32 +31,35 @@ fn test_xor() {
         1., 1.,])
     );
 
-    let ys = Matrix::from((&device, 4, 1, 
-        [0.,
-        1.,
-        1.,
-        0.,])
+    let ys = Matrix::from((&device, 4, 2, 
+        [1., 0.,
+        0., 1.,
+        0., 1.,
+        1., 0.,])
     );
 
     let mut net: Xor<f32> = Xor {
         lin1: Linear::new(2, 4),
-        lin2: Linear::new(4, 1),
+        lin2: Linear::new(4, 2),
         ..Default::default()
     };
 
-    let mut adam = Adam::new(0.0001);
+    let mut adam = Adam::new(0.001);
+
+    let start = Instant::now();
 
     for epoch in range(10000) {
         let preds = net.forward(xs);
         let loss = mse(&device, preds, ys);
+        println!("epoch: {epoch}, loss: {loss}");
+        
         let grad = mse_grad(&device, preds, ys);
         net.backward(grad);
         adam.step(&device, net.params());
-        println!("epoch: {epoch}, loss: {loss}");
     }
 
-        
-    
+    println!("training duration: {:?}", start.elapsed());
+    Ok(())    
 }
 
 #[test]

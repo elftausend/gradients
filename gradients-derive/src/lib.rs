@@ -5,6 +5,21 @@ use syn::{
     Ident,
 };
 
+#[proc_macro_derive(NoParams)]
+pub fn derive_params(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+
+    let name = input.ident;
+    proc_macro::TokenStream::from(impl_params(name))
+}
+
+fn impl_params(name: Ident) -> TokenStream {
+    quote! {
+        impl<T> GetParam<T> for #name<T> {}
+    }
+}
+
+
 #[proc_macro_derive(NeuralNetwork)]
 pub fn derive_neural_network(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -47,7 +62,7 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
         .map(|f| {
             let name = &f.ident;
             quote!(
-                if let Some(params) = self.#name.get_params() {
+                if let Some(params) = self.#name.params() {
                     vec.push(params);
                 }
              )
