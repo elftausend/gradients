@@ -1,5 +1,5 @@
 use custos::{
-    number::Float, opencl::{KernelOptions, KernelRunner}, AssignOps, BaseOps, Device, GenericOCL, InternCLDevice,
+    number::Float, opencl::{KernelOptions}, AssignOps, BaseOps, Device, GenericOCL, InternCLDevice,
     InternCPU, Matrix,
 };
 use custos_math::{scalar_apply, AdditionalOps};
@@ -125,7 +125,7 @@ impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
             const {dt} beta1,
             const {dt} beta2,
             const {dt} epsilon,
-            const ulong iters,
+            const {dt} iters,
             const {dt} lr, 
             __global {dt}* output) 
             
@@ -142,7 +142,7 @@ impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
 
         for (idx, layer_data) in params.iter_mut().enumerate() {
             let gws = [layer_data.weights.size(), 0, 0];
-            let output = KernelRunner::new(
+            let output = KernelOptions::new(
                     self, 
                     layer_data.weights.as_mut_buf(), 
                     gws, 
@@ -154,11 +154,11 @@ impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
                 .add_arg(&mut adam.beta1)
                 .add_arg(&mut adam.beta2)
                 .add_arg(&mut adam.epsilon)
-                .add_arg(&mut (adam.iters + 1))
+                .add_arg(&T::from_u64(adam.iters + 1))
                 .add_arg(&mut adam.lr)
                 .with_output(gws[0])
                 .run()
-                .unwrap().unwrap();
+                .unwrap();
 
             let dims = layer_data.weights.dims();
             self.sub_assign(&mut layer_data.weights, &(output, dims).into());

@@ -57,7 +57,7 @@ fn test_net() {
 
     let start = Instant::now();
 
-    for epoch in range(10) {
+    for epoch in range(1000) {
         let preds = net.forward(i);
         let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
         
