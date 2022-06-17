@@ -1,4 +1,4 @@
-use custos::{opencl::KernelOptions, GenericOCL, InternCLDevice, InternCPU, Matrix};
+use custos::{opencl::KernelOptions, CDatatype, InternCLDevice, InternCPU, Matrix};
 use custos_math::Additional;
 
 use crate::Param;
@@ -10,7 +10,7 @@ pub struct SGD<T> {
     momentum: T,
 }
 
-impl<T: GenericOCL> SGD<T> {
+impl<T: CDatatype> SGD<T> {
     pub fn new(lr: T) -> Self {
         SGD {
             lr,
@@ -42,7 +42,7 @@ impl<T: GenericOCL> SGD<T> {
     }
 }
 
-pub trait SGDOp<T: GenericOCL> {
+pub trait SGDOp<T: CDatatype> {
     fn step(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>) {
         for mut param in params {
             param.weights -= &param.dweights.muls(sgd.lr);
@@ -52,7 +52,7 @@ pub trait SGDOp<T: GenericOCL> {
     fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>);
 }
 
-impl<T: GenericOCL> SGDOp<T> for InternCPU {
+impl<T: CDatatype> SGDOp<T> for InternCPU {
     fn step_momentum(&self, sgd: &mut SGD<T>, mut params: Vec<Param<T>>) {
         for (layer_idx, param) in params.iter_mut().enumerate() {
             for (idx, w) in param.weights.as_mut_slice().iter_mut().enumerate() {
@@ -72,7 +72,7 @@ impl<T: GenericOCL> SGDOp<T> for InternCPU {
     }
 }
 
-impl<T: GenericOCL> SGDOp<T> for InternCLDevice {
+impl<T: CDatatype> SGDOp<T> for InternCLDevice {
     fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>) {
         let src = format!(
             "
@@ -90,7 +90,7 @@ impl<T: GenericOCL> SGDOp<T> for InternCLDevice {
                     value_momentum[i] = value_update;
                 }}
         ",
-            dt = T::as_ocl_type_str()
+            dt = T::as_c_type_str()
         );
 
         for (idx, param) in params.iter().enumerate() {

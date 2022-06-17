@@ -1,5 +1,5 @@
 use crate::{GetParam, Param};
-use custos::{cpu::TBlas, number::Float, GenericOCL, Matrix};
+use custos::{GenericBlas, number::Float, CDatatype, Matrix};
 use custos_math::{
     nn::{Activations, Softmax as TSoftmax},
     Additional, Row, Sum, Transpose, RandMatrix
@@ -52,7 +52,7 @@ pub struct Linear<T> {
     inputs: Option<Matrix<T>>,
 }
 
-impl<T: Float+TBlas+GenericOCL+SampleUniform> Linear<T> {
+impl<T: Float+GenericBlas+CDatatype+SampleUniform> Linear<T> {
     pub fn new(input_size: usize, output_size: usize) -> Linear<T> {
         let mut weights = Matrix::<T>::from((input_size, output_size));
 
@@ -131,7 +131,7 @@ pub struct ReLU<T> {
     inputs: Option<Matrix<T>>,
 }
 
-impl<T: Float + GenericOCL> ReLU<T> {
+impl<T: Float + CDatatype> ReLU<T> {
     pub fn new() -> ReLU<T> {
         ReLU { inputs: None }
     }
@@ -157,7 +157,7 @@ pub struct Softmax<T> {
     activated: Option<Matrix<T>>,
 }
 
-impl<T: GenericOCL + TBlas> Softmax<T> {
+impl<T: CDatatype + GenericBlas> Softmax<T> {
     pub fn new() -> Softmax<T> {
         Softmax { activated: None }
     }
@@ -187,7 +187,7 @@ pub struct Tanh<T> {
     inputs: Option<Matrix<T>>
 }
 
-impl <T: Float + GenericOCL>Tanh<T> {
+impl <T: Float + CDatatype>Tanh<T> {
     pub fn new() -> Tanh<T> {
         Tanh {
             inputs: None,

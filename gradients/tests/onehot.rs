@@ -12,7 +12,7 @@ fn test_onehot() {
                                     1, 0, 0, 0,
                                     0, 0, 0, 1]);
 
-    let device = CLDevice::get(0).unwrap().select();
+    let device = CLDevice::new(0).unwrap().select();
 
     let a = Matrix::from((&device, (4, 1), [1, 2, 0, 3]));
     let onehot = device.onehot(a);

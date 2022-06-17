@@ -19,7 +19,7 @@ fn test_find_idxs_cpu() {
 
 #[test]
 fn test_find_idxs_cl() -> Result<(), Error> {
-    let device = CLDevice::get(0)?.select();
+    let device = CLDevice::new(0)?.select();
     let search_for = Matrix::from((&device, (2, 3), 
         [1, 4, 2,
         3, 1, 0])

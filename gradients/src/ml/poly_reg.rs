@@ -1,4 +1,4 @@
-use custos::{Matrix, GenericOCL, number::Float};
+use custos::{Matrix, CDatatype, number::Float};
 use custos_math::{Additional, Fns, Sum};
 
 pub struct PolynomialReg<T> {
@@ -7,7 +7,7 @@ pub struct PolynomialReg<T> {
     pub coeffs: Vec<T>
 }
 
-impl<T: GenericOCL+Float> PolynomialReg<T> {
+impl<T: CDatatype+Float> PolynomialReg<T> {
     pub fn new(xs: Matrix<T>, ys: Matrix<T>, degree: usize) -> Self {
         PolynomialReg {
             xs,

@@ -1,5 +1,5 @@
 use custos::{
-    number::Float, opencl::{KernelOptions}, AssignOps, BaseOps, Device, GenericOCL, InternCLDevice,
+    number::Float, opencl::{KernelOptions}, AssignOps, BaseOps, Device, CDatatype, InternCLDevice,
     InternCPU, Matrix,
 };
 use custos_math::{scalar_apply, AdditionalOps};
@@ -54,7 +54,7 @@ pub trait AdamOp<T> {
     fn step(&self, adam: &mut Adam<T>, params: Vec<Param<T>>);
 }
 
-impl<T: GenericOCL + Float> AdamOp<T> for InternCPU {
+impl<T: CDatatype + Float> AdamOp<T> for InternCPU {
     fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
         for (idx, param) in params.iter_mut().enumerate() {
             adam.weight_momentum[idx] = self.muls(&adam.weight_momentum[idx], adam.beta1)
@@ -115,7 +115,7 @@ impl<T: GenericOCL + Float> AdamOp<T> for InternCPU {
     }
 }
 
-impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
+impl<T: CDatatype> AdamOp<T> for InternCLDevice {
     fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
         let src = format!("__kernel void adam(
             __global {dt}* value, 
@@ -138,7 +138,7 @@ impl<T: GenericOCL> AdamOp<T> for InternCLDevice {
                 value_cache[idx] = value_cache[idx]*beta2 + pow(dvalue[idx], 2) * (1.0-beta2);
                 {dt} value_cache_corrected = value_cache[idx] / (1.0 - pow(beta2, iters + 1));                            
                 output[idx] = (value_momentum_corrected * lr) / (sqrt(value_cache_corrected) + epsilon);
-            }}", dt=T::as_ocl_type_str());
+            }}", dt=T::as_c_type_str());
 
         for (idx, layer_data) in params.iter_mut().enumerate() {
             let gws = [layer_data.weights.size(), 0, 0];

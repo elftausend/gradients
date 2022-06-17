@@ -1,4 +1,4 @@
-use custos::{Matrix, GenericOCL};
+use custos::{Matrix, CDatatype};
 use custos_math::{Additional, Sum};
 
 pub struct LinearReg<T> {
@@ -8,7 +8,7 @@ pub struct LinearReg<T> {
     pub d: T
 }
 
-impl<T: GenericOCL> LinearReg<T> {
+impl<T: CDatatype> LinearReg<T> {
     pub fn new(xs: Matrix<T>, ys: Matrix<T>) -> LinearReg<T> {
         LinearReg {
             xs,

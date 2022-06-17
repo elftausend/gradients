@@ -22,7 +22,7 @@ struct Xor<T> {
 #[test]
 fn test_xor() -> custos::Result<()> {
     //let device = custos::CPU::new().select();
-    let device = custos::CLDevice::get(0)?.select();
+    let device = custos::CLDevice::new(0)?.select();
 
     let xs = Matrix::from((&device, 4, 2, 
         [0., 0.,

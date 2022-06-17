@@ -1,4 +1,4 @@
-use custos::{number::Number, GenericOCL, InternCLDevice, InternCPU, Matrix};
+use custos::{number::Number, CDatatype, InternCLDevice, InternCPU, Matrix};
 use custos_math::switch_to_cpu_help_s;
 use purpur::utils::max;
 
@@ -29,7 +29,7 @@ impl<T: Number> OnehotOp<T> for InternCPU {
     }
 }
 
-impl<T: GenericOCL> OnehotOp<T> for InternCLDevice {
+impl<T: CDatatype> OnehotOp<T> for InternCLDevice {
     fn onehot(&self, x: Matrix<T>) -> Matrix<T> {
         switch_to_cpu_help_s(self, &x, |device, x| device.onehot(x))
     }

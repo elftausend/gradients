@@ -20,7 +20,7 @@ pub struct Network<T> {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     //let device = CPU::new().select();
-    let device = CLDevice::get(0)?.select();
+    let device = CLDevice::new(0)?.select();
 
     let loader = CSVLoader::new(true);
     let loaded_data: CSVReturn<f32> = loader.load("PATH/TO/DATASET/mnist_train.csv")?;
