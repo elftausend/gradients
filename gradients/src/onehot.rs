@@ -1,12 +1,12 @@
-use custos::{number::Number, CDatatype, InternCLDevice, InternCPU, Matrix};
-use custos_math::switch_to_cpu_help_s;
+use custos::{number::Number, CDatatype, CLDevice, CPU, Matrix};
+use custos_math::cl_to_cpu_s;
 use purpur::utils::max;
 
 pub trait OnehotOp<T> {
     fn onehot(&self, matrix: Matrix<T>) -> Matrix<T>;
 }
 
-impl<T: Number> OnehotOp<T> for InternCPU {
+impl<T: Number> OnehotOp<T> for CPU {
     fn onehot(&self, matrix: Matrix<T>) -> Matrix<T> {
         assert!(matrix.cols() == 1);
 
@@ -29,8 +29,8 @@ impl<T: Number> OnehotOp<T> for InternCPU {
     }
 }
 
-impl<T: CDatatype> OnehotOp<T> for InternCLDevice {
+impl<T: CDatatype> OnehotOp<T> for CLDevice {
     fn onehot(&self, x: Matrix<T>) -> Matrix<T> {
-        switch_to_cpu_help_s(self, &x, |device, x| device.onehot(x))
+        cl_to_cpu_s(self, &x, |device, x| device.onehot(x))
     }
 }

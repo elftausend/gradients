@@ -1,4 +1,4 @@
-use custos::{opencl::KernelOptions, CDatatype, InternCLDevice, InternCPU, Matrix};
+use custos::{opencl::KernelOptions, CDatatype, CLDevice, CPU, Matrix};
 use custos_math::Additional;
 
 use crate::Param;
@@ -52,7 +52,7 @@ pub trait SGDOp<T: CDatatype> {
     fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>);
 }
 
-impl<T: CDatatype> SGDOp<T> for InternCPU {
+impl<T: CDatatype> SGDOp<T> for CPU {
     fn step_momentum(&self, sgd: &mut SGD<T>, mut params: Vec<Param<T>>) {
         for (layer_idx, param) in params.iter_mut().enumerate() {
             for (idx, w) in param.weights.as_mut_slice().iter_mut().enumerate() {
@@ -72,7 +72,7 @@ impl<T: CDatatype> SGDOp<T> for InternCPU {
     }
 }
 
-impl<T: CDatatype> SGDOp<T> for InternCLDevice {
+impl<T: CDatatype> SGDOp<T> for CLDevice {
     fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>) {
         let src = format!(
             "

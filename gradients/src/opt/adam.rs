@@ -1,9 +1,8 @@
 use custos::{
-    number::Float, opencl::{KernelOptions}, AssignOps, BaseOps, Device, CDatatype, InternCLDevice,
-    InternCPU, Matrix,
+    number::Float, opencl::KernelOptions, AssignOps, BaseOps, Device, CDatatype, CLDevice,
+    CPU, Matrix,
 };
 use custos_math::{scalar_apply, AdditionalOps};
-
 use crate::Param;
 
 pub struct Adam<T> {
@@ -54,7 +53,7 @@ pub trait AdamOp<T> {
     fn step(&self, adam: &mut Adam<T>, params: Vec<Param<T>>);
 }
 
-impl<T: CDatatype + Float> AdamOp<T> for InternCPU {
+impl<T: CDatatype + Float> AdamOp<T> for CPU {
     fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
         for (idx, param) in params.iter_mut().enumerate() {
             adam.weight_momentum[idx] = self.muls(&adam.weight_momentum[idx], adam.beta1)
@@ -115,7 +114,7 @@ impl<T: CDatatype + Float> AdamOp<T> for InternCPU {
     }
 }
 
-impl<T: CDatatype> AdamOp<T> for InternCLDevice {
+impl<T: CDatatype> AdamOp<T> for CLDevice {
     fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
         let src = format!("__kernel void adam(
             __global {dt}* value, 
@@ -160,8 +159,7 @@ impl<T: CDatatype> AdamOp<T> for InternCLDevice {
                 .run()
                 .unwrap();
 
-            let dims = layer_data.weights.dims();
-            self.sub_assign(&mut layer_data.weights, &(output, dims).into());
+            self.sub_assign(&mut layer_data.weights, &output);
 
             let output =
                 KernelOptions::new(self, layer_data.bias.as_buf(), [layer_data.bias.size(), 0, 0], &src).unwrap()
@@ -177,8 +175,7 @@ impl<T: CDatatype> AdamOp<T> for InternCLDevice {
                     .run()
                     .unwrap();
 
-            let dims = layer_data.bias.dims();
-            self.sub_assign(&mut layer_data.bias, &(output, dims).into());
+            self.sub_assign(&mut layer_data.bias, &output);
         }
     }
 }
