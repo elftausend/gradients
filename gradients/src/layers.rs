@@ -2,7 +2,7 @@ use crate::{GetParam, Param};
 use custos::{GenericBlas, number::Float, CDatatype, Matrix};
 use custos_math::{
     nn::{Activations, Softmax as TSoftmax},
-    Additional, Row, Sum, Transpose, RandMatrix
+    Additional, Row, Sum, Transpose, RandMatrix, CudaTranspose
 };
 use gradients_derive::NoParams;
 use rand::distributions::uniform::SampleUniform;
@@ -78,7 +78,7 @@ impl<T: Float+GenericBlas+CDatatype+SampleUniform> Linear<T> {
         inputs.gemm(&self.weights).add_row(self.bias)
     }
 
-    pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T> {
+    pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T> where T: CudaTranspose {
         self.dbias = Some(grad.sum_rows());
         self.dweights = Some(self.inputs.unwrap().T().gemm(&grad));
         grad.gemm(&self.weights.T())

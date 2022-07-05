@@ -26,6 +26,7 @@ pub struct Network<T> {
 fn test_net() {
     //let device = custos::CPU::new().select();
     let device = CLDevice::new(0).unwrap().select();
+    //let device = custos::CudaDevice::new(0).unwrap().select();
 
     let loader = CSVLoader::new(true);
 
@@ -34,7 +35,7 @@ fn test_net() {
         .unwrap();
     //let loaded_data = loader.load("../../../datasets/mnist/mnist_train.csv").unwrap();
 
-    let i = Matrix::from((
+    let i = Matrix::<f32>::from((
         &device,
         (loaded_data.sample_count, loaded_data.features),
         &loaded_data.x,
@@ -51,13 +52,13 @@ fn test_net() {
         ..Default::default()
     };
 
-    let mut opt = gradients::Adam::new(0.002);
+    let mut opt = gradients::Adam::<f32>::new(0.002);
     //let mut opt = gradients::SGD::new(0.1).momentum(0.8);
 
 
     let start = Instant::now();
 
-    for epoch in range(1000) {
+    for epoch in range(100) {
         let preds = net.forward(i);
         let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
         
