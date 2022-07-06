@@ -1,6 +1,6 @@
 use custos::{
     number::Float, opencl::KernelOptions, AssignOps, BaseOps, Device, CDatatype, CLDevice,
-    CPU, Matrix,
+    CPU, Matrix, CudaDevice, cuda::launch_kernel1d,
 };
 use custos_math::{scalar_apply, AdditionalOps};
 use crate::Param;
@@ -111,6 +111,57 @@ impl<T: CDatatype + Float> AdamOp<T> for CPU {
         }
         let iters = &mut adam.iters;
         *iters += 1;
+    }
+}
+
+impl<T: CDatatype> AdamOp<T> for CudaDevice {
+    fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
+        let src = format!(
+            r#"extern "C" __global__ void adam(
+                {dt}* value, 
+                {dt}* dvalue, 
+                {dt}* value_momentum, 
+                {dt}* value_cache, 
+                {dt} beta1,
+                {dt} beta2,
+                {dt} epsilon,
+                {dt} iters,
+                {dt} lr,
+                int numElements
+            )
+                {{
+                    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+                    if (idx < numElements) {{
+                        value_momentum[idx] = value_momentum[idx] * beta1 + dvalue[idx] * (1.0-beta1);
+                        {dt} value_momentum_corrected = value_momentum[idx] / (1.0 - powf(beta1, iters + 1));
+                        value_cache[idx] = value_cache[idx]*beta2 + dvalue[idx] * dvalue[idx] * (1.0-beta2);
+                        {dt} value_cache_corrected = value_cache[idx] / (1.0 - powf(beta2, iters + 1));                            
+                        value[idx] -= (value_momentum_corrected * lr) / (sqrtf(value_cache_corrected) + epsilon);
+                    }}
+                  
+                }}
+        "#, dt=T::as_c_type_str());
+
+        for (idx, layer_data) in params.iter_mut().enumerate() {
+            
+            launch_kernel1d(layer_data.weights.size(), self, &src, "adam", 
+                vec![
+                    &layer_data.weights.as_buf(), &layer_data.dweights.as_buf(),
+                    &adam.weight_momentum[idx].as_buf(), &adam.weight_cache[idx].as_buf(),
+                    &adam.beta1, &adam.beta2, &adam.epsilon, &adam.iters, 
+                    &adam.lr, &layer_data.weights.size(),
+                ]
+            ).unwrap();
+
+            launch_kernel1d(layer_data.bias.size(), self, &src, "adam", 
+                vec![
+                    &layer_data.bias.as_buf(), &layer_data.dbias.as_buf(),
+                    &adam.bias_momentum[idx].as_buf(), &adam.bias_cache[idx].as_buf(),
+                    &adam.beta1, &adam.beta2, &adam.epsilon, &adam.iters, 
+                    &adam.lr, &layer_data.bias.size(),
+                ]
+            ).unwrap();
+        }
     }
 }
 

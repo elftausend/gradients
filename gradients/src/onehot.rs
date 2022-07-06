@@ -1,5 +1,5 @@
-use custos::{number::Number, CDatatype, CLDevice, CPU, Matrix};
-use custos_math::cl_to_cpu_s;
+use custos::{number::Number, CDatatype, CLDevice, CPU, Matrix, CudaDevice};
+use custos_math::{cl_to_cpu_s, cu_to_cpu_s};
 use purpur::utils::max;
 
 pub trait OnehotOp<T> {
@@ -32,5 +32,11 @@ impl<T: Number> OnehotOp<T> for CPU {
 impl<T: CDatatype> OnehotOp<T> for CLDevice {
     fn onehot(&self, x: Matrix<T>) -> Matrix<T> {
         cl_to_cpu_s(self, &x, |device, x| device.onehot(x))
+    }
+}
+
+impl<T: CDatatype> OnehotOp<T> for CudaDevice {
+    fn onehot(&self, x: Matrix<T>) -> Matrix<T> {
+        cu_to_cpu_s(self, &x, |device, x| device.onehot(x))
     }
 }
