@@ -141,6 +141,11 @@ impl<T: CDatatype> AdamOp<T> for CLDevice {
 
         for (idx, layer_data) in params.iter_mut().enumerate() {
             let gws = [layer_data.weights.size(), 0, 0];
+            /*enqueue_kernel(self, &src, gws, None, vec![
+                &layer_data.dweights, &adam.weight_momentum[idx],
+                &adam.weight_cache[idx], &adam.beta1, &adam.beta2,
+                &adam.epsilon, &(adam.iters + 1), 
+            ]).unwrap();*/
             let output = KernelOptions::new(
                     self, 
                     layer_data.weights.as_mut_buf(), 
@@ -159,7 +164,7 @@ impl<T: CDatatype> AdamOp<T> for CLDevice {
                 .run()
                 .unwrap();
 
-            self.sub_assign(&mut layer_data.weights, &output);
+            self.sub_assign(&mut layer_data.weights, &output.unwrap());
 
             let output =
                 KernelOptions::new(self, layer_data.bias.as_buf(), [layer_data.bias.size(), 0, 0], &src).unwrap()
@@ -175,7 +180,7 @@ impl<T: CDatatype> AdamOp<T> for CLDevice {
                     .run()
                     .unwrap();
 
-            self.sub_assign(&mut layer_data.bias, &output);
+            self.sub_assign(&mut layer_data.bias, &output.unwrap());
         }
     }
 }
