@@ -1,4 +1,5 @@
-use custos::{CPU, AsDev, Matrix, CLDevice, Error};
+use custos::{CPU, AsDev};
+use custos_math::Matrix;
 use gradients::find_idxs;
 
 
@@ -17,9 +18,10 @@ fn test_find_idxs_cpu() {
     assert_eq!(idxs, vec![1, 2])
 }
 
+#[cfg(feature="opencl")]
 #[test]
-fn test_find_idxs_cl() -> Result<(), Error> {
-    let device = CLDevice::new(0)?.select();
+fn test_find_idxs_cl() -> custos::Result<()> {
+    let device = custos::CLDevice::new(0)?.select();
     let search_for = Matrix::from((&device, (2, 3), 
         [1, 4, 2,
         3, 1, 0])

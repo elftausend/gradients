@@ -1,7 +1,9 @@
-use custos::{opencl::KernelOptions, CDatatype, CLDevice, CPU, Matrix};
-use custos_math::Additional;
-
+use custos::{CDatatype, CPU};
+use custos_math::Matrix;
 use crate::Param;
+
+#[cfg(feature="opencl")]
+use custos::{CLDevice, opencl::KernelOptions};
 
 pub struct SGD<T> {
     lr: T,
@@ -30,23 +32,21 @@ impl<T: CDatatype> SGD<T> {
             if self.weight_momentum.len() < params.len() {
                 for param in &params {
                     self.weight_momentum
-                        .push(Matrix::from(param.weights.dims()));
-                    self.bias_momentum.push(Matrix::from(param.bias.dims()));
+                        .push(param.weights.dims().into());
+                    self.bias_momentum.push(param.bias.dims().into());
                 }
             }
-
-            device.step_momentum(self, params)
-        } else {
-            device.step(self, params)
-        }
+            return device.step_momentum(self, params);
+        } 
+        device.step(self, params)        
     }
 }
 
 pub trait SGDOp<T: CDatatype> {
     fn step(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>) {
         for mut param in params {
-            param.weights -= &param.dweights.muls(sgd.lr);
-            param.bias -= &param.dbias.muls(sgd.lr);
+            param.weights -= param.dweights * sgd.lr;
+            param.bias -= param.dbias * sgd.lr;
         }
     }
     fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>);
@@ -55,23 +55,24 @@ pub trait SGDOp<T: CDatatype> {
 impl<T: CDatatype> SGDOp<T> for CPU {
     fn step_momentum(&self, sgd: &mut SGD<T>, mut params: Vec<Param<T>>) {
         for (layer_idx, param) in params.iter_mut().enumerate() {
-            for (idx, w) in param.weights.as_mut_slice().iter_mut().enumerate() {
-                let update = sgd.momentum * sgd.weight_momentum[layer_idx].as_slice()[idx]
-                    + param.dweights.as_slice()[idx] * sgd.lr;
+            for (idx, w) in param.weights.iter_mut().enumerate() {
+                let update = sgd.momentum * sgd.weight_momentum[layer_idx][idx]
+                    + param.dweights[idx] * sgd.lr;
                 *w -= update;
-                sgd.weight_momentum[layer_idx].as_mut_slice()[idx] = update;
+                sgd.weight_momentum[layer_idx][idx] = update;
             }
 
-            for (idx, b) in param.bias.as_mut_slice().iter_mut().enumerate() {
-                let update = sgd.momentum * sgd.bias_momentum[layer_idx].as_slice()[idx]
-                    + param.dbias.as_slice()[idx] * sgd.lr;
+            for (idx, b) in param.bias.iter_mut().enumerate() {
+                let update = sgd.momentum * sgd.bias_momentum[layer_idx][idx]
+                    + param.dbias[idx] * sgd.lr;
                 *b -= update;
-                sgd.bias_momentum[layer_idx].as_mut_slice()[idx] = update;
+                sgd.bias_momentum[layer_idx][idx] = update;
             }
         }
     }
 }
 
+#[cfg(feature="opencl")]
 impl<T: CDatatype> SGDOp<T> for CLDevice {
     fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>) {
         let src = format!(

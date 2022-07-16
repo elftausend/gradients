@@ -1,5 +1,5 @@
-use custos::{CPU, Matrix, AsDev, range};
-use custos_math::Additional;
+use custos::{CPU, AsDev, range};
+use custos_math::Matrix;
 use gradients::LinearReg;
 use graplot::Scatter;
 
@@ -7,10 +7,10 @@ fn main() {
     let device = CPU::new().select();
 
     let x = Matrix::from((&device, (1, 13), [5.,4.,3.,6.,2.,5.,2.,9.,7.,11.,12.,13.,9.]))
-        .divs(17.);
+        / 17.;
 
     let y = Matrix::from((&device, (1, 13), [20., 40., 50., 60., 55., 100., 140., 120., 155., 85., 97., 119., 111.,]))
-        .divs(155.);
+        / 255.;
 
     let mut lg = LinearReg::new(x, y);
     

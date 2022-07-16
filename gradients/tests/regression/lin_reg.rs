@@ -1,5 +1,5 @@
-use custos::{CPU, AsDev, Matrix, range};
-use custos_math::{Additional, Sum, nn::mse_grad};
+use custos::{CPU, AsDev, range};
+use custos_math::{nn::mse_grad, Matrix};
 use gradients::LinearReg;
 use graplot::Scatter;
 

@@ -1,5 +1,5 @@
 use custos::{range, CPU, AsDev};
-use custos_math::{Additional, nn::{cce, cce_grad}};
+use custos_math::nn::{cce, cce_grad};
 use gradients_derive::NeuralNetwork;
 use gradients::{NeuralNetwork, Linear, ReLU, Softmax, OnehotOp, Adam};
 use purpur::{Transforms, ImageReturn, Apply, Converter};

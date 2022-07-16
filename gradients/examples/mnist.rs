@@ -1,6 +1,5 @@
 use custos_math::{
     nn::{cce, cce_grad},
-    Additional,
 };
 use gradients::{correct_classes, Adam, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax};
 use gradients_derive::NeuralNetwork;
@@ -30,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (loaded_data.sample_count, loaded_data.features),
         &loaded_data.x,
     ));
-    let i = i.divs(255.);
+    let i = i / 255.;
 
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
     let y = device.onehot(y);

@@ -1,5 +1,5 @@
-use custos::{CDatatype, Matrix};
-use custos_math::Max;
+use custos::CDatatype;
+use custos_math::Matrix;
 
 pub fn find_idxs<T: Copy + Default + PartialEq>(
     search_for: Matrix<T>,

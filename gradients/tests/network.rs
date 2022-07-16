@@ -2,7 +2,6 @@ use std::time::Instant;
 
 use custos_math::{
     nn::{cce, cce_grad, mse_grad, mse},
-    Additional,
 };
 use gradients::{
     Linear, NeuralNetwork, OnehotOp, ReLU, Softmax, create_sine, Adam, Tanh,

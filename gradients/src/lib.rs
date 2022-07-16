@@ -5,12 +5,13 @@ mod opt;
 mod ml;
 
 pub use accuracy::*;
-use custos::{Device, Matrix};
 pub use layers::*;
 pub use onehot::*;
 pub use opt::*;
 pub use ml::*;
 
+use custos::Device;
+use custos_math::Matrix;
 pub use rand::distributions::uniform::SampleUniform;
 
 pub trait GetParam<T> {
@@ -48,12 +49,10 @@ pub fn create_sine<D: Device<f32>>(
     max: usize,
 ) -> (Matrix<f32>, Matrix<f32>) {
     let mut x: Vec<f32> = Vec::new();
-    let mut add = 0f32;
-    for _ in min..max {
-        x.push(add / 1000.);
-        add += 1.
+    for add in min..max {
+        x.push(add as f32 / 1000.);
     }
-    let y = x.iter().map(|v| (v).sin()).collect::<Vec<f32>>();
+    let y = x.iter().map(|v| (2. * v * std::f32::consts::PI).sin()).collect::<Vec<f32>>();
     let x = Matrix::from((device, (max - min, 1), x));
     let y = Matrix::from((device, (max - min, 1), y));
     (x, y)

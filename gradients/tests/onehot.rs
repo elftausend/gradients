@@ -1,4 +1,5 @@
-use custos::{AsDev, CLDevice, Matrix, CPU};
+use custos::{AsDev, CLDevice, CPU};
+use custos_math::Matrix;
 use gradients::OnehotOp;
 
 #[test]

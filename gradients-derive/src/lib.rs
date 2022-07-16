@@ -72,7 +72,7 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
 
     quote! {
         use gradients::{GetParam, Param, SampleUniform};
-        use custos::Matrix;
+        use custos_math::Matrix;
 
         impl<T> Default for #name<T> {
             fn default() -> Self {

@@ -7,18 +7,23 @@ edition = "2021"
 
 [dependencies]
 
-custos = {path = "../../custos", features=["opencl"]}
-custos-math = {path = "../../custos-math", features=[]}
+custos = { path = "../../custos", default-features = false }
+custos-math = { path = "../../custos-math", default-features = false }
 purpur = {path = "../../purpur"}
 
 gradients-derive = {path = "../gradients-derive"}
-
 
 rand = "*"
 
 #custos = {git = "https://github.com/elftausend/custos.git"}
 #custos-math = {git = "https://github.com/elftausend/custos-math.git"}
+
 #purpur = {git = "https://github.com/elftausend/purpur.git"}
 
+[features]
+default = ["opencl"]
+opencl = ["custos-math/opencl"]
+cuda = ["custos-math/cuda"]
+
 [dev-dependencies]
-graplot = {path = "../../graplot"}
+graplot = { path = "../../graplot" }

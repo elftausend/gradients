@@ -1,5 +1,5 @@
-use custos::{Matrix, CDatatype};
-use custos_math::{Additional, Sum};
+use custos::CDatatype;
+use custos_math::Matrix;
 
 pub struct LinearReg<T> {
     pub xs: Matrix<T>,
@@ -19,7 +19,7 @@ impl<T: CDatatype> LinearReg<T> {
     }
 
     pub fn predict(&self, xs: Matrix<T>) -> Matrix<T> {
-        xs.muls(self.k).adds(self.d)
+        xs * self.k + self.d
     }
 
     pub fn step(&mut self, lr: T) -> T {
@@ -27,8 +27,8 @@ impl<T: CDatatype> LinearReg<T> {
         
         let loss = y_preds - self.ys;
         
-        self.k -= (loss * self.xs.muls(lr * T::two())).sum();
-        self.d -= loss.muls(lr * T::two()).sum();
+        self.k -= (loss * self.xs * (lr * T::two())).sum();
+        self.d -= (loss * (lr * T::two())).sum();
 
         (loss * loss).mean()
     }

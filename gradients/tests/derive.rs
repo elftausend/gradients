@@ -2,7 +2,6 @@ use std::time::Instant;
 
 use custos_math::{
     nn::{cce, cce_grad},
-    Additional,
 };
 use gradients::{
     correct_classes, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax,
@@ -23,16 +22,15 @@ pub struct Network<T> {
 }
 
 #[test]
-fn test_net() {
+fn test_net() -> custos::Result<()> {
     //let device = custos::CPU::new().select();
-    let device = CLDevice::new(0).unwrap().select();
+    let device = CLDevice::new(0)?.select();
     //let device = custos::CudaDevice::new(0).unwrap().select();
 
     let loader = CSVLoader::new(true);
 
     let loaded_data = loader
-        .load("../../gradients-fallback/datasets/digit-recognizer/train.csv")
-        .unwrap();
+        .load("../../gradients-fallback/datasets/digit-recognizer/train.csv")?;
     //let loaded_data = loader.load("../../../datasets/mnist/mnist_train.csv").unwrap();
 
     let i = Matrix::<f32>::from((
@@ -40,7 +38,7 @@ fn test_net() {
         (loaded_data.sample_count, loaded_data.features),
         &loaded_data.x,
     ));
-    let i = i.divs(255.);
+    let i = i / 255.;
 
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
     let y = device.onehot(y);
@@ -54,11 +52,9 @@ fn test_net() {
 
     let mut opt = gradients::Adam::<f32>::new(0.002);
     //let mut opt = gradients::SGD::new(0.1).momentum(0.8);
-
-
     let start = Instant::now();
 
-    for epoch in range(100) {
+    for epoch in range(0) {
         let preds = net.forward(i);
         let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
         
@@ -73,5 +69,6 @@ fn test_net() {
         opt.step(&device, net.params());
     }
 
-    println!("training duration: {:?}", start.elapsed())
+    println!("training duration: {:?}", start.elapsed());
+    Ok(())
 }
