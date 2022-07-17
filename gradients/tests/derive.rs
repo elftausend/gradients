@@ -2,7 +2,6 @@ use std::time::Instant;
 
 use custos_math::nn::{cce, cce_grad};
 use gradients::{correct_classes, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax};
-//use gradients_derive::NeuralNetwork;
 
 use custos::{range, AsDev, CLDevice};
 use purpur::{CSVLoader, Converter};
@@ -50,7 +49,7 @@ fn test_net() -> custos::Result<()> {
     //let mut opt = gradients::SGD::new(0.1).momentum(0.8);
     let start = Instant::now();
 
-    for epoch in range(0) {
+    for epoch in range(100) {
         let preds = net.forward(i);
         let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
 

@@ -16,7 +16,9 @@ pub struct Network<T> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    //let device = CPU::new().select();
+    // no features: let device = CPU::new().select();
+    // cuda feature: let device = CudaDevice::new(0)?.select();
+    // opencl feature:
     let device = CLDevice::new(0)?.select();
 
     let loader = CSVLoader::new(true);

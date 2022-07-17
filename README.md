@@ -60,7 +60,9 @@ You can download the mnist dataset [here](https://www.kaggle.com/datasets/oddrat
 [data]: https://www.kaggle.com/datasets/oddrationale/mnist-in-csv
 
 ```rust
-//or use cpu: let device = custos::CPU::new().select();
+// use cpu (no features enabled): let device = gradients::CPU::new().select();
+// use cuda device (cuda feature enabled): let device = gradients::CudaDevice::new(0).unwrap().select();
+// use opencl device (opencl feature enabled):
 let device = CLDevice::new(0).unwrap().select();
 
 let loader = CSVLoader::new(true);
