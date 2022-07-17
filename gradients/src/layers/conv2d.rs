@@ -1,5 +1,7 @@
 use custos::{cached, number::Float, CDatatype};
-use custos_math::{assign_to_lhs, Matrix};
+use custos_math::{assign_to_lhs, Matrix, correlate_valid_mut};
+use gradients_derive::NoParams;
+use crate::GetParam;
 
 pub struct KernelBlock<T> {
     pub weights: Matrix<T>,
@@ -22,10 +24,12 @@ impl<T> KernelBlock<T> {
     }
 }
 
+#[derive(NoParams)]
 pub struct Conv2D<T> {
     pub kernel_shape: (usize, usize),
     output_shape: (usize, usize),
     kernels: Vec<KernelBlock<T>>,
+    inputs: Option<Matrix<T>>
 }
 
 impl<T: Float + CDatatype> Conv2D<T> {
@@ -47,28 +51,65 @@ impl<T: Float + CDatatype> Conv2D<T> {
             kernel_shape,
             output_shape,
             kernels,
+            inputs: None
         }
     }
 
-    pub fn forward(&mut self, _inputs: Matrix<T>) -> Matrix<T> {
+    pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
+        self.inputs = Some(inputs);
         let (out_rows, out_cols) = self.output_shape;
 
-        /*let mut output = cached::<T>(out_rows*out_cols * self.kernels.len());
-        // TODO: use set_.. with bias instead
-        output.clear();
-        for kernel_block in &self.kernels {
-            output += kernel_block.bias;
-        }*/
         let mut output = cached::<T>(out_rows * out_cols * self.kernels.len());
+        output.clear();
 
         for (idx, kernel_block) in self.kernels.iter().enumerate() {
             let start = idx * out_rows * out_cols;
             let output_slice = &mut output[start..start + out_rows * out_cols];
             assign_to_lhs(output_slice, &kernel_block.bias, |a, b| *a += b);
-
-            //correlate_add(output_slice, inputs, kernel_block.weights)
+            
+            correlate_valid_mut(
+                &inputs,
+                inputs.dims(),
+                &kernel_block.weights,
+                kernel_block.weights.dims(),
+                output_slice,
+            );
         }
-        //output
-        todo!()
+        (output, (1, output.len())).into()
+    }
+    pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T> {
+        let (out_rows, out_cols) = self.output_shape;
+        let (kernel_rows, kernel_cols) = self.kernel_shape;
+        let mut dkernel = cached::<T>(kernel_rows*kernel_cols*self.kernels.len());
+        dkernel.clear();
+
+        for (idx, kernel) in self.kernels.iter_mut().enumerate() {
+            let start = idx * out_rows * out_cols;
+            let grad_slice = &grad[start..start + out_rows * out_cols];
+
+            let start = idx * kernel_rows * kernel_cols;
+            let dkernel_slice = &mut dkernel[start..start+kernel_rows*kernel_cols];
+
+            let inputs = self.inputs.unwrap();
+            correlate_valid_mut(&inputs, inputs.dims(), grad_slice, (out_rows, out_cols), dkernel_slice);
+            
+            // step
+            for (idx, value) in kernel.weights.iter_mut().enumerate() {
+                *value -= dkernel_slice[idx] * T::one() / T::from_u64(1000);
+            }
+        }
+        // need to calculate w. r. t. inputs
+        grad
+    }
+}
+
+impl<T> Default for Conv2D<T> {
+    fn default() -> Self {
+        Self {
+            inputs: Default::default(),
+            kernel_shape: Default::default(),
+            output_shape: Default::default(),
+            kernels: Default::default()
+        }
     }
 }
