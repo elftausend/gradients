@@ -1,14 +1,10 @@
 use std::time::Instant;
 
-use custos_math::{
-    nn::{cce, cce_grad},
-};
-use gradients::{
-    correct_classes, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax,
-};
-use gradients_derive::NeuralNetwork;
+use custos_math::nn::{cce, cce_grad};
+use gradients::{correct_classes, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax};
+//use gradients_derive::NeuralNetwork;
 
-use custos::{CLDevice, AsDev, range};
+use custos::{range, AsDev, CLDevice};
 use purpur::{CSVLoader, Converter};
 
 #[derive(NeuralNetwork)]
@@ -29,8 +25,8 @@ fn test_net() -> custos::Result<()> {
 
     let loader = CSVLoader::new(true);
 
-    let loaded_data = loader
-        .load("../../gradients-fallback/datasets/digit-recognizer/train.csv")?;
+    let loaded_data =
+        loader.load("../../gradients-fallback/datasets/digit-recognizer/train.csv")?;
     //let loaded_data = loader.load("../../../datasets/mnist/mnist_train.csv").unwrap();
 
     let i = Matrix::<f32>::from((
@@ -57,7 +53,7 @@ fn test_net() -> custos::Result<()> {
     for epoch in range(0) {
         let preds = net.forward(i);
         let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
-        
+
         let loss = cce(&device, &preds, &y);
         println!(
             "epoch: {epoch}, loss: {loss}, training_acc: {acc}",

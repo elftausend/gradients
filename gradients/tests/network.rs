@@ -1,14 +1,10 @@
 use std::time::Instant;
 
-use custos_math::{
-    nn::{cce, cce_grad, mse_grad, mse},
-};
-use gradients::{
-    Linear, NeuralNetwork, OnehotOp, ReLU, Softmax, create_sine, Adam, Tanh,
-};
-use gradients_derive::NeuralNetwork;
+use custos_math::nn::{cce, cce_grad, mse, mse_grad};
+use gradients::{create_sine, Adam, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax, Tanh};
+//use gradients_derive::NeuralNetwork;
 
-use custos::{AsDev, range};
+use custos::{range, AsDev};
 use purpur::{CSVLoader, CSVReturn};
 
 #[derive(NeuralNetwork)]
@@ -23,19 +19,9 @@ fn test_xor() -> custos::Result<()> {
     //let device = custos::CPU::new().select();
     let device = custos::CLDevice::new(0)?.select();
 
-    let xs = Matrix::from((&device, 4, 2, 
-        [0., 0.,
-        0., 1.,
-        1., 0.,
-        1., 1.,])
-    );
+    let xs = Matrix::from((&device, 4, 2, [0., 0., 0., 1., 1., 0., 1., 1.]));
 
-    let ys = Matrix::from((&device, 4, 2, 
-        [1., 0.,
-        0., 1.,
-        0., 1.,
-        1., 0.,])
-    );
+    let ys = Matrix::from((&device, 4, 2, [1., 0., 0., 1., 0., 1., 1., 0.]));
 
     let mut net: Xor<f32> = Xor {
         lin1: Linear::new(2, 4),
@@ -51,14 +37,14 @@ fn test_xor() -> custos::Result<()> {
         let preds = net.forward(xs);
         let loss = mse(&device, preds, ys);
         println!("epoch: {epoch}, loss: {loss}");
-        
+
         let grad = mse_grad(&device, preds, ys);
         net.backward(grad);
         adam.step(&device, net.params());
     }
 
     println!("training duration: {:?}", start.elapsed());
-    Ok(())    
+    Ok(())
 }
 
 #[test]

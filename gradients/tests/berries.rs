@@ -1,8 +1,7 @@
-use custos::{range, CPU, AsDev};
+use custos::{range, AsDev, CPU};
 use custos_math::nn::{cce, cce_grad};
-use gradients_derive::NeuralNetwork;
-use gradients::{NeuralNetwork, Linear, ReLU, Softmax, OnehotOp, Adam};
-use purpur::{Transforms, ImageReturn, Apply, Converter};
+use gradients::{Adam, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax};
+use purpur::{Apply, Converter, ImageReturn, Transforms};
 
 #[derive(NeuralNetwork)]
 struct Network<T> {
@@ -15,25 +14,30 @@ struct Network<T> {
 }
 
 #[test]
-fn test_berries_net() -> Result<(), std::io::Error>{
-
+fn test_berries_net() -> Result<(), std::io::Error> {
     let mut ir = ImageReturn::default();
-    let mut trans = Transforms::new(vec![
-        Apply::GetImgRet(&mut ir),
-    ]).shuffle();
+    let mut trans = Transforms::new(vec![Apply::GetImgRet(&mut ir)]).shuffle();
 
     trans.apply("../../gradients-fallback/datasets/berries_aug_6xx/train")?;
 
     let device = CPU::new().select();
 
-    let x = Matrix::from((&device, (ir.sample_count(), ir.features()), ir.data.as_f32()));
+    let x = Matrix::from((
+        &device,
+        (ir.sample_count(), ir.features()),
+        ir.data.as_f32(),
+    ));
     let x = x.divs(255.);
 
-    let y = Matrix::from((&device, (ir.sample_count(), 1), ir.get_classes_for_imgs().as_f32()));
+    let y = Matrix::from((
+        &device,
+        (ir.sample_count(), 1),
+        ir.get_classes_for_imgs().as_f32(),
+    ));
     let y = device.onehot(y);
 
     let mut net = Network {
-        lin1: Linear::new(100*100*3, 512),
+        lin1: Linear::new(100 * 100 * 3, 512),
         lin2: Linear::new(512, 16),
         lin3: Linear::new(16, 3),
         ..Default::default()
@@ -48,7 +52,7 @@ fn test_berries_net() -> Result<(), std::io::Error>{
         let grad = cce_grad(&device, &predicted, &y);
         net.backward(grad);
         opt.step(&device, net.params());
-        
+
         println!("epoch: {epoch}, loss: {loss}");
     }
     Ok(())

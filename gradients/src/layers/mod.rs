@@ -1,7 +1,7 @@
-mod linear;
-mod conv2d;
 mod activations;
+mod conv2d;
+mod linear;
 
-pub use linear::*;
-pub use conv2d::*;
 pub use activations::*;
+pub use conv2d::*;
+pub use linear::*;

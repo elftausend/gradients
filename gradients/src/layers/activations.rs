@@ -1,10 +1,10 @@
 use crate::GetParam;
-use custos::{GenericBlas, number::Float, CDatatype};
+use custos::{number::Float, CDatatype, GenericBlas};
 use custos_math::{
-    nn::{Activations, Softmax as TSoftmax}, Matrix
+    nn::{Activations, Softmax as TSoftmax},
+    Matrix,
 };
 use gradients_derive::NoParams;
-
 
 #[derive(Clone, NoParams)]
 pub struct ReLU<T> {
@@ -53,7 +53,6 @@ impl<T: CDatatype + GenericBlas> Softmax<T> {
     }
 }
 
-
 impl<T> Default for Softmax<T> {
     fn default() -> Self {
         Self {
@@ -64,14 +63,12 @@ impl<T> Default for Softmax<T> {
 
 #[derive(Clone, NoParams)]
 pub struct Tanh<T> {
-    inputs: Option<Matrix<T>>
+    inputs: Option<Matrix<T>>,
 }
 
-impl <T: Float + CDatatype>Tanh<T> {
+impl<T: Float + CDatatype> Tanh<T> {
     pub fn new() -> Tanh<T> {
-        Tanh {
-            inputs: None,
-        }
+        Tanh { inputs: None }
     }
     pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
         self.inputs = Some(inputs);

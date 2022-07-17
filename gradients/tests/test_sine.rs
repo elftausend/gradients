@@ -1,9 +1,11 @@
 use std::time::Instant;
 
-use custos::{CPU, AsDev, range};
-use custos_math::nn::{mse, mse_grad};
-use gradients::{create_sine, Linear, ReLU, NeuralNetwork, Adam};
-use gradients_derive::NeuralNetwork;
+use gradients::{
+    create_sine,
+    nn::{mse, mse_grad},
+    range, Adam, AsDev, Linear, NeuralNetwork, ReLU, CPU,
+};
+//use gradients_derive::NeuralNetwork;
 
 #[derive(NeuralNetwork)]
 struct SineNet<T> {
@@ -11,7 +13,7 @@ struct SineNet<T> {
     relu1: ReLU<T>,
     linear2: Linear<T>,
     relu2: ReLU<T>,
-    linear3: Linear<T>
+    linear3: Linear<T>,
 }
 
 #[test]

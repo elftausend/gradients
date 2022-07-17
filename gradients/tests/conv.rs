@@ -1,4 +1,4 @@
-use custos::{CPU, AsDev};
+use custos::{AsDev, CPU};
 
 #[test]
 fn test_conv() {

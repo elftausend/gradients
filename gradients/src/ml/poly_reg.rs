@@ -1,29 +1,29 @@
-use custos::{CDatatype, number::Float};
+use custos::{number::Float, CDatatype};
 use custos_math::Matrix;
 
 fn single_predict<T: Float>(coeffs: &[T], x: T) -> T {
     let mut sum = T::zero();
-    let mut pow = coeffs.len();        
+    let mut pow = coeffs.len();
 
     for coeff in coeffs {
         pow -= 1;
         sum += x.powi(pow as i32) * *coeff;
     }
-    sum    
+    sum
 }
 
 pub struct PolynomialReg<T> {
     xs: Matrix<T>,
     ys: Matrix<T>,
-    pub coeffs: Vec<T>
+    pub coeffs: Vec<T>,
 }
 
-impl<T: CDatatype+Float> PolynomialReg<T> {
+impl<T: CDatatype + Float> PolynomialReg<T> {
     pub fn new(xs: Matrix<T>, ys: Matrix<T>, degree: usize) -> Self {
         PolynomialReg {
             xs,
             ys,
-            coeffs: vec![T::one(); degree +1]
+            coeffs: vec![T::one(); degree + 1],
         }
     }
 
@@ -34,7 +34,7 @@ impl<T: CDatatype+Float> PolynomialReg<T> {
     pub fn predict(&self, xs: Matrix<T>) -> Matrix<T> {
         let mut sum = Matrix::from((custos::cached::<T>(xs.size()), xs.dims()));
         sum.clear();
-        
+
         let mut pow = self.coeffs.len();
 
         for coeff in &self.coeffs {
@@ -47,7 +47,7 @@ impl<T: CDatatype+Float> PolynomialReg<T> {
     pub fn step(&mut self, lr: T) -> T {
         let y_preds = self.predict(self.xs);
         let loss = y_preds - self.ys;
-        
+
         let mut pow = self.coeffs.len();
 
         for coeff in &mut self.coeffs {
@@ -68,5 +68,5 @@ mod tests {
         let coeffs = [5., 2.9, 10.6, 4.3];
         let out = single_predict(&coeffs, 3.);
         assert_eq!(out, 197.2)
-    }   
+    }
 }

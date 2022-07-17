@@ -5,7 +5,7 @@ pub struct LinearReg<T> {
     pub xs: Matrix<T>,
     pub ys: Matrix<T>,
     pub k: T,
-    pub d: T
+    pub d: T,
 }
 
 impl<T: CDatatype> LinearReg<T> {
@@ -14,7 +14,7 @@ impl<T: CDatatype> LinearReg<T> {
             xs,
             ys,
             k: T::zero(),
-            d: T::zero()
+            d: T::zero(),
         }
     }
 
@@ -24,9 +24,9 @@ impl<T: CDatatype> LinearReg<T> {
 
     pub fn step(&mut self, lr: T) -> T {
         let y_preds = self.predict(self.xs);
-        
+
         let loss = y_preds - self.ys;
-        
+
         self.k -= (loss * self.xs * (lr * T::two())).sum();
         self.d -= (loss * (lr * T::two())).sum();
 

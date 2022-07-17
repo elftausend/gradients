@@ -1,9 +1,8 @@
-use custos::{GenericBlas, number::Float, CDatatype};
-use custos_math::{Matrix, CudaTranspose, Row};
+use custos::{number::Float, CDatatype, GenericBlas};
+use custos_math::{CudaTranspose, Matrix, Row};
 use rand::distributions::uniform::SampleUniform;
 
 use crate::{GetParam, Param};
-
 
 #[derive(Clone)]
 pub struct Linear<T> {
@@ -14,7 +13,7 @@ pub struct Linear<T> {
     inputs: Option<Matrix<T>>,
 }
 
-impl<T: Float+GenericBlas+CDatatype+SampleUniform> Linear<T> {
+impl<T: Float + GenericBlas + CDatatype + SampleUniform> Linear<T> {
     pub fn new(input_size: usize, output_size: usize) -> Linear<T> {
         let mut weights = Matrix::<T>::from((input_size, output_size));
 
@@ -40,7 +39,10 @@ impl<T: Float+GenericBlas+CDatatype+SampleUniform> Linear<T> {
         inputs.gemm(&self.weights).add_row(self.bias)
     }
 
-    pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T> where T: CudaTranspose {
+    pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T>
+    where
+        T: CudaTranspose,
+    {
         self.dbias = Some(grad.sum_rows());
         self.dweights = Some(self.inputs.unwrap().T().gemm(&grad));
         grad.gemm(&self.weights.T())

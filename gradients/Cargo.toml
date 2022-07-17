@@ -2,18 +2,24 @@
 name = "gradients"
 version = "0.1.0"
 edition = "2021"
+categories = ["mathematics", "science", "algorithms"]
+keywords = ["CUDA", "OpenCL", "machine-learning", "science", "deep-learning"]
+description = "An OpenCL, CUDA and CPU based Deep Learning Library"
+license = "MIT"
+readme = "../README.md"
+repository = "https://github.com/elftausend/gradients"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 
-custos = { path = "../../custos", default-features = false }
-custos-math = { path = "../../custos-math", default-features = false }
-purpur = {path = "../../purpur"}
-
+custos = { version="0.1.4", default-features = false }
+#custos = { path = "../../custos", default-features = false }
+#custos-math = { path = "../../custos-math", default-features = false }
+custos-math = { version="0.1.0", default-features = false }
+purpur = "0.1.0"
+rand = "0.8.5"
 gradients-derive = {path = "../gradients-derive"}
-
-rand = "*"
 
 #custos = {git = "https://github.com/elftausend/custos.git"}
 #custos-math = {git = "https://github.com/elftausend/custos-math.git"}
@@ -22,8 +28,8 @@ rand = "*"
 
 [features]
 default = ["opencl"]
-opencl = ["custos-math/opencl"]
-cuda = ["custos-math/cuda"]
+opencl = ["custos/opencl", "custos-math/opencl"]
+cuda = ["custos/cuda", "custos-math/cuda"]
 
 [dev-dependencies]
-graplot = { path = "../../graplot" }
+graplot = { version = "0.1.20" }

@@ -1,7 +1,8 @@
-use custos::{CPU, AsDev, range};
-use custos_math::nn::{mse, mse_grad};
-use gradients::{create_sine, Linear, ReLU, NeuralNetwork, Adam};
-use gradients_derive::NeuralNetwork;
+use gradients::{
+    create_sine,
+    nn::{mse, mse_grad},
+    range, Adam, AsDev, Linear, NeuralNetwork, ReLU, CPU,
+};
 use graplot::Plot;
 
 #[derive(NeuralNetwork)]
@@ -10,15 +11,15 @@ struct SineNet<T> {
     relu1: ReLU<T>,
     linear2: Linear<T>,
     relu2: ReLU<T>,
-    linear3: Linear<T>
+    linear3: Linear<T>,
 }
 
 fn main() {
     let device = CPU::new().select();
 
     let mut net = SineNet {
-        linear1: Linear::new(1, 32),
-        linear2: Linear::new(32, 32),
+        linear1: Linear::new(1, 48),
+        linear2: Linear::new(48, 32),
         linear3: Linear::new(32, 1),
         ..Default::default()
     };

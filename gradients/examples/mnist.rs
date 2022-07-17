@@ -1,11 +1,9 @@
-use custos_math::{
+use gradients::purpur::{CSVLoader, CSVReturn, Converter};
+use gradients::{
+    correct_classes,
     nn::{cce, cce_grad},
+    range, Adam, AsDev, CLDevice, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax,
 };
-use gradients::{correct_classes, Adam, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax};
-use gradients_derive::NeuralNetwork;
-
-use custos::{CLDevice, AsDev, range};
-use purpur::{CSVLoader, Converter, CSVReturn};
 
 #[derive(NeuralNetwork)]
 pub struct Network<T> {

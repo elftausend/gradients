@@ -1,27 +1,38 @@
-use custos::{CPU, AsDev, range};
+use custos::{range, AsDev, CPU};
 use custos_math::Matrix;
-use gradients::{PolynomialReg, LinearReg};
+use gradients::{LinearReg, PolynomialReg};
 use graplot::Scatter;
 
 #[test]
 fn test_poly() {
     let device = CPU::new().select();
 
-    let xs = Matrix::from((&device, (1, 26), [1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13.,
-                                                           -1., -2., -3., -4., -5., -6., -7., -8., -9., -10., -11., -12., -13.]))
-        .divs(13.);
+    let xs = Matrix::from((
+        &device,
+        (1, 26),
+        [
+            1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., -1., -2., -3., -4., -5., -6.,
+            -7., -8., -9., -10., -11., -12., -13.,
+        ],
+    ))
+    .divs(13.);
 
-    let ys = Matrix::from((&device, (1, 26), [20., 30., 35., 38., 40., 46., 60., 85., 100., 120., 140., 160., 180.,
-                                                           20., 30., 35., 38., 40., 46., 60., 85., 100., 120., 140., 160., 180.]))
-        .divs(180.);
+    let ys = Matrix::from((
+        &device,
+        (1, 26),
+        [
+            20., 30., 35., 38., 40., 46., 60., 85., 100., 120., 140., 160., 180., 20., 30., 35.,
+            38., 40., 46., 60., 85., 100., 120., 140., 160., 180.,
+        ],
+    ))
+    .divs(180.);
 
-    
     let mut poly = PolynomialReg::new(xs, ys, 2);
     let mut loss_poly = 0.;
 
     let mut lg = LinearReg::new(xs, ys);
     let mut loss_lin = 0.;
-    
+
     for _ in range(4000) {
         loss_lin = lg.step(0.001);
         loss_poly = poly.step(0.001);

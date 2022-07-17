@@ -19,7 +19,6 @@ fn impl_params(name: Ident) -> TokenStream {
     }
 }
 
-
 #[proc_macro_derive(NeuralNetwork)]
 pub fn derive_neural_network(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -62,24 +61,24 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
         .map(|f| {
             let name = &f.ident;
             quote!(
-                if let Some(params) = self.#name.params() {
-                    vec.push(params);
-                }
-             )
+               if let Some(params) = self.#name.params() {
+                   vec.push(params);
+               }
+            )
         })
         .collect::<TokenStream>();
     let return_vec = quote! {vec};
 
     quote! {
-        use gradients::{GetParam, Param, SampleUniform};
-        use custos_math::Matrix;
+        use gradients::{GetParam, Param, SampleUniform, Matrix};
+
 
         impl<T> Default for #name<T> {
             fn default() -> Self {
                 Self { #default_chain }
             }
         }
-        impl<T: custos::number::Float+custos::CDatatype+custos::GenericBlas+SampleUniform + custos_math::CudaTranspose> NeuralNetwork<T> for #name<T> {
+        impl<T: gradients::number::Float+gradients::CDatatype+custos::GenericBlas+SampleUniform + gradients::CudaTranspose> NeuralNetwork<T> for #name<T> {
             fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
                 #forward_chain
             }

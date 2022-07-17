@@ -1,17 +1,23 @@
 mod accuracy;
 mod layers;
+mod ml;
 mod onehot;
 mod opt;
-mod ml;
+
+//exports of dependencies
+pub use custos::*;
+pub use custos_math::*;
+pub mod purpur {
+    pub use purpur::*;
+}
+pub use gradients_derive::*;
 
 pub use accuracy::*;
 pub use layers::*;
+pub use ml::*;
 pub use onehot::*;
 pub use opt::*;
-pub use ml::*;
 
-use custos::Device;
-use custos_math::Matrix;
 pub use rand::distributions::uniform::SampleUniform;
 
 pub trait GetParam<T> {
@@ -33,7 +39,12 @@ impl<T> Param<T> {
         dweights: Matrix<T>,
         dbias: Matrix<T>,
     ) -> Param<T> {
-        Param { weights, bias, dweights, dbias }
+        Param {
+            weights,
+            bias,
+            dweights,
+            dbias,
+        }
     }
 }
 
@@ -52,7 +63,10 @@ pub fn create_sine<D: Device<f32>>(
     for add in min..max {
         x.push(add as f32 / 1000.);
     }
-    let y = x.iter().map(|v| (2. * v * std::f32::consts::PI).sin()).collect::<Vec<f32>>();
+    let y = x
+        .iter()
+        .map(|v| (2. * v * std::f32::consts::PI).sin())
+        .collect::<Vec<f32>>();
     let x = Matrix::from((device, (max - min, 1), x));
     let y = Matrix::from((device, (max - min, 1), y));
     (x, y)
