@@ -1,6 +1,5 @@
 use custos::{cached, number::Float, CDatatype};
 use custos_math::{assign_to_lhs, Matrix};
-use rand::distributions::uniform::SampleUniform;
 
 pub struct KernelBlock<T> {
     pub weights: Matrix<T>,
@@ -11,7 +10,7 @@ pub struct KernelBlock<T> {
 impl<T> KernelBlock<T> {
     pub fn new(shape: (usize, usize), bias_shape: (usize, usize)) -> Self
     where
-        T: Float + SampleUniform,
+        T: Float,
     {
         let mut weights = Matrix::from(shape);
         weights.rand(T::one().neg(), T::one());
@@ -29,7 +28,7 @@ pub struct Conv2D<T> {
     kernels: Vec<KernelBlock<T>>,
 }
 
-impl<T: Float + SampleUniform + CDatatype> Conv2D<T> {
+impl<T: Float + CDatatype> Conv2D<T> {
     pub fn new(
         input_shape: (usize, usize),
         kernel_shape: (usize, usize),

@@ -18,8 +18,6 @@ pub use ml::*;
 pub use onehot::*;
 pub use opt::*;
 
-pub use rand::distributions::uniform::SampleUniform;
-
 pub trait GetParam<T> {
     fn params(&self) -> Option<Param<T>> {
         None

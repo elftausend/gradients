@@ -1,6 +1,5 @@
 use custos::{number::Float, CDatatype, GenericBlas};
 use custos_math::{CudaTranspose, Matrix, Row};
-use rand::distributions::uniform::SampleUniform;
 
 use crate::{GetParam, Param};
 
@@ -13,7 +12,7 @@ pub struct Linear<T> {
     inputs: Option<Matrix<T>>,
 }
 
-impl<T: Float + GenericBlas + CDatatype + SampleUniform> Linear<T> {
+impl<T: Float + GenericBlas + CDatatype> Linear<T> {
     pub fn new(input_size: usize, output_size: usize) -> Linear<T> {
         let mut weights = Matrix::<T>::from((input_size, output_size));
 

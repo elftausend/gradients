@@ -15,16 +15,12 @@ repository = "https://github.com/elftausend/gradients"
 
 custos = { version="0.1.4", default-features = false }
 #custos = { path = "../../custos", default-features = false }
-#custos-math = { path = "../../custos-math", default-features = false }
-custos-math = { version="0.1.0", default-features = false }
+custos-math = { path = "../../custos-math", default-features = false }
+#custos-math = { version="0.1.0", default-features = false }
 purpur = "0.1.0"
-rand = "0.8.5"
-gradients-derive = { version = "0.1.0" }
 
-#custos = {git = "https://github.com/elftausend/custos.git"}
-#custos-math = {git = "https://github.com/elftausend/custos-math.git"}
-
-#purpur = {git = "https://github.com/elftausend/purpur.git"}
+#gradients-derive = { version = "0.1.0" }
+gradients-derive = { path = "../gradients-derive" }
 
 [features]
 default = ["opencl", "cuda"]

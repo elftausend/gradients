@@ -70,7 +70,7 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
     let return_vec = quote! {vec};
 
     quote! {
-        use gradients::{GetParam, Param, SampleUniform, Matrix};
+        use gradients::{GetParam, Param, Matrix};
 
 
         impl<T> Default for #name<T> {
@@ -78,7 +78,7 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
                 Self { #default_chain }
             }
         }
-        impl<T: gradients::number::Float+gradients::CDatatype+custos::GenericBlas+SampleUniform + gradients::CudaTranspose> NeuralNetwork<T> for #name<T> {
+        impl<T: gradients::number::Float+gradients::CDatatype+custos::GenericBlas + gradients::CudaTranspose> NeuralNetwork<T> for #name<T> {
             fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
                 #forward_chain
             }
