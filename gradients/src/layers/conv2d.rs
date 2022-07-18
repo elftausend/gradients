@@ -1,5 +1,5 @@
 use custos::{cached, number::Float, CDatatype};
-use custos_math::{assign_to_lhs, Matrix, correlate_valid_mut};
+use custos_math::{Matrix, correlate_valid_mut};
 use gradients_derive::NoParams;
 use crate::GetParam;
 
@@ -71,7 +71,8 @@ impl<T: Float + CDatatype> Conv2D<T> {
             for (idx, kernel_block) in self.kernels.iter().enumerate() {
                 let start = idx * out_rows * out_cols + img_start;
                 let output_slice = &mut output[start..start + out_rows * out_cols + img_start];
-                assign_to_lhs(output_slice, &kernel_block.bias, |a, b| *a += b);
+                output_slice.copy_from_slice(&kernel_block.bias);
+                //assign_to_lhs(output_slice, &kernel_block.bias, |a, b| *a = b);
                 
                 correlate_valid_mut(
                     single_image,
@@ -83,7 +84,7 @@ impl<T: Float + CDatatype> Conv2D<T> {
             }
         }
         
-        (output, (inputs.rows(), output.len())).into()
+        (output, (inputs.rows(), out_rows * out_cols * self.kernels.len())).into()
     }
     pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T> {
         let inputs = self.inputs.unwrap();

@@ -21,7 +21,6 @@ purpur = "0.1.0"
 
 #gradients-derive = { version = "0.1.0" }
 gradients-derive = { path = "../gradients-derive" }
-
 [features]
 default = ["opencl"]
 opencl = ["custos/opencl", "custos-math/opencl"]
@@ -29,6 +28,7 @@ cuda = ["custos/cuda", "custos-math/cuda"]
 
 [dev-dependencies]
 graplot = { version = "0.1.20" }
+criterion = "0.3.6"
 
 [[example]]
 name = "mnist"
@@ -45,3 +45,7 @@ required-features = ["opencl"]
 [[test]]
 name = "onehot"
 required-features = ["opencl"]
+
+[[bench]]
+name = "lin_forward"
+harness = false

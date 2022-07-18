@@ -35,7 +35,10 @@ impl<T: Float + GenericBlas + CDatatype> Linear<T> {
 
     pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
         self.inputs = Some(inputs);
-        inputs.gemm(&self.weights).add_row(self.bias)
+        //inputs.gemm(&self.weights).add_row(self.bias)
+        let mut forward = inputs.gemm(&self.weights);
+        forward.add_row_mut(self.bias);
+        forward
     }
 
     pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T>

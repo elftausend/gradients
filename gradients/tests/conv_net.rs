@@ -1,7 +1,7 @@
 use std::time::Instant;
 
-use gradients::{NeuralNetwork, Linear, ReLU, Softmax, AsDev, OnehotOp, range, nn::{cce, cce_grad}, Conv2D};
-use purpur::CSVLoader;
+use gradients::{NeuralNetwork, Linear, ReLU, Softmax, AsDev, OnehotOp, range, nn::{cce, cce_grad}, Conv2D, correct_classes};
+use purpur::{CSVLoader, Converter};
 
 
 #[derive(NeuralNetwork)]
@@ -43,30 +43,65 @@ fn test_conv_net() -> custos::Result<()> {
         ..Default::default()
     };
 
-    let mut opt = gradients::Adam::<f32>::new(0.002);
+    let mut opt = gradients::Adam::<f32>::new(0.001);
     //let mut opt = gradients::SGD::new(0.1).momentum(0.8);
-
-    //let single_input = Matrix::from((&device, 1, 28*28, &i[..28*28]));
-    //let single_y = Matrix::from((&device, 1, 10, &y[0..10]));
 
     let start = Instant::now();
 
-    for epoch in range(100) {
-        let preds = net.forward(i);
+    /* 
+    let mut img = 0;
+    for epoch in range(100000) {
+        if img >= loaded_data.sample_count {
+            img = 0;
+        }
+        let drop = CPU::new();
+        let start = img*28*28;
+        let single_input = Matrix::from((&drop, 1, 28*28, &i[start..start+28*28]));
+        let start = img*10;
+        let single_y = Matrix::from((&drop, 1, 10, &y[start..start+10]));
+        
+
+        let preds = net.forward(single_input);
         //let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
 
-        let loss = cce(&device, &preds, &y);
-        println!("epoch: {epoch}, loss: {loss}");
+        let loss = cce(&device, &preds, &single_y);
+        
+        if epoch % 100 == 0 {
+            println!("epoch: {epoch}, loss: {loss}");
+        }
+        
         /*println!(
             "epoch: {epoch}, loss: {loss}, training_acc: {acc}",
             acc = correct_training / loaded_data.sample_count() as f32
         );*/
         
+        img +=1;
+
+        let grad = cce_grad(&device, &preds, &single_y);
+        net.backward(grad);
+        opt.step(&device, net.params());
+    }
+    */
+
+    for epoch in range(100000) {
+        
+        let preds = net.forward(i);
+        let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
+        
+        let loss = cce(&device, &preds, &y);
+    
+        //println!("epoch: {epoch}, loss: {loss}");
+    
+        
+        println!(
+            "epoch: {epoch}, loss: {loss}, training_acc: {acc}",
+            acc = correct_training / loaded_data.sample_count() as f32
+        );
+        
         let grad = cce_grad(&device, &preds, &y);
         net.backward(grad);
         opt.step(&device, net.params());
     }
-
     println!("training duration: {:?}", start.elapsed());
     Ok(())
 }

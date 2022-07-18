@@ -3,7 +3,7 @@ use std::time::Instant;
 use custos_math::nn::{cce, cce_grad};
 use gradients::{correct_classes, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax};
 
-use custos::{range, AsDev, CLDevice};
+use custos::{range, AsDev};
 use purpur::{CSVLoader, Converter};
 
 #[derive(NeuralNetwork)]
@@ -18,8 +18,8 @@ pub struct Network<T> {
 
 #[test]
 fn test_net() -> custos::Result<()> {
-    //let device = custos::CPU::new().select();
-    let device = CLDevice::new(0)?.select();
+    let device = custos::CPU::new().select();
+    //let device = custos::CLDevice::new(0)?.select();
     //let device = custos::CudaDevice::new(0).unwrap().select();
 
     let loader = CSVLoader::new(true);
