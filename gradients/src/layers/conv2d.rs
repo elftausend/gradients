@@ -27,6 +27,7 @@ impl<T> KernelBlock<T> {
 #[derive(NoParams)]
 pub struct Conv2D<T> {
     pub kernel_shape: (usize, usize),
+    input_shape: (usize, usize),
     output_shape: (usize, usize),
     kernels: Vec<KernelBlock<T>>,
     inputs: Option<Matrix<T>>
@@ -50,6 +51,7 @@ impl<T: Float + CDatatype> Conv2D<T> {
         Conv2D {
             kernel_shape,
             output_shape,
+            input_shape,
             kernels,
             inputs: None
         }
@@ -59,45 +61,57 @@ impl<T: Float + CDatatype> Conv2D<T> {
         self.inputs = Some(inputs);
         let (out_rows, out_cols) = self.output_shape;
 
-        let mut output = cached::<T>(out_rows * out_cols * self.kernels.len());
+        let mut output = cached::<T>(inputs.rows() * out_rows * out_cols * self.kernels.len());
         output.clear();
 
-        for (idx, kernel_block) in self.kernels.iter().enumerate() {
-            let start = idx * out_rows * out_cols;
-            let output_slice = &mut output[start..start + out_rows * out_cols];
-            assign_to_lhs(output_slice, &kernel_block.bias, |a, b| *a += b);
+        for row in 0..inputs.rows() {
+            let img_start = row * inputs.cols();
+            let single_image = &inputs[img_start..img_start+inputs.cols()];
             
-            correlate_valid_mut(
-                &inputs,
-                inputs.dims(),
-                &kernel_block.weights,
-                kernel_block.weights.dims(),
-                output_slice,
-            );
+            for (idx, kernel_block) in self.kernels.iter().enumerate() {
+                let start = idx * out_rows * out_cols + img_start;
+                let output_slice = &mut output[start..start + out_rows * out_cols + img_start];
+                assign_to_lhs(output_slice, &kernel_block.bias, |a, b| *a += b);
+                
+                correlate_valid_mut(
+                    single_image,
+                    self.input_shape,
+                    &kernel_block.weights,
+                    kernel_block.weights.dims(),
+                    output_slice,
+                );
+            }
         }
-        (output, (1, output.len())).into()
+        
+        (output, (inputs.rows(), output.len())).into()
     }
     pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T> {
+        let inputs = self.inputs.unwrap();
         let (out_rows, out_cols) = self.output_shape;
         let (kernel_rows, kernel_cols) = self.kernel_shape;
         let mut dkernel = cached::<T>(kernel_rows*kernel_cols*self.kernels.len());
         dkernel.clear();
 
-        for (idx, kernel) in self.kernels.iter_mut().enumerate() {
-            let start = idx * out_rows * out_cols;
-            let grad_slice = &grad[start..start + out_rows * out_cols];
+        for row in 0..inputs.rows() {
+            let start = row * inputs.cols();
+            let single_image = &inputs[start..start+inputs.cols()];
 
-            let start = idx * kernel_rows * kernel_cols;
-            let dkernel_slice = &mut dkernel[start..start+kernel_rows*kernel_cols];
-
-            let inputs = self.inputs.unwrap();
-            correlate_valid_mut(&inputs, inputs.dims(), grad_slice, (out_rows, out_cols), dkernel_slice);
-            
-            // step
-            for (idx, value) in kernel.weights.iter_mut().enumerate() {
-                *value -= dkernel_slice[idx] * T::one() / T::from_u64(1000);
+            for (idx, kernel) in self.kernels.iter_mut().enumerate() {
+                let start = idx * out_rows * out_cols;
+                let grad_slice = &grad[start..start + out_rows * out_cols];
+    
+                let start = idx * kernel_rows * kernel_cols;
+                let dkernel_slice = &mut dkernel[start..start+kernel_rows*kernel_cols];
+    
+                correlate_valid_mut(single_image, self.input_shape, grad_slice, (out_rows, out_cols), dkernel_slice);
+                
+                // step
+                for (idx, value) in kernel.weights.iter_mut().enumerate() {
+                    *value -= dkernel_slice[idx] * T::one() / T::from_u64(1000);
+                }
             }
         }
+        
         // need to calculate w. r. t. inputs
         grad
     }
@@ -109,6 +123,7 @@ impl<T> Default for Conv2D<T> {
             inputs: Default::default(),
             kernel_shape: Default::default(),
             output_shape: Default::default(),
+            input_shape: Default::default(),
             kernels: Default::default()
         }
     }
