@@ -1,6 +1,6 @@
 [package]
 name = "gradients"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 categories = ["mathematics", "science", "algorithms"]
 keywords = ["CUDA", "OpenCL", "machine-learning", "science", "deep-learning"]
