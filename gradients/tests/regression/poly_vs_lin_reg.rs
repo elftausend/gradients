@@ -1,11 +1,11 @@
-use custos::{range, AsDev, CPU};
+use custos::{range, CPU};
 use custos_math::Matrix;
 use gradients::{LinearReg, PolynomialReg};
 use graplot::{x, Scatter};
 
 #[test]
 fn test_poly_vs_lin_reg() {
-    let device = CPU::new().select();
+    let device = CPU::new();
 
     let xs = Matrix::from((
         &device,
@@ -101,8 +101,8 @@ fn test_poly_vs_lin_reg() {
     ))
     .divs(180.);
 
-    let mut poly = PolynomialReg::new(xs, ys, 5);
-    let mut lg = LinearReg::new(xs, ys);
+    let mut poly = PolynomialReg::new(&xs, &ys, 5);
+    let mut lg = LinearReg::new(&xs, &ys);
 
     let (mut loss_poly, mut loss_lin) = (0., 0.);
     for _ in range(700000) {

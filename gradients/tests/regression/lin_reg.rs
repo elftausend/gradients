@@ -1,11 +1,11 @@
-use custos::{range, AsDev, CPU};
+use custos::{range, CPU};
 use custos_math::{nn::mse_grad, Matrix};
 use gradients::LinearReg;
 use graplot::Scatter;
 
 #[test]
 fn test_lg() {
-    let device = CPU::new().select();
+    let device = CPU::new();
 
     let x = [5., 7., 8., 7., 2., 17., 2., 9., 4., 11., 12., 9., 6.];
     let y = [
@@ -17,7 +17,7 @@ fn test_lg() {
 
     let loss_fn = |preds: Matrix<f32>, target: Matrix<f32>| {
         let x = preds - target;
-        (x * x).mean()
+        (&x * &x).mean()
     };
 
     //let loss_fn_grad = |preds: Matrix<f32>, target: Matrix<f32>| (preds - target);
@@ -28,8 +28,8 @@ fn test_lg() {
     for _ in range(2000) {
         let y_preds = x.muls(k).adds(d);
 
-        k -= /*(loss_fn_grad(y_preds, y) * x.muls(0.001)).sum()*/ (mse_grad(&device, y_preds, y) * x.muls(0.01)).sum();
-        d -= /*(loss_fn_grad(y_preds, y).muls(0.001)).sum()*/ mse_grad(&device, y_preds, y).muls(0.01).sum();
+        k -= /*(loss_fn_grad(y_preds, y) * x.muls(0.001)).sum()*/ (mse_grad(&device, &y_preds, &y) * x.muls(0.01)).sum();
+        d -= /*(loss_fn_grad(y_preds, y).muls(0.001)).sum()*/ mse_grad(&device, &y_preds, &y).muls(0.01).sum();
     }
 
     let y_preds = x.muls(k).adds(d);
@@ -39,7 +39,7 @@ fn test_lg() {
 
 #[test]
 fn test_lg_struct() {
-    let device = CPU::new().select();
+    let device = CPU::new();
 
     let x = Matrix::from((
         &device,
@@ -57,7 +57,7 @@ fn test_lg_struct() {
     ))
     .divs(155.);
 
-    let mut lg = LinearReg::new(x, y);
+    let mut lg = LinearReg::new(&x, &y);
 
     for _ in range(4000) {
         let loss = lg.step(0.001);

@@ -1,27 +1,27 @@
 use crate::Param;
-use custos::{number::Float, CDatatype, Device, CPU};
+use custos::{number::Float, CDatatype, CPU, Alloc};
 use custos_math::{scalar_apply, AdditionalOps, BaseOps, Matrix};
 
 #[cfg(feature = "cuda")]
 use custos::cuda::launch_kernel1d;
 
 #[cfg(feature = "opencl")]
-use custos::{opencl::KernelOptions, CLDevice};
+use custos::{CLDevice, opencl::enqueue_kernel};
 
-pub struct Adam<T> {
+pub struct Adam<'a, T> {
     lr: T,
     epsilon: T,
     beta1: T,
     beta2: T,
     pub iters: u64,
-    weight_momentum: Vec<Matrix<T>>,
-    weight_cache: Vec<Matrix<T>>,
-    bias_momentum: Vec<Matrix<T>>,
-    bias_cache: Vec<Matrix<T>>,
+    weight_momentum: Vec<Matrix<'a, T>>,
+    weight_cache: Vec<Matrix<'a, T>>,
+    bias_momentum: Vec<Matrix<'a, T>>,
+    bias_cache: Vec<Matrix<'a, T>>,
 }
 
-impl<T: Float> Adam<T> {
-    pub fn new(lr: T) -> Adam<T> {
+impl<'a, T: Float> Adam<'a, T> {
+    pub fn new(lr: T) -> Adam<'a, T> {
         Adam {
             lr,
             epsilon: T::as_generic(1e-7),
@@ -34,7 +34,7 @@ impl<T: Float> Adam<T> {
             bias_cache: Vec::new(),
         }
     }
-    pub fn step<D: Device<T> + AdamOp<T> + Clone>(&mut self, device: &D, params: Vec<Param<T>>) {
+    pub fn step<D: Alloc<T> + AdamOp<'a, T>>(&mut self, device: &'a D, params: Vec<Param<T>>) {
         if self.weight_cache.len() < params.len() {
             for param in params.iter() {
                 self.weight_cache
@@ -51,12 +51,12 @@ impl<T: Float> Adam<T> {
     }
 }
 
-pub trait AdamOp<T> {
-    fn step(&self, adam: &mut Adam<T>, params: Vec<Param<T>>);
+pub trait AdamOp<'a, T> {
+    fn step(&'a self, adam: &mut Adam<'a, T>, params: Vec<Param<T>>);
 }
 
-impl<T: CDatatype + Float> AdamOp<T> for CPU {
-    fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
+impl<'a, T: CDatatype + Float> AdamOp<'a, T> for CPU {
+    fn step(&'a self, adam: &mut Adam<'a, T>, mut params: Vec<Param<T>>) {
         for (idx, param) in params.iter_mut().enumerate() {
             adam.weight_momentum[idx] = self.muls(&adam.weight_momentum[idx], adam.beta1)
                 + self.muls(&param.dweights, T::one() - adam.beta1);
@@ -81,8 +81,8 @@ impl<T: CDatatype + Float> AdamOp<T> for CPU {
                 *c = a.powi(2) * (T::one() - adam.beta2)
             });
 
-            adam.bias_cache[idx] = self.muls(&adam.bias_cache[idx], adam.beta2) + map_dbias;
-            adam.bias_cache[idx] = self.muls(&adam.bias_cache[idx], adam.beta2) + map_dbias;
+            adam.bias_cache[idx] = (&adam.bias_cache[idx] * adam.beta2) + map_dbias;
+            //adam.bias_cache[idx] = self.muls(&adam.bias_cache[idx], adam.beta2) + map_dbias;
 
             let weight_cache_corrected = self.divs(
                 &adam.weight_cache[idx],
@@ -117,7 +117,7 @@ impl<T: CDatatype + Float> AdamOp<T> for CPU {
 }
 
 #[cfg(feature = "cuda")]
-impl<T: CDatatype> AdamOp<T> for custos::CudaDevice {
+impl<'a, T: CDatatype> AdamOp<'a, T> for custos::CudaDevice {
     fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
         let src = format!(
             r#"extern "C" __global__ void adam(
@@ -192,7 +192,7 @@ impl<T: CDatatype> AdamOp<T> for custos::CudaDevice {
 }
 
 #[cfg(feature = "opencl")]
-impl<T: CDatatype> AdamOp<T> for CLDevice {
+impl<'a, T: CDatatype> AdamOp<'a, T> for CLDevice {
     fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
         let src = format!("__kernel void adam(
             __global {dt}* value, 
@@ -202,7 +202,7 @@ impl<T: CDatatype> AdamOp<T> for CLDevice {
             const {dt} beta1,
             const {dt} beta2,
             const {dt} epsilon,
-            const {dt} iters,
+            const long iters,
             const {dt} lr) 
             
             {{
@@ -217,48 +217,15 @@ impl<T: CDatatype> AdamOp<T> for CLDevice {
             }}", dt=T::as_c_type_str());
 
         for (idx, layer_data) in params.iter_mut().enumerate() {
-            let gws = [layer_data.weights.size(), 0, 0];
-            /*enqueue_kernel(self, &src, gws, None, vec![
-                &layer_data.dweights, &adam.weight_momentum[idx],
-                &adam.weight_cache[idx], &adam.beta1, &adam.beta2,
-                &adam.epsilon, &(adam.iters + 1),
-            ]).unwrap();*/
-            KernelOptions::new(self, layer_data.weights.as_mut_buf(), gws, &src)
-                .unwrap()
-                .add_arg(&mut layer_data.dweights)
-                .add_arg(&mut adam.weight_momentum[idx])
-                .add_arg(&mut adam.weight_cache[idx])
-                .add_arg(&mut adam.beta1)
-                .add_arg(&mut adam.beta2)
-                .add_arg(&mut adam.epsilon)
-                .add_arg(&T::from_u64(adam.iters + 1))
-                .add_arg(&mut adam.lr)
-                //.with_output(gws[0])
-                .run()
-                .unwrap();
+            enqueue_kernel(self, &src, [layer_data.weights.size(), 0, 0], None, &[
+                &layer_data.weights, &layer_data.dweights, &adam.weight_momentum[idx], &adam.weight_cache[idx], &adam.beta1,
+                &adam.beta2, &adam.epsilon, &(adam.iters + 1), &adam.lr,
+            ]).unwrap();
 
-            //self.sub_assign(&mut layer_data.weights, &output.unwrap());
-
-            KernelOptions::new(
-                self,
-                layer_data.bias.as_buf(),
-                [layer_data.bias.size(), 0, 0],
-                &src,
-            )
-            .unwrap()
-            .add_arg(&layer_data.dbias)
-            .add_arg(&adam.bias_momentum[idx])
-            .add_arg(&adam.bias_cache[idx])
-            .add_arg(&adam.beta1)
-            .add_arg(&adam.beta2)
-            .add_arg(&adam.epsilon)
-            .add_arg(&T::from_u64(adam.iters + 1))
-            .add_arg(&adam.lr)
-            //.with_output(layer_data.bias.size())
-            .run()
-            .unwrap();
-
-            //            self.sub_assign(&mut layer_data.bias, &output.unwrap());
+            enqueue_kernel(self, &src, [layer_data.bias.size(), 0, 0], None, &[
+                &layer_data.bias, &layer_data.dbias, &adam.bias_momentum[idx], &adam.bias_cache[idx], &adam.beta1,
+                &adam.beta2, &adam.epsilon, &(adam.iters + 1), &adam.lr,
+            ]).unwrap();
         }
     }
 }

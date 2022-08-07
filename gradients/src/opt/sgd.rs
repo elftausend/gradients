@@ -1,18 +1,18 @@
 use crate::Param;
-use custos::{CDatatype, CPU};
+use custos::{CDatatype, CPU, Alloc};
 use custos_math::Matrix;
 
 #[cfg(feature = "opencl")]
-use custos::{opencl::KernelOptions, CLDevice};
+use custos::{CLDevice, opencl::enqueue_kernel};
 
-pub struct SGD<T> {
+pub struct SGD<'a, T> {
     lr: T,
-    weight_momentum: Vec<Matrix<T>>,
-    bias_momentum: Vec<Matrix<T>>,
+    weight_momentum: Vec<Matrix<'a, T>>,
+    bias_momentum: Vec<Matrix<'a, T>>,
     momentum: T,
 }
 
-impl<T: CDatatype> SGD<T> {
+impl<'a, T: CDatatype> SGD<'a, T> {
     pub fn new(lr: T) -> Self {
         SGD {
             lr,
@@ -27,12 +27,12 @@ impl<T: CDatatype> SGD<T> {
         self
     }
 
-    pub fn step<D: SGDOp<T>>(&mut self, device: &D, params: Vec<Param<T>>) {
+    pub fn step<D: Alloc<T> + SGDOp<T>>(&mut self, device: &'a D, params: Vec<Param<T>>) {
         if self.momentum > T::zero() {
             if self.weight_momentum.len() < params.len() {
                 for param in &params {
-                    self.weight_momentum.push(param.weights.dims().into());
-                    self.bias_momentum.push(param.bias.dims().into());
+                    self.weight_momentum.push(Matrix::new(device, param.weights.dims()));
+                    self.bias_momentum.push(Matrix::new(device, param.bias.dims()));
                 }
             }
             return device.step_momentum(self, params);
@@ -94,6 +94,14 @@ impl<T: CDatatype> SGDOp<T> for CLDevice {
         );
 
         for (idx, param) in params.iter().enumerate() {
+            enqueue_kernel(self, &src, [param.weights.size(), 0, 0], None, &[
+                &param.weights, &param.dweights, &sgd.weight_momentum[idx], &sgd.momentum, &sgd.lr
+            ]).unwrap();
+
+            enqueue_kernel(self, &src, [param.bias.size(), 0, 0], None, &[
+                &param.bias, &param.dbias, &sgd.bias_momentum[idx], &sgd.momentum, &sgd.lr
+            ]).unwrap();
+            /* 
             KernelOptions::new(
                 self,
                 param.weights.as_buf(),
@@ -116,6 +124,7 @@ impl<T: CDatatype> SGDOp<T> for CLDevice {
                 .add_arg(&sgd.lr)
                 .run()
                 .unwrap();
+            */
         }
     }
 }

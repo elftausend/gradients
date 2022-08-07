@@ -1,20 +1,20 @@
-use custos::{number::Float, CDatatype, GenericBlas};
-use custos_math::{CudaTranspose, Matrix, Row};
+use custos::{number::Float, CDatatype, GenericBlas, Alloc};
+use custos_math::{CudaTranspose, Matrix};
 
 use crate::{GetParam, Param};
 
-#[derive(Clone)]
-pub struct Linear<T> {
-    pub weights: Matrix<T>,
-    pub bias: Matrix<T>,
-    pub dweights: Option<Matrix<T>>,
-    pub dbias: Option<Matrix<T>>,
-    inputs: Option<Matrix<T>>,
+
+pub struct Linear<'a, T> {
+    pub weights: Matrix<'a, T>,
+    pub bias: Matrix<'a, T>,
+    pub dweights: Option<Matrix<'a, T>>,
+    pub dbias: Option<Matrix<'a, T>>,
+    inputs: Option<Matrix<'a, T>>,
 }
 
-impl<T: Float + GenericBlas + CDatatype> Linear<T> {
-    pub fn new(input_size: usize, output_size: usize) -> Linear<T> {
-        let mut weights = Matrix::<T>::from((input_size, output_size));
+impl<'a:, T: Float + GenericBlas + CDatatype> Linear<'a, T> {
+    pub fn new<D: Alloc<T>>(device: &'a D, input_size: usize, output_size: usize) -> Linear<'a, T> {
+        let mut weights = Matrix::<T>::from((device, input_size, output_size));
 
         let glorot = (T::from_usize(6) / T::from_usize(input_size + output_size)).sqrt();
         weights.rand(glorot.negate(), glorot);
@@ -22,7 +22,7 @@ impl<T: Float + GenericBlas + CDatatype> Linear<T> {
         //let weights = weights.muls(weight_size);
         //let weights = weights + (T::one() / T::from_usize(100));
 
-        let bias = Matrix::<T>::from((1, output_size));
+        let bias = Matrix::<T>::from((device, 1, output_size));
 
         Linear {
             weights,
@@ -33,26 +33,25 @@ impl<T: Float + GenericBlas + CDatatype> Linear<T> {
         }
     }
 
-    pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
-        self.inputs = Some(inputs);
-        //inputs.gemm(&self.weights).add_row(self.bias)
+    pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
+        self.inputs = Some(inputs.shallow());
         let mut forward = inputs.gemm(&self.weights);
-        forward.add_row_mut(self.bias);
+        forward.add_row_mut(&self.bias);
         forward
     }
 
-    pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T>
+    pub fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T>
     where
         T: CudaTranspose,
     {
         self.dbias = Some(grad.sum_rows());
-        self.dweights = Some(self.inputs.unwrap().T().gemm(&grad));
+        self.dweights = Some(self.inputs.as_ref().unwrap().T().gemm(&grad));
         grad.gemm(&self.weights.T())
     }
 
     pub fn sgd(&mut self, lr: T) {
-        let dweights = self.dweights.unwrap();
-        let dbias = self.dbias.unwrap();
+        let dweights = self.dweights.as_ref().unwrap();
+        let dbias = self.dbias.as_ref().unwrap();
 
         self.weights -= &dweights.muls(lr);
         self.bias -= &dbias.muls(lr);
@@ -69,18 +68,18 @@ impl<T: Float + GenericBlas + CDatatype> Linear<T> {
     }
 }
 
-impl<T: Copy> GetParam<T> for Linear<T> {
-    fn params(&self) -> Option<Param<T>> {
+impl<'a, T: Copy> GetParam<'a, T> for Linear<'a, T> {
+    fn params(&mut self) -> Option<Param<'a, T>> {
         Some(Param::new(
-            self.weights,
-            self.bias,
-            self.dweights.unwrap(),
-            self.dbias.unwrap(),
+            self.weights.shallow(),
+            self.bias.shallow(),
+            self.dweights.as_ref().unwrap().shallow(),
+            self.dbias.as_ref().unwrap().shallow()
         ))
     }
 }
 
-impl<T> Default for Linear<T> {
+impl<'a, T> Default for Linear<'a, T> {
     fn default() -> Self {
         Self {
             weights: Default::default(),

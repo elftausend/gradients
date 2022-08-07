@@ -1,26 +1,26 @@
 use std::time::Instant;
 
 use custos_math::nn::{cce, cce_grad};
-use gradients::{correct_classes, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax};
+use gradients::{correct_classes, Linear, NeuralNetwork, ReLU, Softmax, OneHotMat};
 
-use custos::{range, AsDev};
+use custos::range;
 use purpur::{CSVLoader, Converter};
 
 #[derive(NeuralNetwork)]
-pub struct Network<T> {
-    lin1: Linear<T>,
-    relu1: ReLU<T>,
-    lin2: Linear<T>,
-    relu2: ReLU<T>,
-    lin3: Linear<T>,
-    softmax: Softmax<T>,
+pub struct Network<'a, T> {
+    lin1: Linear<'a, T>,
+    relu1: ReLU<'a, T>,
+    lin2: Linear<'a, T>,
+    relu2: ReLU<'a, T>,
+    lin3: Linear<'a, T>,
+    softmax: Softmax<'a, T>,
 }
 
 #[test]
 fn test_net() -> custos::Result<()> {
-    let device = custos::CPU::new().select();
-    //let device = custos::CLDevice::new(0)?.select();
-    //let device = custos::CudaDevice::new(0).unwrap().select();
+    let device = custos::CPU::new();
+    //let device = custos::CLDevice::new(0)?;
+    //let device = custos::CudaDevice::new(0)?;
 
     let loader = CSVLoader::new(true);
 
@@ -36,22 +36,23 @@ fn test_net() -> custos::Result<()> {
     let i = i / 255.;
 
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
-    let y = device.onehot(y);
+    let y = y.onehot();
 
     let mut net: Network<f32> = Network {
-        lin1: Linear::new(784, 128),
-        lin2: Linear::new(128, 10),
-        lin3: Linear::new(10, 10),
+        lin1: Linear::new(&device, 784, 128),
+        lin2: Linear::new(&device, 128, 10),
+        lin3: Linear::new(&device, 10, 10),
         ..Default::default()
     };
 
     let mut opt = gradients::Adam::<f32>::new(0.002);
-    //let mut opt = gradients::SGD::new(0.1).momentum(0.8);
+    //let mut opt = gradients::SGD::new(0.1).momentum(0.5);
+
     let start = Instant::now();
 
     for epoch in range(100) {
-        let preds = net.forward(i);
-        let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
+        let preds = net.forward(&i);
+        let correct_training = correct_classes(&loaded_data.y.as_usize(), &preds) as f32;
 
         let loss = cce(&device, &preds, &y);
         println!(
@@ -60,7 +61,7 @@ fn test_net() -> custos::Result<()> {
         );
 
         let grad = cce_grad(&device, &preds, &y);
-        net.backward(grad);
+        net.backward(&grad);
         opt.step(&device, net.params());
     }
 

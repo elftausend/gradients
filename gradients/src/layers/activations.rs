@@ -1,30 +1,27 @@
 use crate::GetParam;
 use custos::{number::Float, CDatatype, GenericBlas};
-use custos_math::{
-    nn::{Activations, Softmax as TSoftmax},
-    Matrix,
-};
+use custos_math::Matrix;
 use gradients_derive::NoParams;
 
-#[derive(Clone, NoParams)]
-pub struct ReLU<T> {
-    inputs: Option<Matrix<T>>,
+#[derive(NoParams)]
+pub struct ReLU<'a, T> {
+    inputs: Option<Matrix<'a, T>>,
 }
 
-impl<T: Float + CDatatype> ReLU<T> {
-    pub fn new() -> ReLU<T> {
+impl<'a, T: Float + CDatatype> ReLU<'a, T> {
+    pub fn new() -> ReLU<'a, T> {
         ReLU { inputs: None }
     }
-    pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
-        self.inputs = Some(inputs);
+    pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
+        self.inputs = Some(inputs.shallow());
         inputs.relu()
     }
-    pub fn backward(&self, grad: Matrix<T>) -> Matrix<T> {
-        self.inputs.unwrap().relu_grad() * grad
+    pub fn backward(&self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
+        self.inputs.as_ref().unwrap().relu_grad() * grad
     }
 }
 
-impl<T> Default for ReLU<T> {
+impl<'a, T> Default for ReLU<'a, T> {
     fn default() -> Self {
         Self {
             inputs: Default::default(),
@@ -33,27 +30,27 @@ impl<T> Default for ReLU<T> {
 }
 
 #[derive(NoParams)]
-pub struct Softmax<T> {
-    activated: Option<Matrix<T>>,
+pub struct Softmax<'a, T> {
+    activated: Option<Matrix<'a, T>>,
 }
 
-impl<T: CDatatype + GenericBlas> Softmax<T> {
-    pub fn new() -> Softmax<T> {
+impl<'a, T: CDatatype + GenericBlas> Softmax<'a, T> {
+    pub fn new() -> Self {
         Softmax { activated: None }
     }
 
-    pub fn forward(&mut self, x: Matrix<T>) -> Matrix<T> {
+    pub fn forward(&mut self, x: &Matrix<'a, T>) -> Matrix<'a, T> {
         let activated = x.softmax();
-        self.activated = Some(activated);
+        self.activated = Some(activated.shallow());
         activated
     }
 
-    pub fn backward(&self, grad: Matrix<T>) -> Matrix<T> {
-        grad.softmax_grad(self.activated.unwrap())
+    pub fn backward(&self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
+        grad.softmax_grad(&self.activated.as_ref().unwrap())
     }
 }
 
-impl<T> Default for Softmax<T> {
+impl<'a, T> Default for Softmax<'a, T> {
     fn default() -> Self {
         Self {
             activated: Default::default(),
@@ -61,25 +58,25 @@ impl<T> Default for Softmax<T> {
     }
 }
 
-#[derive(Clone, NoParams)]
-pub struct Tanh<T> {
-    inputs: Option<Matrix<T>>,
+#[derive(NoParams)]
+pub struct Tanh<'a, T> {
+    inputs: Option<Matrix<'a, T>>,
 }
 
-impl<T: Float + CDatatype> Tanh<T> {
-    pub fn new() -> Tanh<T> {
+impl<'a, T: Float + CDatatype> Tanh<'a, T> {
+    pub fn new() -> Tanh<'a, T> {
         Tanh { inputs: None }
     }
-    pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
-        self.inputs = Some(inputs);
+    pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
+        self.inputs = Some(inputs.shallow());
         inputs.tanh()
     }
-    pub fn backward(&self, grad: Matrix<T>) -> Matrix<T> {
-        self.inputs.unwrap().tanh_grad() * grad
+    pub fn backward(&self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
+        self.inputs.as_ref().unwrap().tanh_grad() * grad
     }
 }
 
-impl<T> Default for Tanh<T> {
+impl<'a, T> Default for Tanh<'a, T> {
     fn default() -> Self {
         Self {
             inputs: Default::default(),

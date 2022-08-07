@@ -1,8 +1,8 @@
-use gradients::{range, AsDev, LinearReg, Matrix, PolynomialReg, CPU};
+use gradients::{range, LinearReg, Matrix, PolynomialReg, CPU};
 use graplot::Scatter;
 
 fn main() {
-    let device = CPU::new().select();
+    let device = CPU::new();
 
     let xs = Matrix::from((
         &device,
@@ -11,8 +11,7 @@ fn main() {
             1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., -1., -2., -3., -4., -5., -6.,
             -7., -8., -9., -10., -11., -12., -13.,
         ],
-    ))
-    .divs(13.);
+    )) / 13.;
 
     let ys = Matrix::from((
         &device,
@@ -21,11 +20,10 @@ fn main() {
             20., 30., 35., 38., 40., 46., 60., 85., 100., 120., 140., 160., 180., 20., 30., 35.,
             38., 40., 46., 60., 85., 100., 120., 140., 160., 180.,
         ],
-    ))
-    .divs(180.);
+    )) / 180.;
 
-    let mut poly = PolynomialReg::new(xs, ys, 2);
-    let mut lg = LinearReg::new(xs, ys);
+    let mut lg = LinearReg::new(&xs, &ys);
+    let mut poly = PolynomialReg::new(&xs, &ys, 2);
 
     for _ in range(1000) {
         lg.step(0.001);
