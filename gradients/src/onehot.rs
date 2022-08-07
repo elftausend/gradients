@@ -35,7 +35,8 @@ impl<T: Number> OnehotOp<T> for CPU {
 #[cfg(feature = "opencl")]
 impl<T: CDatatype> OnehotOp<T> for custos::CLDevice {
     fn onehot(&self, x: Matrix<T>) -> Matrix<T> {
-        cl_to_cpu_s(self, &x, |device, x| device.onehot(x))
+        //cl_to_cpu_s(self, &x, |device, x| device.onehot(x))
+        todo!();
     }
 }
 

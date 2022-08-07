@@ -15,7 +15,7 @@ pub fn derive_params(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
 fn impl_params(name: Ident) -> TokenStream {
     quote! {
-        impl<T> GetParam<T> for #name<T> {}
+        impl<'a, T> GetParam<T> for #name<'a, T> {}
     }
 }
 

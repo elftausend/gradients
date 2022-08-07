@@ -1,6 +1,6 @@
 mod accuracy;
 mod layers;
-mod ml;
+//mod ml;
 mod onehot;
 mod opt;
 
@@ -14,29 +14,29 @@ pub use gradients_derive::*;
 
 pub use accuracy::*;
 pub use layers::*;
-pub use ml::*;
+//pub use ml::*;
 pub use onehot::*;
 pub use opt::*;
 
-pub trait GetParam<T> {
-    fn params(&self) -> Option<Param<T>> {
+pub trait GetParam<'a, T> {
+    fn params(&'a mut self) -> Option<Param<'a, T>> {
         None
     }
 }
-pub struct Param<T> {
-    pub weights: Matrix<T>,
-    pub bias: Matrix<T>,
-    pub dweights: Matrix<T>,
-    pub dbias: Matrix<T>,
+pub struct Param<'a, T> {
+    pub weights: Matrix<'a, T>,
+    pub bias: Matrix<'a, T>,
+    pub dweights: Matrix<'a, T>,
+    pub dbias: Matrix<'a, T>,
 }
 
-impl<T> Param<T> {
+impl<'a, T> Param<'a, T> {
     pub fn new(
-        weights: Matrix<T>,
-        bias: Matrix<T>,
-        dweights: Matrix<T>,
-        dbias: Matrix<T>,
-    ) -> Param<T> {
+        weights: Matrix<'a, T>,
+        bias: Matrix<'a, T>,
+        dweights: Matrix<'a, T>,
+        dbias: Matrix<'a, T>,
+    ) -> Param<'a, T> {
         Param {
             weights,
             bias,
@@ -46,13 +46,13 @@ impl<T> Param<T> {
     }
 }
 
-pub trait NeuralNetwork<T> {
-    fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T>;
-    fn backward(&mut self, grad: Matrix<T>) -> Matrix<T>;
+pub trait NeuralNetwork<'a, T> {
+    fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T>;
+    fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T>;
     fn params(&mut self) -> Vec<Param<T>>;
 }
 
-pub fn create_sine<D: Device<f32>>(
+pub fn create_sine<D: Alloc<f32>>(
     device: &D,
     min: usize,
     max: usize,

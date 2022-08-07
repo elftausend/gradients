@@ -1,27 +1,27 @@
 use crate::Param;
-use custos::{number::Float, CDatatype, Device, CPU};
+use custos::{number::Float, CDatatype, Device, CPU, Alloc};
 use custos_math::{scalar_apply, AdditionalOps, BaseOps, Matrix};
 
 #[cfg(feature = "cuda")]
 use custos::cuda::launch_kernel1d;
 
 #[cfg(feature = "opencl")]
-use custos::{opencl::KernelOptions, CLDevice};
+use custos::CLDevice;
 
-pub struct Adam<T> {
+pub struct Adam<'a, T> {
     lr: T,
     epsilon: T,
     beta1: T,
     beta2: T,
     pub iters: u64,
-    weight_momentum: Vec<Matrix<T>>,
-    weight_cache: Vec<Matrix<T>>,
-    bias_momentum: Vec<Matrix<T>>,
-    bias_cache: Vec<Matrix<T>>,
+    weight_momentum: Vec<Matrix<'a, T>>,
+    weight_cache: Vec<Matrix<'a, T>>,
+    bias_momentum: Vec<Matrix<'a, T>>,
+    bias_cache: Vec<Matrix<'a, T>>,
 }
 
-impl<T: Float> Adam<T> {
-    pub fn new(lr: T) -> Adam<T> {
+impl<'a, T: Float> Adam<'a, T> {
+    pub fn new(lr: T) -> Adam<'a, T> {
         Adam {
             lr,
             epsilon: T::as_generic(1e-7),
@@ -34,7 +34,7 @@ impl<T: Float> Adam<T> {
             bias_cache: Vec::new(),
         }
     }
-    pub fn step<D: Device<T> + AdamOp<T> + Clone>(&mut self, device: &D, params: Vec<Param<T>>) {
+    pub fn step<D: Alloc<T> + AdamOp<T> + Clone>(&mut self, device: &'a D, params: Vec<Param<T>>) {
         if self.weight_cache.len() < params.len() {
             for param in params.iter() {
                 self.weight_cache
@@ -217,6 +217,7 @@ impl<T: CDatatype> AdamOp<T> for CLDevice {
             }}", dt=T::as_c_type_str());
 
         for (idx, layer_data) in params.iter_mut().enumerate() {
+            /*
             let gws = [layer_data.weights.size(), 0, 0];
             /*enqueue_kernel(self, &src, gws, None, vec![
                 &layer_data.dweights, &adam.weight_momentum[idx],
@@ -259,6 +260,7 @@ impl<T: CDatatype> AdamOp<T> for CLDevice {
             .unwrap();
 
             //            self.sub_assign(&mut layer_data.bias, &output.unwrap());
+            */
         }
     }
 }

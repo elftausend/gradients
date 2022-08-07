@@ -7,12 +7,12 @@ use custos_math::{
 use gradients_derive::NoParams;
 
 #[derive(Clone, NoParams)]
-pub struct ReLU<T> {
-    inputs: Option<Matrix<T>>,
+pub struct ReLU<'a, T> {
+    inputs: Option<Matrix<'a, T>>,
 }
 
-impl<T: Float + CDatatype> ReLU<T> {
-    pub fn new() -> ReLU<T> {
+impl<'a, T: Float + CDatatype> ReLU<'a, T> {
+    pub fn new() -> ReLU<'a, T> {
         ReLU { inputs: None }
     }
     pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
@@ -24,7 +24,7 @@ impl<T: Float + CDatatype> ReLU<T> {
     }
 }
 
-impl<T> Default for ReLU<T> {
+impl<'a, T> Default for ReLU<'a, T> {
     fn default() -> Self {
         Self {
             inputs: Default::default(),
@@ -33,12 +33,12 @@ impl<T> Default for ReLU<T> {
 }
 
 #[derive(NoParams)]
-pub struct Softmax<T> {
-    activated: Option<Matrix<T>>,
+pub struct Softmax<'a, T> {
+    activated: Option<Matrix<'a, T>>,
 }
 
-impl<T: CDatatype + GenericBlas> Softmax<T> {
-    pub fn new() -> Softmax<T> {
+impl<'a, T: CDatatype + GenericBlas> Softmax<'a, T> {
+    pub fn new() -> Self {
         Softmax { activated: None }
     }
 
@@ -49,11 +49,11 @@ impl<T: CDatatype + GenericBlas> Softmax<T> {
     }
 
     pub fn backward(&self, grad: Matrix<T>) -> Matrix<T> {
-        grad.softmax_grad(self.activated.unwrap())
+        grad.softmax_grad(&self.activated.unwrap())
     }
 }
 
-impl<T> Default for Softmax<T> {
+impl<'a, T> Default for Softmax<'a, T> {
     fn default() -> Self {
         Self {
             activated: Default::default(),
@@ -62,12 +62,12 @@ impl<T> Default for Softmax<T> {
 }
 
 #[derive(Clone, NoParams)]
-pub struct Tanh<T> {
-    inputs: Option<Matrix<T>>,
+pub struct Tanh<'a, T> {
+    inputs: Option<Matrix<'a, T>>,
 }
 
-impl<T: Float + CDatatype> Tanh<T> {
-    pub fn new() -> Tanh<T> {
+impl<'a, T: Float + CDatatype> Tanh<'a, T> {
+    pub fn new() -> Tanh<'a, T> {
         Tanh { inputs: None }
     }
     pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
@@ -79,7 +79,7 @@ impl<T: Float + CDatatype> Tanh<T> {
     }
 }
 
-impl<T> Default for Tanh<T> {
+impl<'a, T> Default for Tanh<'a, T> {
     fn default() -> Self {
         Self {
             inputs: Default::default(),

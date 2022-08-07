@@ -3,13 +3,13 @@ use custos_math::{Matrix, correlate_valid_mut};
 use gradients_derive::NoParams;
 use crate::GetParam;
 
-pub struct KernelBlock<T> {
-    pub weights: Matrix<T>,
-    bias: Matrix<T>,
+pub struct KernelBlock<'a, T> {
+    pub weights: Matrix<'a, T>,
+    bias: Matrix<'a, T>,
     //dweights: Matrix<T>
 }
 
-impl<T> KernelBlock<T> {
+impl<'a, T> KernelBlock<'a, T> {
     pub fn new(shape: (usize, usize), bias_shape: (usize, usize)) -> Self
     where
         T: Float,
@@ -25,20 +25,20 @@ impl<T> KernelBlock<T> {
 }
 
 #[derive(NoParams)]
-pub struct Conv2D<T> {
+pub struct Conv2D<'a, T> {
     pub kernel_shape: (usize, usize),
     input_shape: (usize, usize),
     output_shape: (usize, usize),
-    kernels: Vec<KernelBlock<T>>,
-    inputs: Option<Matrix<T>>
+    kernels: Vec<KernelBlock<'a, T>>,
+    inputs: Option<Matrix<'a, T>>
 }
 
-impl<T: Float + CDatatype> Conv2D<T> {
+impl<'a, T: Float + CDatatype> Conv2D<'a, T> {
     pub fn new(
         input_shape: (usize, usize),
         kernel_shape: (usize, usize),
         kernel_blocks: usize,
-    ) -> Conv2D<T> {
+    ) -> Conv2D<'a, T> {
         let output_shape = (
             input_shape.0 - kernel_shape.0 + 1,
             input_shape.1 - kernel_shape.1 + 1,
@@ -61,7 +61,7 @@ impl<T: Float + CDatatype> Conv2D<T> {
         self.inputs = Some(inputs);
         let (out_rows, out_cols) = self.output_shape;
 
-        let mut output = cached::<T>(inputs.rows() * out_rows * out_cols * self.kernels.len());
+        let mut output = cached::<T>(&inputs.device, inputs.rows() * out_rows * out_cols * self.kernels.len());
         output.clear();
 
         for row in 0..inputs.rows() {
@@ -90,7 +90,7 @@ impl<T: Float + CDatatype> Conv2D<T> {
         let inputs = self.inputs.unwrap();
         let (out_rows, out_cols) = self.output_shape;
         let (kernel_rows, kernel_cols) = self.kernel_shape;
-        let mut dkernel = cached::<T>(kernel_rows*kernel_cols*self.kernels.len());
+        let mut dkernel = cached::<T>(&grad.device, kernel_rows*kernel_cols*self.kernels.len());
         dkernel.clear();
 
         for row in 0..inputs.rows() {
@@ -118,7 +118,7 @@ impl<T: Float + CDatatype> Conv2D<T> {
     }
 }
 
-impl<T> Default for Conv2D<T> {
+impl<'a, T> Default for Conv2D<'a, T> {
     fn default() -> Self {
         Self {
             inputs: Default::default(),

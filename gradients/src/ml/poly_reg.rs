@@ -12,14 +12,14 @@ fn single_predict<T: Float>(coeffs: &[T], x: T) -> T {
     sum
 }
 
-pub struct PolynomialReg<T> {
-    xs: Matrix<T>,
-    ys: Matrix<T>,
+pub struct PolynomialReg<'a, T> {
+    xs: Matrix<'a, T>,
+    ys: Matrix<'a, T>,
     pub coeffs: Vec<T>,
 }
 
-impl<T: CDatatype + Float> PolynomialReg<T> {
-    pub fn new(xs: Matrix<T>, ys: Matrix<T>, degree: usize) -> Self {
+impl<'a, T: CDatatype + Float> PolynomialReg<'a, T> {
+    pub fn new(xs: Matrix<'a, T>, ys: Matrix<'a, T>, degree: usize) -> Self {
         PolynomialReg {
             xs,
             ys,
@@ -32,7 +32,8 @@ impl<T: CDatatype + Float> PolynomialReg<T> {
     }
 
     pub fn predict(&self, xs: Matrix<T>) -> Matrix<T> {
-        let mut sum = Matrix::from((custos::cached::<T>(xs.size()), xs.dims()));
+        
+        let mut sum = Matrix::from((custos::cached::<T>(&xs.device, xs.size()), xs.dims()));
         sum.clear();
 
         let mut pow = self.coeffs.len();

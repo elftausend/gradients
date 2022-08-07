@@ -13,14 +13,14 @@ repository = "https://github.com/elftausend/gradients"
 
 [dependencies]
 
-custos = { version="0.1.4", default-features = false }
-#custos = { path = "../../custos", default-features = false }
-#custos-math = { path = "../../custos-math", default-features = false }
-custos-math = { version="0.1.1", default-features = false }
+#custos = { version="0.1.5", default-features = false }
+custos = { path = "../../custos", default-features = false }
+custos-math = { path = "../../custos-math", default-features = false }
+#custos-math = { version="0.1.2", default-features = false }
 purpur = "0.1.0"
 
-gradients-derive = { version = "0.1.1" }
-#gradients-derive = { path = "../gradients-derive" }
+#gradients-derive = { version = "0.1.1" }
+gradients-derive = { path = "../gradients-derive" }
 [features]
 default = ["opencl"]
 opencl = ["custos/opencl", "custos-math/opencl"]
@@ -34,17 +34,17 @@ criterion = "0.3.6"
 name = "mnist"
 required-features = ["opencl"]
 
-[[test]]
-name = "derive"
-required-features = ["opencl"]
+#[[test]]
+#name = "derive"
+#required-features = ["opencl"]
 
-[[test]]
-name = "network"
-required-features = ["opencl"]
+#[[test]]
+#name = "network"
+#required-features = ["opencl"]
 
-[[test]]
-name = "onehot"
-required-features = ["opencl"]
+#[[test]]
+#name = "onehot"
+#required-features = ["opencl"]
 
 [[bench]]
 name = "lin_forward"

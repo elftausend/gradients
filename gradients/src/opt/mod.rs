@@ -1,5 +1,5 @@
-mod adam;
+//mod adam;
 mod sgd;
 
-pub use adam::*;
+//pub use adam::*;
 pub use sgd::*;

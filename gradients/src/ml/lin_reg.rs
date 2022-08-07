@@ -1,15 +1,15 @@
 use custos::CDatatype;
 use custos_math::Matrix;
 
-pub struct LinearReg<T> {
-    pub xs: Matrix<T>,
-    pub ys: Matrix<T>,
+pub struct LinearReg<'a, T> {
+    pub xs: Matrix<'a, T>,
+    pub ys: Matrix<'a, T>,
     pub k: T,
     pub d: T,
 }
 
-impl<T: CDatatype> LinearReg<T> {
-    pub fn new(xs: Matrix<T>, ys: Matrix<T>) -> LinearReg<T> {
+impl<'a, T: CDatatype> LinearReg<'a, T> {
+    pub fn new(xs: Matrix<'a, T>, ys: Matrix<'a, T>) -> LinearReg<'a, T> {
         LinearReg {
             xs,
             ys,
@@ -18,7 +18,7 @@ impl<T: CDatatype> LinearReg<T> {
         }
     }
 
-    pub fn predict(&self, xs: Matrix<T>) -> Matrix<T> {
+    pub fn predict(&self, xs: Matrix<'a, T>) -> Matrix<T> {
         xs * self.k + self.d
     }
 
