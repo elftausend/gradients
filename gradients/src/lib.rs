@@ -1,6 +1,6 @@
 mod accuracy;
 mod layers;
-//mod ml;
+mod ml;
 mod onehot;
 mod opt;
 
@@ -14,12 +14,12 @@ pub use gradients_derive::*;
 
 pub use accuracy::*;
 pub use layers::*;
-//pub use ml::*;
+pub use ml::*;
 pub use onehot::*;
 pub use opt::*;
 
 pub trait GetParam<'a, T> {
-    fn params(&'a mut self) -> Option<Param<'a, T>> {
+    fn params(&mut self) -> Option<Param<'a, T>> {
         None
     }
 }
@@ -49,7 +49,7 @@ impl<'a, T> Param<'a, T> {
 pub trait NeuralNetwork<'a, T> {
     fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T>;
     fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T>;
-    fn params(&mut self) -> Vec<Param<T>>;
+    fn params(&mut self) -> Vec<Param<'a, T>>;
 }
 
 pub fn create_sine<D: Alloc<f32>>(

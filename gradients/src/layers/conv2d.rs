@@ -1,4 +1,4 @@
-use custos::{cached, number::Float, CDatatype};
+use custos::{cached, number::Float, CDatatype, Alloc, Device, get_device, CacheBuf};
 use custos_math::{Matrix, correlate_valid_mut};
 use gradients_derive::NoParams;
 use crate::GetParam;
@@ -10,14 +10,14 @@ pub struct KernelBlock<'a, T> {
 }
 
 impl<'a, T> KernelBlock<'a, T> {
-    pub fn new(shape: (usize, usize), bias_shape: (usize, usize)) -> Self
+    pub fn new<D: Alloc<T>>(device: &'a D, shape: (usize, usize), bias_shape: (usize, usize)) -> Self
     where
         T: Float,
     {
-        let mut weights = Matrix::from(shape);
+        let mut weights = Matrix::new(device, shape);
         weights.rand(T::one().neg(), T::one());
 
-        let mut bias = Matrix::from(bias_shape);
+        let mut bias = Matrix::new(device, bias_shape);
         bias.rand(T::one().neg(), T::one());
 
         KernelBlock { weights, bias }
@@ -30,11 +30,16 @@ pub struct Conv2D<'a, T> {
     input_shape: (usize, usize),
     output_shape: (usize, usize),
     kernels: Vec<KernelBlock<'a, T>>,
-    inputs: Option<Matrix<'a, T>>
+    inputs: Option<Matrix<'a, T>>,
+    device: Device,
 }
 
-impl<'a, T: Float + CDatatype> Conv2D<'a, T> {
-    pub fn new(
+impl<'a, T> Conv2D<'a, T> 
+where 
+    T: Float + CDatatype
+{
+    pub fn new<D: Alloc<T>>(
+        device: &'a D,
         input_shape: (usize, usize),
         kernel_shape: (usize, usize),
         kernel_blocks: usize,
@@ -45,10 +50,11 @@ impl<'a, T: Float + CDatatype> Conv2D<'a, T> {
         );
         let kernels = (0..kernel_blocks)
             .into_iter()
-            .map(|_x| KernelBlock::new(kernel_shape, output_shape))
+            .map(|_x| KernelBlock::new(device, kernel_shape, output_shape))
             .collect();
 
         Conv2D {
+            device: device.as_dev(),
             kernel_shape,
             output_shape,
             input_shape,
@@ -57,12 +63,16 @@ impl<'a, T: Float + CDatatype> Conv2D<'a, T> {
         }
     }
 
-    pub fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
-        self.inputs = Some(inputs);
+    pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
+        let samples = inputs.rows();
+
+        self.inputs = Some(inputs.shallow());
         let (out_rows, out_cols) = self.output_shape;
 
-        let mut output = cached::<T>(&inputs.device, inputs.rows() * out_rows * out_cols * self.kernels.len());
+        let mut output = get_device!(self.device, CacheBuf<T>).cached(inputs.rows() * out_rows * out_cols * self.kernels.len());
         output.clear();
+
+        //output.clear();
 
         for row in 0..inputs.rows() {
             let img_start = row * inputs.cols();
@@ -84,10 +94,10 @@ impl<'a, T: Float + CDatatype> Conv2D<'a, T> {
             }
         }
         
-        (output, (inputs.rows(), out_rows * out_cols * self.kernels.len())).into()
+        (output, samples, out_rows * out_cols * self.kernels.len()).into()
     }
-    pub fn backward(&mut self, grad: Matrix<T>) -> Matrix<T> {
-        let inputs = self.inputs.unwrap();
+    pub fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
+        let inputs = self.inputs.as_ref().unwrap();
         let (out_rows, out_cols) = self.output_shape;
         let (kernel_rows, kernel_cols) = self.kernel_shape;
         let mut dkernel = cached::<T>(&grad.device, kernel_rows*kernel_cols*self.kernels.len());
@@ -114,13 +124,14 @@ impl<'a, T: Float + CDatatype> Conv2D<'a, T> {
         }
         
         // need to calculate w. r. t. inputs
-        grad
+        grad.shallow()
     }
 }
 
 impl<'a, T> Default for Conv2D<'a, T> {
     fn default() -> Self {
         Self {
+            device: Default::default(),
             inputs: Default::default(),
             kernel_shape: Default::default(),
             output_shape: Default::default(),

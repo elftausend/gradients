@@ -2,14 +2,14 @@ use custos::CDatatype;
 use custos_math::Matrix;
 
 pub struct LinearReg<'a, T> {
-    pub xs: Matrix<'a, T>,
-    pub ys: Matrix<'a, T>,
+    pub xs: &'a Matrix<'a, T>,
+    pub ys: &'a Matrix<'a, T>,
     pub k: T,
     pub d: T,
 }
 
 impl<'a, T: CDatatype> LinearReg<'a, T> {
-    pub fn new(xs: Matrix<'a, T>, ys: Matrix<'a, T>) -> LinearReg<'a, T> {
+    pub fn new(xs: &'a Matrix<'a, T>, ys: &'a Matrix<'a, T>) -> LinearReg<'a, T> {
         LinearReg {
             xs,
             ys,
@@ -18,7 +18,7 @@ impl<'a, T: CDatatype> LinearReg<'a, T> {
         }
     }
 
-    pub fn predict(&self, xs: Matrix<'a, T>) -> Matrix<T> {
+    pub fn predict(&self, xs: &Matrix<'a, T>) -> Matrix<'a, T> {
         xs * self.k + self.d
     }
 
@@ -27,9 +27,9 @@ impl<'a, T: CDatatype> LinearReg<'a, T> {
 
         let loss = y_preds - self.ys;
 
-        self.k -= (loss * self.xs * (lr * T::two())).sum();
-        self.d -= (loss * (lr * T::two())).sum();
+        self.k -= (&loss * self.xs * (lr * T::two())).sum();
+        self.d -= (&loss * (lr * T::two())).sum();
 
-        (loss * loss).mean()
+        (&loss * &loss).mean()
     }
 }

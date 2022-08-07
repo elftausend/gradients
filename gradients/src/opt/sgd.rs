@@ -1,9 +1,9 @@
 use crate::Param;
-use custos::{CDatatype, CPU, Alloc, opencl::enqueue_kernel};
+use custos::{CDatatype, CPU, Alloc};
 use custos_math::Matrix;
 
 #[cfg(feature = "opencl")]
-use custos::CLDevice;
+use custos::{CLDevice, opencl::enqueue_kernel};
 
 pub struct SGD<'a, T> {
     lr: T,

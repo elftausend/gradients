@@ -1,10 +1,10 @@
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use gradients::{Matrix, CPU, Linear, Row, AsDev, set_count};
+use gradients::{Matrix, CPU, Linear, set_count};
 use purpur::CSVLoader;
 
 fn forward_mut_bias(bench: &mut Criterion) {
-    let device = CPU::new().select();
+    let device = CPU::new();
     let loader = CSVLoader::new(true);
 
     let loaded_data = loader.load("../../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
@@ -15,16 +15,16 @@ fn forward_mut_bias(bench: &mut Criterion) {
     ));
     let i = i / 255.;
 
-    let lin = Linear::new(28*28, 256);
+    let lin = Linear::new(&device, 28*28, 256);
 
     bench.bench_function("forward mut bias", |b| b.iter(|| {
-        i.gemm(&lin.weights).add_row_mut(lin.bias);
+        i.gemm(&lin.weights).add_row_mut(&lin.bias);
         set_count(0)
     }));
 }
 
 fn forward_bias(bench: &mut Criterion) {
-    let device = CPU::new().select();
+    let device = CPU::new();
     let loader = CSVLoader::new(true);
 
     let loaded_data = loader.load("../../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
@@ -35,15 +35,15 @@ fn forward_bias(bench: &mut Criterion) {
     ));
     let i = i / 255.;
 
-    let lin = Linear::new(28*28, 256);
+    let lin = Linear::new(&device, 28*28, 256);
     bench.bench_function("forward bias", |b| b.iter(|| {
-        i.gemm(&lin.weights).add_row(lin.bias);
+        i.gemm(&lin.weights).add_row(&lin.bias);
         set_count(0)
     }));
 }
 
 fn forward(bench: &mut Criterion) {
-    let device = CPU::new().select();
+    let device = CPU::new();
     let loader = CSVLoader::new(true);
 
     let loaded_data = loader.load("../../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
@@ -55,9 +55,9 @@ fn forward(bench: &mut Criterion) {
     ));
     let i = i / 255.;
 
-    let mut lin = Linear::new(28*28, 256);
+    let mut lin = Linear::new(&device, 28*28, 256);
     bench.bench_function("forward", |b| b.iter(|| {
-        lin.forward(i);
+        lin.forward(&i);
         set_count(0)
     }));
 }

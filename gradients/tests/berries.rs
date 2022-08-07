@@ -1,16 +1,16 @@
-use custos::{range, AsDev, CPU};
+use custos::{range, CPU};
 use custos_math::nn::{cce, cce_grad};
 use gradients::{Adam, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax};
 use purpur::{Apply, Converter, ImageReturn, Transforms};
 
 #[derive(NeuralNetwork)]
-struct Network<T> {
-    lin1: Linear<T>,
-    relu1: ReLU<T>,
-    lin2: Linear<T>,
-    relu2: ReLU<T>,
-    lin3: Linear<T>,
-    softmax: Softmax<T>,
+struct Network<'a, T> {
+    lin1: Linear<'a, T>,
+    relu1: ReLU<'a, T>,
+    lin2: Linear<'a, T>,
+    relu2: ReLU<'a, T>,
+    lin3: Linear<'a, T>,
+    softmax: Softmax<'a, T>,
 }
 
 #[test]
@@ -20,7 +20,7 @@ fn test_berries_net() -> Result<(), std::io::Error> {
 
     trans.apply("../../gradients-fallback/datasets/berries_aug_6xx/train")?;
 
-    let device = CPU::new().select();
+    let device = CPU::new();
 
     let x = Matrix::from((
         &device,
@@ -34,23 +34,23 @@ fn test_berries_net() -> Result<(), std::io::Error> {
         (ir.sample_count(), 1),
         ir.get_classes_for_imgs().as_f32(),
     ));
-    let y = device.onehot(y);
+    let y = device.onehot(&y);
 
     let mut net = Network {
-        lin1: Linear::new(100 * 100 * 3, 512),
-        lin2: Linear::new(512, 16),
-        lin3: Linear::new(16, 3),
+        lin1: Linear::new(&device, 100 * 100 * 3, 512),
+        lin2: Linear::new(&device, 512, 16),
+        lin3: Linear::new(&device, 16, 3),
         ..Default::default()
     };
 
     let mut opt = Adam::new(1e-4);
 
     for epoch in range(1000) {
-        let predicted = net.forward(x);
+        let predicted = net.forward(&x);
 
         let loss = cce(&device, &predicted, &y);
         let grad = cce_grad(&device, &predicted, &y);
-        net.backward(grad);
+        net.backward(&grad);
         opt.step(&device, net.params());
 
         println!("epoch: {epoch}, loss: {loss}");

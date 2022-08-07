@@ -15,7 +15,7 @@ pub fn derive_params(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
 fn impl_params(name: Ident) -> TokenStream {
     quote! {
-        impl<'a, T> GetParam<T> for #name<'a, T> {}
+        impl<'a, T> GetParam<'a,T> for #name<'a, T> {}
     }
 }
 
@@ -36,9 +36,9 @@ pub fn derive_neural_network(input: proc_macro::TokenStream) -> proc_macro::Toke
 }
 
 fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenStream {
-    let forward_chain = fields.iter().fold(quote!(inputs), |acc, f| {
+    let forward_chain = fields.iter().fold(quote!(&inputs), |acc, f| {
         let name = &f.ident;
-        quote!(self.#name.forward(#acc))
+        quote!(self.#name.forward(&#acc))
     });
 
     let default_chain = fields
@@ -49,9 +49,9 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
         })
         .collect::<TokenStream>();
 
-    let backward_chain = fields.iter().rev().fold(quote!(grad), |acc, f| {
+    let backward_chain = fields.iter().rev().fold(quote!(&grad), |acc, f| {
         let name = &f.ident;
-        quote!(self.#name.backward(#acc))
+        quote!(self.#name.backward(&#acc))
     });
 
     let vec = quote! {let mut vec = Vec::new();};
@@ -73,26 +73,21 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
         use gradients::{GetParam, Param, Matrix};
 
 
-        impl<T> Default for #name<T> {
+        impl<'a, T> Default for #name<'a, T> {
             fn default() -> Self {
                 Self { #default_chain }
             }
         }
-        impl<T: gradients::number::Float+gradients::CDatatype+gradients::GenericBlas + gradients::CudaTranspose> NeuralNetwork<T> for #name<T> {
-            fn forward(&mut self, inputs: Matrix<T>) -> Matrix<T> {
+        impl<'a, T: gradients::number::Float+gradients::CDatatype+gradients::GenericBlas + gradients::CudaTranspose> NeuralNetwork<'a, T> for #name<'a, T> {
+            fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
                 #forward_chain
             }
-            /*
-            fn forward2<L: AsLocDesc<T>>(&mut self, inputs: L) -> Tensor<T> {
-                #first_forward
-                #forward_chain2
-            }
-            */
-            fn backward(&mut self, grad: Matrix<T>) -> Matrix<T> {
+            
+            fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
                 #backward_chain
             }
 
-            fn params(&mut self) -> Vec<Param<T>> {
+            fn params(&mut self) -> Vec<Param<'a, T>> {
                 #vec
                 #params
                 #return_vec
