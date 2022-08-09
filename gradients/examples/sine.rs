@@ -1,28 +1,23 @@
 use gradients::{
-    create_sine,
+    create_sine, network,
     nn::{mse, mse_grad},
-    range, Adam, Linear, NeuralNetwork, ReLU, CPU,
+    range, Adam, Linear, ReLU, CPU,
 };
 use graplot::Plot;
 
-#[derive(NeuralNetwork)]
-struct SineNet<'a, T> {
-    linear1: Linear<'a, T>,
-    relu1: ReLU<'a, T>,
-    linear2: Linear<'a, T>,
-    relu2: ReLU<'a, T>,
-    linear3: Linear<'a, T>,
+#[network]
+struct SineNet {
+    linear1: Linear<1, 64>,
+    relu1: ReLU,
+    linear2: Linear<64, 32>,
+    relu2: ReLU,
+    linear3: Linear<32, 1>,
 }
 
 fn main() {
     let device = CPU::new();
 
-    let mut net = SineNet {
-        linear1: Linear::new(&device, 1, 64),
-        linear2: Linear::new(&device, 64, 32),
-        linear3: Linear::new(&device, 32, 1),
-        ..Default::default()
-    };
+    let mut net = SineNet::with_device(&device);
 
     let (x, y) = create_sine(&device, 0, 1000);
 

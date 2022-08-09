@@ -1,17 +1,20 @@
 use std::time::Instant;
 
-use gradients::{NeuralNetwork, Linear, ReLU, Softmax, range, nn::{cce, cce_grad}, Conv2D, correct_classes, OneHotMat};
+use gradients::{
+    correct_classes,
+    nn::{cce, cce_grad},
+    range, Conv2D, Linear, NeuralNetwork, OneHotMat, ReLU, Softmax,
+};
 use purpur::{CSVLoader, Converter};
-
 
 #[derive(NeuralNetwork)]
 pub struct Network<'a, T> {
     conv: Conv2D<'a, T>,
-    lin1: Linear<'a, T>,
+    lin1: Linear<'a, T, { 5 * 26 * 26 }, 128>,
     relu1: ReLU<'a, T>,
-    lin2: Linear<'a, T>,
+    lin2: Linear<'a, T, 128, 10>,
     relu2: ReLU<'a, T>,
-    lin3: Linear<'a, T>,
+    lin3: Linear<'a, T, 10, 10>,
     softmax: Softmax<'a, T>,
 }
 
@@ -37,9 +40,9 @@ fn test_conv_net() -> custos::Result<()> {
 
     let mut net: Network<f32> = Network {
         conv: Conv2D::new(&device, (28, 28), (3, 3), 5),
-        lin1: Linear::new(&device, 5*26*26, 128),
-        lin2: Linear::new(&device, 128, 10),
-        lin3: Linear::new(&device, 10, 10),
+        lin1: Linear::new(&device),
+        lin2: Linear::new(&device),
+        lin3: Linear::new(&device),
         ..Default::default()
     };
 
@@ -48,7 +51,7 @@ fn test_conv_net() -> custos::Result<()> {
 
     let start = Instant::now();
 
-    /* 
+    /*
     let mut img = 0;
     for epoch in range(100000) {
         if img >= loaded_data.sample_count {
@@ -59,22 +62,22 @@ fn test_conv_net() -> custos::Result<()> {
         let single_input = Matrix::from((&drop, 1, 28*28, &i[start..start+28*28]));
         let start = img*10;
         let single_y = Matrix::from((&drop, 1, 10, &y[start..start+10]));
-        
+
 
         let preds = net.forward(single_input);
         //let correct_training = correct_classes(&loaded_data.y.as_usize(), preds) as f32;
 
         let loss = cce(&device, &preds, &single_y);
-        
+
         if epoch % 100 == 0 {
             println!("epoch: {epoch}, loss: {loss}");
         }
-        
+
         /*println!(
             "epoch: {epoch}, loss: {loss}, training_acc: {acc}",
             acc = correct_training / loaded_data.sample_count() as f32
         );*/
-        
+
         img +=1;
 
         let grad = cce_grad(&device, &preds, &single_y);
@@ -84,20 +87,18 @@ fn test_conv_net() -> custos::Result<()> {
     */
 
     for epoch in range(100000) {
-        
         let preds = net.forward(&i);
         let correct_training = correct_classes(&loaded_data.y.as_usize(), &preds) as f32;
-        
+
         let loss = cce(&device, &preds, &y);
-    
+
         //println!("epoch: {epoch}, loss: {loss}");
-    
-        
+
         println!(
             "epoch: {epoch}, loss: {loss}, training_acc: {acc}",
             acc = correct_training / loaded_data.sample_count() as f32
         );
-        
+
         let grad = cce_grad(&device, &preds, &y);
         net.backward(&grad);
         opt.step(&device, net.params());

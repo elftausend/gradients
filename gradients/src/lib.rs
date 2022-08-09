@@ -23,6 +23,16 @@ pub trait GetParam<'a, T> {
         None
     }
 }
+
+pub trait WithDevice<'a, T> {
+    fn with_device<D: Alloc<T>>(_device: &'a D) -> Self
+    where
+        Self: Default,
+    {
+        Self::default()
+    }
+}
+
 pub struct Param<'a, T> {
     pub weights: Matrix<'a, T>,
     pub bias: Matrix<'a, T>,

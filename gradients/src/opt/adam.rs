@@ -1,12 +1,12 @@
 use crate::Param;
-use custos::{number::Float, CDatatype, CPU, Alloc};
+use custos::{number::Float, Alloc, CDatatype, CPU};
 use custos_math::{scalar_apply, AdditionalOps, BaseOps, Matrix};
 
 #[cfg(feature = "cuda")]
 use custos::cuda::launch_kernel1d;
 
 #[cfg(feature = "opencl")]
-use custos::{CLDevice, opencl::enqueue_kernel};
+use custos::{opencl::enqueue_kernel, CLDevice};
 
 pub struct Adam<'a, T> {
     lr: T,
@@ -217,15 +217,43 @@ impl<'a, T: CDatatype> AdamOp<'a, T> for CLDevice {
             }}", dt=T::as_c_type_str());
 
         for (idx, layer_data) in params.iter_mut().enumerate() {
-            enqueue_kernel(self, &src, [layer_data.weights.size(), 0, 0], None, &[
-                &layer_data.weights, &layer_data.dweights, &adam.weight_momentum[idx], &adam.weight_cache[idx], &adam.beta1,
-                &adam.beta2, &adam.epsilon, &(adam.iters + 1), &adam.lr,
-            ]).unwrap();
+            enqueue_kernel(
+                self,
+                &src,
+                [layer_data.weights.size(), 0, 0],
+                None,
+                &[
+                    &layer_data.weights,
+                    &layer_data.dweights,
+                    &adam.weight_momentum[idx],
+                    &adam.weight_cache[idx],
+                    &adam.beta1,
+                    &adam.beta2,
+                    &adam.epsilon,
+                    &(adam.iters + 1),
+                    &adam.lr,
+                ],
+            )
+            .unwrap();
 
-            enqueue_kernel(self, &src, [layer_data.bias.size(), 0, 0], None, &[
-                &layer_data.bias, &layer_data.dbias, &adam.bias_momentum[idx], &adam.bias_cache[idx], &adam.beta1,
-                &adam.beta2, &adam.epsilon, &(adam.iters + 1), &adam.lr,
-            ]).unwrap();
+            enqueue_kernel(
+                self,
+                &src,
+                [layer_data.bias.size(), 0, 0],
+                None,
+                &[
+                    &layer_data.bias,
+                    &layer_data.dbias,
+                    &adam.bias_momentum[idx],
+                    &adam.bias_cache[idx],
+                    &adam.beta1,
+                    &adam.beta2,
+                    &adam.epsilon,
+                    &(adam.iters + 1),
+                    &adam.lr,
+                ],
+            )
+            .unwrap();
         }
     }
 }

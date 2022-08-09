@@ -1,4 +1,4 @@
-use crate::GetParam;
+use crate::{GetParam, WithDevice};
 use custos::{number::Float, CDatatype, GenericBlas};
 use custos_math::Matrix;
 use gradients_derive::NoParams;
@@ -63,10 +63,13 @@ pub struct Tanh<'a, T> {
     inputs: Option<Matrix<'a, T>>,
 }
 
-impl<'a, T: Float + CDatatype> Tanh<'a, T> {
+impl<'a, T> Tanh<'a, T> {
     pub fn new() -> Tanh<'a, T> {
         Tanh { inputs: None }
     }
+}
+
+impl<'a, T: Float + CDatatype> Tanh<'a, T> {
     pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
         self.inputs = Some(inputs.shallow());
         inputs.tanh()

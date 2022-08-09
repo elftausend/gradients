@@ -1,9 +1,9 @@
 use crate::Param;
-use custos::{CDatatype, CPU, Alloc};
+use custos::{Alloc, CDatatype, CPU};
 use custos_math::Matrix;
 
 #[cfg(feature = "opencl")]
-use custos::{CLDevice, opencl::enqueue_kernel};
+use custos::{opencl::enqueue_kernel, CLDevice};
 
 pub struct SGD<'a, T> {
     lr: T,
@@ -31,8 +31,10 @@ impl<'a, T: CDatatype> SGD<'a, T> {
         if self.momentum > T::zero() {
             if self.weight_momentum.len() < params.len() {
                 for param in &params {
-                    self.weight_momentum.push(Matrix::new(device, param.weights.dims()));
-                    self.bias_momentum.push(Matrix::new(device, param.bias.dims()));
+                    self.weight_momentum
+                        .push(Matrix::new(device, param.weights.dims()));
+                    self.bias_momentum
+                        .push(Matrix::new(device, param.bias.dims()));
                 }
             }
             return device.step_momentum(self, params);
@@ -94,14 +96,36 @@ impl<T: CDatatype> SGDOp<T> for CLDevice {
         );
 
         for (idx, param) in params.iter().enumerate() {
-            enqueue_kernel(self, &src, [param.weights.size(), 0, 0], None, &[
-                &param.weights, &param.dweights, &sgd.weight_momentum[idx], &sgd.momentum, &sgd.lr
-            ]).unwrap();
+            enqueue_kernel(
+                self,
+                &src,
+                [param.weights.size(), 0, 0],
+                None,
+                &[
+                    &param.weights,
+                    &param.dweights,
+                    &sgd.weight_momentum[idx],
+                    &sgd.momentum,
+                    &sgd.lr,
+                ],
+            )
+            .unwrap();
 
-            enqueue_kernel(self, &src, [param.bias.size(), 0, 0], None, &[
-                &param.bias, &param.dbias, &sgd.bias_momentum[idx], &sgd.momentum, &sgd.lr
-            ]).unwrap();
-            /* 
+            enqueue_kernel(
+                self,
+                &src,
+                [param.bias.size(), 0, 0],
+                None,
+                &[
+                    &param.bias,
+                    &param.dbias,
+                    &sgd.bias_momentum[idx],
+                    &sgd.momentum,
+                    &sgd.lr,
+                ],
+            )
+            .unwrap();
+            /*
             KernelOptions::new(
                 self,
                 param.weights.as_buf(),

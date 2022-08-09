@@ -5,11 +5,11 @@ use purpur::{Apply, Converter, ImageReturn, Transforms};
 
 #[derive(NeuralNetwork)]
 struct Network<'a, T> {
-    lin1: Linear<'a, T>,
+    lin1: Linear<'a, T, { 100 * 100 * 3 }, 512>,
     relu1: ReLU<'a, T>,
-    lin2: Linear<'a, T>,
+    lin2: Linear<'a, T, 512, 16>,
     relu2: ReLU<'a, T>,
-    lin3: Linear<'a, T>,
+    lin3: Linear<'a, T, 16, 3>,
     softmax: Softmax<'a, T>,
 }
 
@@ -37,9 +37,9 @@ fn test_berries_net() -> Result<(), std::io::Error> {
     let y = device.onehot(&y);
 
     let mut net = Network {
-        lin1: Linear::new(&device, 100 * 100 * 3, 512),
-        lin2: Linear::new(&device, 512, 16),
-        lin3: Linear::new(&device, 16, 3),
+        lin1: Linear::new(&device),
+        lin2: Linear::new(&device),
+        lin3: Linear::new(&device),
         ..Default::default()
     };
 

@@ -1,11 +1,11 @@
 # gradients
 
 [![Crates.io version](https://img.shields.io/crates/v/gradients.svg)](https://crates.io/crates/gradients)
-[![Docs](https://docs.rs/gradients/badge.svg?version=0.2.0)](https://docs.rs/gradients/0.2.0/gradients/)
+[![Docs](https://docs.rs/gradients/badge.svg?version=0.3.0)](https://docs.rs/gradients/0.3.0/gradients/)
 
 Deep Learning library using [custos] and [custos-math].
 
-external (C) dependencies: OpenCL, CUDA, nvrtc, cublas, BLAS
+external (C) dependencies: OpenCL, CUDA, nvrtc, cublas, a BLAS lib (OpenBLAS, Intel MKL, ...)
 
 [custos]: https://github.com/elftausend/custos
 [custos-math]: https://github.com/elftausend/custos-math
@@ -13,19 +13,19 @@ external (C) dependencies: OpenCL, CUDA, nvrtc, cublas, BLAS
 ## Installation
 
 There are two features available that are enabled by default:
-- cuda ... CUDA, nvrtc and cublas are needed to run
+- cuda ... CUDA, nvrtc and cublas must be installed
 - opencl ... OpenCL is needed
 
 If you deactivate them (add `default-features = false` and provide no additional features), only the CPU device can be used.
 
-For all feature configurations, a BLAS library needs to be installed on the system.
+For all feature-configurations, a BLAS library needs to be installed on the system.
 
 ```toml
 [dependencies]
-gradients = "0.2.0"
+gradients = "0.3.0"
 
 # to disable the default features (cuda, opencl) and use an own set of features:
-#gradients = {version = "0.2.0", default-features = false, features=["opencl"]}
+#gradients = {version = "0.3.0", default-features = false, features=["opencl"]}
 ```
 
 ## MNIST [example] 
@@ -36,22 +36,22 @@ gradients = "0.2.0"
 Use a struct that implements the NeuralNetwork trait to define which layers you want to use:
 
 ```rust
-use gradients::OneHotMat;
 use gradients::purpur::{CSVLoader, CSVReturn, Converter};
+use gradients::OneHotMat;
 use gradients::{
     correct_classes,
     nn::{cce, cce_grad},
-    range, Adam, CLDevice, Linear, NeuralNetwork, ReLU, Softmax,
+    range, Adam, CLDevice, Linear, network, ReLU, Softmax,
 };
 
-#[derive(NeuralNetwork)]
-pub struct Network<'a, T> {
-    lin1: Linear<'a, T>,
-    relu1: ReLU<'a, T>,
-    lin2: Linear<'a, T>,
-    relu2: ReLU<'a, T>,
-    lin3: Linear<'a, T>,
-    softmax: Softmax<'a, T>,
+#[network]
+pub struct Network {
+    lin1: Linear<784, 128>,
+    relu1: ReLU,
+    lin2: Linear<128, 10>,
+    relu2: ReLU,
+    lin3: Linear<10, 10>,
+    softmax: Softmax,
 }
 ```
 Load [data] and create an instance of Network:
@@ -66,6 +66,8 @@ You can download the mnist dataset [here](https://www.kaggle.com/datasets/oddrat
 // use opencl device (opencl feature enabled):
 let device = CLDevice::new(0)?;
 
+let mut net = Network::with_device(&device);
+
 let loader = CSVLoader::new(true);
 let loaded_data: CSVReturn<f32> = loader.load("PATH/TO/DATASET/mnist_train.csv")?;
 
@@ -78,14 +80,6 @@ let i = i / 255.;
 
 let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
 let y = y.onehot();
-
-let mut net = Network {
-    lin1: Linear::new(&device, 784, 128),
-    lin2: Linear::new(&device, 128, 10),
-    lin3: Linear::new(&device, 10, 10),
-    ..Default::default()
-};
-
 ```
 
 Training loop:

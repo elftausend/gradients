@@ -1,27 +1,33 @@
 use std::time::Instant;
 
 use custos_math::nn::{cce, cce_grad};
-use gradients::{correct_classes, Linear, NeuralNetwork, ReLU, Softmax, OneHotMat};
+use gradients::{correct_classes, Linear, NeuralNetwork, OneHotMat, ReLU, Softmax};
 
 use custos::range;
 use purpur::{CSVLoader, Converter};
 
 #[derive(NeuralNetwork)]
 pub struct Network<'a, T> {
-    lin1: Linear<'a, T>,
+    lin1: Linear<'a, T, 784, 128>,
     relu1: ReLU<'a, T>,
-    lin2: Linear<'a, T>,
+    lin2: Linear<'a, T, 128, 10>,
     relu2: ReLU<'a, T>,
-    lin3: Linear<'a, T>,
+    lin3: Linear<'a, T, 10, 10>,
     softmax: Softmax<'a, T>,
 }
 
 #[test]
 fn test_net() -> custos::Result<()> {
-    //let device = custos::CPU::new();
+    let device = custos::CPU::new();
     //let device = custos::CLDevice::new(0)?;
-    let device = custos::CudaDevice::new(0)?;
+    //let device = custos::CudaDevice::new(0)?;
 
+    let mut net: Network<f32> = Network {
+        lin1: Linear::new(&device),
+        lin2: Linear::new(&device),
+        lin3: Linear::new(&device),
+        ..Default::default()
+    };
     let loader = CSVLoader::new(true);
 
     let loaded_data =
@@ -37,13 +43,6 @@ fn test_net() -> custos::Result<()> {
 
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
     let y = y.onehot();
-
-    let mut net: Network<f32> = Network {
-        lin1: Linear::new(&device, 784, 128),
-        lin2: Linear::new(&device, 128, 10),
-        lin3: Linear::new(&device, 10, 10),
-        ..Default::default()
-    };
 
     let mut opt = gradients::Adam::<f32>::new(0.002);
     //let mut opt = gradients::SGD::new(0.1).momentum(0.5);

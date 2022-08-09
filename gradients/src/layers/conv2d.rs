@@ -1,7 +1,7 @@
-use custos::{cached, number::Float, CDatatype, Alloc, Device, get_device, CacheBuf};
-use custos_math::{Matrix, correlate_valid_mut};
+use crate::{GetParam, WithDevice};
+use custos::{cached, get_device, number::Float, Alloc, CDatatype, CacheBuf, Device};
+use custos_math::{correlate_valid_mut, Matrix};
 use gradients_derive::NoParams;
-use crate::GetParam;
 
 pub struct KernelBlock<'a, T> {
     pub weights: Matrix<'a, T>,
@@ -10,7 +10,11 @@ pub struct KernelBlock<'a, T> {
 }
 
 impl<'a, T> KernelBlock<'a, T> {
-    pub fn new<D: Alloc<T>>(device: &'a D, shape: (usize, usize), bias_shape: (usize, usize)) -> Self
+    pub fn new<D: Alloc<T>>(
+        device: &'a D,
+        shape: (usize, usize),
+        bias_shape: (usize, usize),
+    ) -> Self
     where
         T: Float,
     {
@@ -24,6 +28,7 @@ impl<'a, T> KernelBlock<'a, T> {
     }
 }
 
+#[doc(hidden)]
 #[derive(NoParams)]
 pub struct Conv2D<'a, T> {
     pub kernel_shape: (usize, usize),
@@ -34,9 +39,9 @@ pub struct Conv2D<'a, T> {
     device: Device,
 }
 
-impl<'a, T> Conv2D<'a, T> 
-where 
-    T: Float + CDatatype
+impl<'a, T> Conv2D<'a, T>
+where
+    T: Float + CDatatype,
 {
     pub fn new<D: Alloc<T>>(
         device: &'a D,
@@ -59,7 +64,7 @@ where
             output_shape,
             input_shape,
             kernels,
-            inputs: None
+            inputs: None,
         }
     }
 
@@ -69,21 +74,22 @@ where
         self.inputs = Some(inputs.shallow());
         let (out_rows, out_cols) = self.output_shape;
 
-        let mut output = get_device!(self.device, CacheBuf<T>).cached(inputs.rows() * out_rows * out_cols * self.kernels.len());
+        let mut output = get_device!(self.device, CacheBuf<T>)
+            .cached(inputs.rows() * out_rows * out_cols * self.kernels.len());
         output.clear();
 
         //output.clear();
 
         for row in 0..inputs.rows() {
             let img_start = row * inputs.cols();
-            let single_image = &inputs[img_start..img_start+inputs.cols()];
-            
+            let single_image = &inputs[img_start..img_start + inputs.cols()];
+
             for (idx, kernel_block) in self.kernels.iter().enumerate() {
                 let start = idx * out_rows * out_cols + img_start;
                 let output_slice = &mut output[start..start + out_rows * out_cols + img_start];
                 output_slice.copy_from_slice(&kernel_block.bias);
                 //assign_to_lhs(output_slice, &kernel_block.bias, |a, b| *a = b);
-                
+
                 correlate_valid_mut(
                     single_image,
                     self.input_shape,
@@ -93,36 +99,42 @@ where
                 );
             }
         }
-        
+
         (output, samples, out_rows * out_cols * self.kernels.len()).into()
     }
     pub fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
         let inputs = self.inputs.as_ref().unwrap();
         let (out_rows, out_cols) = self.output_shape;
         let (kernel_rows, kernel_cols) = self.kernel_shape;
-        let mut dkernel = cached::<T>(&grad.device, kernel_rows*kernel_cols*self.kernels.len());
+        let mut dkernel = cached::<T>(&grad.device, kernel_rows * kernel_cols * self.kernels.len());
         dkernel.clear();
 
         for row in 0..inputs.rows() {
             let start = row * inputs.cols();
-            let single_image = &inputs[start..start+inputs.cols()];
+            let single_image = &inputs[start..start + inputs.cols()];
 
             for (idx, kernel) in self.kernels.iter_mut().enumerate() {
                 let start = idx * out_rows * out_cols;
                 let grad_slice = &grad[start..start + out_rows * out_cols];
-    
+
                 let start = idx * kernel_rows * kernel_cols;
-                let dkernel_slice = &mut dkernel[start..start+kernel_rows*kernel_cols];
-    
-                correlate_valid_mut(single_image, self.input_shape, grad_slice, (out_rows, out_cols), dkernel_slice);
-                
+                let dkernel_slice = &mut dkernel[start..start + kernel_rows * kernel_cols];
+
+                correlate_valid_mut(
+                    single_image,
+                    self.input_shape,
+                    grad_slice,
+                    (out_rows, out_cols),
+                    dkernel_slice,
+                );
+
                 // step
                 for (idx, value) in kernel.weights.iter_mut().enumerate() {
                     *value -= dkernel_slice[idx] * T::one() / T::from_u64(1000);
                 }
             }
         }
-        
+
         // need to calculate w. r. t. inputs
         grad.shallow()
     }
@@ -136,7 +148,7 @@ impl<'a, T> Default for Conv2D<'a, T> {
             kernel_shape: Default::default(),
             output_shape: Default::default(),
             input_shape: Default::default(),
-            kernels: Default::default()
+            kernels: Default::default(),
         }
     }
 }

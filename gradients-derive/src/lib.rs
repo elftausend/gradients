@@ -7,35 +7,33 @@ use syn::{
 };
 
 #[proc_macro_attribute]
-pub fn network(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let mut modified = proc_macro::TokenStream::new();
-    //let mut source = item.into_iter().peekable();
+pub fn network(
+    _attr: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     let input = parse_macro_input!(item as DeriveInput);
     let name = input.ident;
-    
+
     let fields = match input.data {
         Data::Struct(data) => match data.fields {
             Fields::Named(fields) => fields.named,
-            _ => panic!("Structs only"),
+            _ => panic!("The network attribute can be applied on structs only."),
         },
-        _ => panic!("Structs only"),
+        _ => panic!("The network attribute can be applied on structs only."),
     };
 
-
-    proc_macro::TokenStream::from(add_lifetimes(name, fields))
+    proc_macro::TokenStream::from(add_lifetimes_derive_net(name, fields))
 }
 
-fn add_lifetimes(name: Ident, fields: Punctuated<Field, Comma>) -> TokenStream {
+fn add_lifetimes_derive_net(name: Ident, fields: Punctuated<Field, Comma>) -> TokenStream {
     let fields_with_lifetimes = fields
         .iter()
         .map(|f| {
             let name = &f.ident;
             let t = &f.ty;
             let type_token = t.into_token_stream();
-            let type_token_string = type_token.to_string();
-            
-            
-            if type_token.to_string().starts_with("Linear2") {
+
+            if type_token.to_string().starts_with("Linear") {
                 let mut in_out_size = TokenStream::new();
                 for token in type_token {
                     if let TokenTree::Literal(lit) = &token {
@@ -48,29 +46,38 @@ fn add_lifetimes(name: Ident, fields: Punctuated<Field, Comma>) -> TokenStream {
                         }
                         in_out_size.extend(pun.to_token_stream());
                     }
-                    
                 }
-                
-                quote! {#name: Linear2<'a, T, #in_out_size>,}
 
+                quote! {#name: Linear<'a, T, #in_out_size>,}
             } else {
                 quote!(#name: #t<'a, T>,)
             }
-            
+        })
+        .collect::<TokenStream>();
+
+    let with_device_chain = fields
+        .iter()
+        .map(|f| {
+            let name = &f.ident;
+
+            quote!(#name: WithDevice::with_device(device),)
         })
         .collect::<TokenStream>();
 
     quote! {
+        use gradients::{NeuralNetwork, Alloc, WithDevice, number::Float};
+        #[derive(NeuralNetwork)]
         struct #name<'a, T> {
             #fields_with_lifetimes
         }
+
+        impl<'a, T: Float> #name<'a, T> {
+            pub fn with_device<D: Alloc<T>>(device: &'a D) -> Self {
+                Self { #with_device_chain }
+            }
+        }
     }
-    
-
 }
-
-
-
 
 #[proc_macro_derive(NoParams)]
 pub fn derive_params(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -83,6 +90,12 @@ pub fn derive_params(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 fn impl_params(name: Ident) -> TokenStream {
     quote! {
         impl<'a, T> GetParam<'a,T> for #name<'a, T> {}
+        impl<'a, T> WithDevice<'a, T> for #name<'a, T> {}
+        impl<'a, T> #name<'a, T> {
+            pub fn with_device<D>(_dev: &D) -> #name<'a, T> {
+                Self::default()
+            }
+        }
     }
 }
 
@@ -149,7 +162,7 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
             fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
                 #forward_chain
             }
-            
+
             fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
                 #backward_chain
             }

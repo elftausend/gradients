@@ -18,15 +18,14 @@ fn main() {
         ],
     )) / 255.;
 
-    
     let mut lg = LinearReg::new(&x, &y);
-    
+
     let mut loss_values = vec![0.; 401];
 
     for i in range(400) {
         loss_values[i] = lg.step(0.001);
     }
-    
+
     /*let plot = graplot::Plot::new(loss_values);
     plot.show();*/
 

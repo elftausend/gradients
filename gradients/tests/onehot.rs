@@ -1,6 +1,6 @@
 use custos::{CLDevice, CPU};
 use custos_math::Matrix;
-use gradients::{OneHotMat};
+use gradients::OneHotMat;
 
 #[test]
 fn test_onehot() {

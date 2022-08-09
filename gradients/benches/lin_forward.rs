@@ -1,13 +1,14 @@
-
 use criterion::{criterion_group, criterion_main, Criterion};
-use gradients::{Matrix, CPU, Linear, set_count};
+use gradients::{set_count, Linear, Matrix, CPU};
 use purpur::CSVLoader;
 
 fn forward_mut_bias(bench: &mut Criterion) {
     let device = CPU::new();
     let loader = CSVLoader::new(true);
 
-    let loaded_data = loader.load("../../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
+    let loaded_data = loader
+        .load("../../gradients-fallback/datasets/digit-recognizer/train.csv")
+        .unwrap();
     let i = Matrix::<f32>::from((
         &device,
         (loaded_data.sample_count, loaded_data.features),
@@ -15,19 +16,23 @@ fn forward_mut_bias(bench: &mut Criterion) {
     ));
     let i = i / 255.;
 
-    let lin = Linear::new(&device, 28*28, 256);
+    let lin = Linear::<_, 784, 256>::new(&device);
 
-    bench.bench_function("forward mut bias", |b| b.iter(|| {
-        i.gemm(&lin.weights).add_row_mut(&lin.bias);
-        set_count(0)
-    }));
+    bench.bench_function("forward mut bias", |b| {
+        b.iter(|| {
+            i.gemm(&lin.weights).add_row_mut(&lin.bias);
+            set_count(0)
+        })
+    });
 }
 
 fn forward_bias(bench: &mut Criterion) {
     let device = CPU::new();
     let loader = CSVLoader::new(true);
 
-    let loaded_data = loader.load("../../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
+    let loaded_data = loader
+        .load("../../gradients-fallback/datasets/digit-recognizer/train.csv")
+        .unwrap();
     let i = Matrix::<f32>::from((
         &device,
         (loaded_data.sample_count, loaded_data.features),
@@ -35,18 +40,22 @@ fn forward_bias(bench: &mut Criterion) {
     ));
     let i = i / 255.;
 
-    let lin = Linear::new(&device, 28*28, 256);
-    bench.bench_function("forward bias", |b| b.iter(|| {
-        i.gemm(&lin.weights).add_row(&lin.bias);
-        set_count(0)
-    }));
+    let lin = Linear::<_, 784, 256>::new(&device);
+    bench.bench_function("forward bias", |b| {
+        b.iter(|| {
+            i.gemm(&lin.weights).add_row(&lin.bias);
+            set_count(0)
+        })
+    });
 }
 
 fn forward(bench: &mut Criterion) {
     let device = CPU::new();
     let loader = CSVLoader::new(true);
 
-    let loaded_data = loader.load("../../gradients-fallback/datasets/digit-recognizer/train.csv").unwrap();
+    let loaded_data = loader
+        .load("../../gradients-fallback/datasets/digit-recognizer/train.csv")
+        .unwrap();
     println!("fin");
     let i = Matrix::<f32>::from((
         &device,
@@ -55,11 +64,13 @@ fn forward(bench: &mut Criterion) {
     ));
     let i = i / 255.;
 
-    let mut lin = Linear::new(&device, 28*28, 256);
-    bench.bench_function("forward", |b| b.iter(|| {
-        lin.forward(&i);
-        set_count(0)
-    }));
+    let mut lin = Linear::<_, 784, 256>::new(&device);
+    bench.bench_function("forward", |b| {
+        b.iter(|| {
+            lin.forward(&i);
+            set_count(0)
+        })
+    });
 }
 
 criterion_group!(benches, forward, forward_bias, forward_mut_bias);

@@ -9,11 +9,11 @@ use gradients::{
 
 #[derive(NeuralNetwork)]
 struct SineNet<'a, T> {
-    linear1: Linear<'a, T>,
+    linear1: Linear<'a, T, 1, 128>,
     relu1: ReLU<'a, T>,
-    linear2: Linear<'a, T>,
+    linear2: Linear<'a, T, 128, 128>,
     relu2: ReLU<'a, T>,
-    linear3: Linear<'a, T>,
+    linear3: Linear<'a, T, 128, 1>,
 }
 
 #[test]
@@ -23,9 +23,9 @@ fn test_sine_derive() {
     let device = CPU::new();
 
     let mut net = SineNet {
-        linear1: Linear::new(&device, 1, 128),
-        linear2: Linear::new(&device, 128, 128),
-        linear3: Linear::new(&device, 128, 1),
+        linear1: Linear::new(&device),
+        linear2: Linear::new(&device),
+        linear3: Linear::new(&device),
         ..Default::default()
     };
 

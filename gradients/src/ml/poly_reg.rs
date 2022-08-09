@@ -32,7 +32,6 @@ impl<'a, T: CDatatype + Float> PolynomialReg<'a, T> {
     }
 
     pub fn predict(&self, xs: &'a Matrix<'a, T>) -> Matrix<'a, T> {
-        
         let mut sum = Matrix::from((custos::cached::<T>(&xs.device, xs.size()), xs.dims()));
         sum.clear();
 

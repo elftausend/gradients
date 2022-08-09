@@ -1,4 +1,4 @@
-use custos::{number::Number, CPU, get_device, CDatatype};
+use custos::{get_device, number::Number, CDatatype, CPU};
 use custos_math::Matrix;
 use purpur::utils::max;
 
@@ -6,10 +6,10 @@ use purpur::utils::max;
 use custos_math::cl_to_cpu_s;
 
 pub trait OneHotMat<'a, T> {
-    fn onehot(&self) -> Matrix<'a, T>;   
+    fn onehot(&self) -> Matrix<'a, T>;
 }
 
-impl<'a, T: Number+CDatatype> OneHotMat<'a, T> for Matrix<'a, T> {
+impl<'a, T: Number + CDatatype> OneHotMat<'a, T> for Matrix<'a, T> {
     fn onehot(&self) -> Matrix<'a, T> {
         get_device!(self.device, OnehotOp<T>).onehot(self)
     }

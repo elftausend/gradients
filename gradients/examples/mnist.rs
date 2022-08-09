@@ -1,19 +1,19 @@
-use gradients::OneHotMat;
 use gradients::purpur::{CSVLoader, CSVReturn, Converter};
+use gradients::OneHotMat;
 use gradients::{
     correct_classes,
     nn::{cce, cce_grad},
-    range, Adam, CLDevice, Linear, NeuralNetwork, ReLU, Softmax,
+    range, Adam, CLDevice, Linear, network, ReLU, Softmax,
 };
 
-#[derive(NeuralNetwork)]
-pub struct Network<'a, T> {
-    lin1: Linear<'a, T>,
-    relu1: ReLU<'a, T>,
-    lin2: Linear<'a, T>,
-    relu2: ReLU<'a, T>,
-    lin3: Linear<'a, T>,
-    softmax: Softmax<'a, T>,
+#[network]
+pub struct Network {
+    lin1: Linear<784, 128>,
+    relu1: ReLU,
+    lin2: Linear<128, 10>,
+    relu2: ReLU,
+    lin3: Linear<10, 10>,
+    softmax: Softmax,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -21,6 +21,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // use cuda device (cuda feature enabled): let device = gradients::CudaDevice::new(0).unwrap().select();
     // use opencl device (opencl feature enabled):
     let device = CLDevice::new(0)?;
+    
+    let mut net = Network::with_device(&device);
 
     let loader = CSVLoader::new(true);
     let loaded_data: CSVReturn<f32> = loader.load("PATH/TO/DATASET/mnist_train.csv")?;
@@ -35,12 +37,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
     let y = y.onehot();
 
-    let mut net = Network {
-        lin1: Linear::new(&device, 784, 128),
-        lin2: Linear::new(&device, 128, 10),
-        lin3: Linear::new(&device, 10, 10),
-        ..Default::default()
-    };
 
     let mut opt = Adam::new(0.01);
 
