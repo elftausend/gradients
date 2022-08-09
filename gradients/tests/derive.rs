@@ -18,9 +18,9 @@ pub struct Network<'a, T> {
 
 #[test]
 fn test_net() -> custos::Result<()> {
-    let device = custos::CPU::new();
+    //let device = custos::CPU::new();
     //let device = custos::CLDevice::new(0)?;
-    //let device = custos::CudaDevice::new(0)?;
+    let device = custos::CudaDevice::new(0)?;
 
     let loader = CSVLoader::new(true);
 

@@ -1,9 +1,76 @@
-use proc_macro2::TokenStream;
-use quote::quote;
+extern crate proc_macro;
+use proc_macro2::{TokenStream, TokenTree};
+use quote::{quote, ToTokens};
 use syn::{
     parse_macro_input, punctuated::Punctuated, token::Comma, Data, DeriveInput, Field, Fields,
     Ident,
 };
+
+#[proc_macro_attribute]
+pub fn network(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let mut modified = proc_macro::TokenStream::new();
+    //let mut source = item.into_iter().peekable();
+    let input = parse_macro_input!(item as DeriveInput);
+    let name = input.ident;
+    
+    let fields = match input.data {
+        Data::Struct(data) => match data.fields {
+            Fields::Named(fields) => fields.named,
+            _ => panic!("Structs only"),
+        },
+        _ => panic!("Structs only"),
+    };
+
+
+    proc_macro::TokenStream::from(add_lifetimes(name, fields))
+}
+
+fn add_lifetimes(name: Ident, fields: Punctuated<Field, Comma>) -> TokenStream {
+    let fields_with_lifetimes = fields
+        .iter()
+        .map(|f| {
+            let name = &f.ident;
+            let t = &f.ty;
+            let type_token = t.into_token_stream();
+            let type_token_string = type_token.to_string();
+            
+            
+            if type_token.to_string().starts_with("Linear2") {
+                let mut in_out_size = TokenStream::new();
+                for token in type_token {
+                    if let TokenTree::Literal(lit) = &token {
+                        in_out_size.extend(lit.to_token_stream());
+                    }
+
+                    if let TokenTree::Punct(pun) = token {
+                        if pun.as_char() != ',' {
+                            continue;
+                        }
+                        in_out_size.extend(pun.to_token_stream());
+                    }
+                    
+                }
+                
+                quote! {#name: Linear2<'a, T, #in_out_size>,}
+
+            } else {
+                quote!(#name: #t<'a, T>,)
+            }
+            
+        })
+        .collect::<TokenStream>();
+
+    quote! {
+        struct #name<'a, T> {
+            #fields_with_lifetimes
+        }
+    }
+    
+
+}
+
+
+
 
 #[proc_macro_derive(NoParams)]
 pub fn derive_params(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
