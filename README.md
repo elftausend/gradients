@@ -1,7 +1,7 @@
 # gradients
 
 [![Crates.io version](https://img.shields.io/crates/v/gradients.svg)](https://crates.io/crates/gradients)
-[![Docs](https://docs.rs/gradients/badge.svg?version=0.3.0)](https://docs.rs/gradients/0.3.0/gradients/)
+[![Docs](https://docs.rs/gradients/badge.svg?version=0.3.1)](https://docs.rs/gradients/0.3.1/gradients/)
 
 Deep Learning library using [custos] and [custos-math].
 
@@ -22,10 +22,10 @@ For all feature-configurations, a BLAS library needs to be installed on the syst
 
 ```toml
 [dependencies]
-gradients = "0.3.0"
+gradients = "0.3.1"
 
 # to disable the default features (cuda, opencl) and use an own set of features:
-#gradients = {version = "0.3.0", default-features = false, features=["opencl"]}
+#gradients = {version = "0.3.1", default-features = false, features=["opencl"]}
 ```
 
 ## MNIST [example] 
@@ -33,7 +33,7 @@ gradients = "0.3.0"
 (if this example does not compile, consider looking [here](https://github.com/elftausend/gradients/blob/main/gradients/examples/mnist.rs))
 
 [example]: https://github.com/elftausend/gradients/blob/main/gradients/examples/mnist.rs
-Use a struct that implements the NeuralNetwork trait to define which layers you want to use:
+Use a struct that implements the NeuralNetwork trait (it is implemented via the `network` attribute) to define which layers you want to use:
 
 ```rust
 use gradients::purpur::{CSVLoader, CSVReturn, Converter};

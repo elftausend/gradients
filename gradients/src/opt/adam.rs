@@ -1,6 +1,6 @@
 use crate::Param;
 use custos::{number::Float, Alloc, CDatatype, CPU};
-use custos_math::{scalar_apply, AdditionalOps, BaseOps, Matrix};
+use custos_math::Matrix;
 
 #[cfg(feature = "cuda")]
 use custos::cuda::launch_kernel1d;
@@ -34,7 +34,7 @@ impl<'a, T: Float> Adam<'a, T> {
             bias_cache: Vec::new(),
         }
     }
-    pub fn step<D: Alloc<T> + AdamOp<'a, T>>(&mut self, device: &'a D, params: Vec<Param<T>>) {
+    pub fn step<D: Alloc<T> + AdamOp<'a, T>>(&mut self, device: &'a D, params: Vec<Param<'a, T>>) {
         if self.weight_cache.len() < params.len() {
             for param in params.iter() {
                 self.weight_cache
@@ -48,71 +48,60 @@ impl<'a, T: Float> Adam<'a, T> {
             }
         }
         device.step(self, params);
+        self.iters += 1;
     }
 }
 
 pub trait AdamOp<'a, T> {
-    fn step(&'a self, adam: &mut Adam<'a, T>, params: Vec<Param<T>>);
+    fn step(&'a self, adam: &mut Adam<'a, T>, params: Vec<Param<'a, T>>);
+}
+
+fn adam_step_cpu<T: Float>(
+    values: &mut [T],
+    dvalues: &[T],
+    momentum: &mut [T],
+    cache: &mut [T],
+    beta1: T,
+    beta2: T,
+    epsilon: T,
+    lr: T,
+    iters: u64,
+) {
+    for i in 0..values.len() {
+        momentum[i] = momentum[i] * beta1 + dvalues[i] * (T::one() - beta1);
+        let value_momentum_corrected = momentum[i] / (T::one() - beta1.powi((iters + 1) as i32));
+        cache[i] = cache[i] * beta2 + dvalues[i] * dvalues[i] * (T::one() - beta2);
+        let value_cache_corrected = cache[i] / (T::one() - beta2.powi((iters + 1) as i32));
+        values[i] -= (value_momentum_corrected * lr) / (value_cache_corrected.sqrt() + epsilon);
+    }
 }
 
 impl<'a, T: CDatatype + Float> AdamOp<'a, T> for CPU {
-    fn step(&'a self, adam: &mut Adam<'a, T>, mut params: Vec<Param<T>>) {
+    fn step(&'a self, adam: &mut Adam<'a, T>, mut params: Vec<Param<'a, T>>) {
         for (idx, param) in params.iter_mut().enumerate() {
-            adam.weight_momentum[idx] = self.muls(&adam.weight_momentum[idx], adam.beta1)
-                + self.muls(&param.dweights, T::one() - adam.beta1);
-            adam.bias_momentum[idx] = self.muls(&adam.bias_momentum[idx], adam.beta1)
-                + self.muls(&param.dbias, T::one() - adam.beta1);
-
-            let weight_momentum_corrected = self.divs(
-                &adam.weight_momentum[idx],
-                T::one() - adam.beta1.powi((adam.iters as i32) + 1),
+            adam_step_cpu(
+                &mut param.weights,
+                &param.dweights,
+                &mut adam.weight_momentum[idx],
+                &mut adam.weight_cache[idx],
+                adam.beta1,
+                adam.beta2,
+                adam.epsilon,
+                adam.lr,
+                adam.iters,
             );
-            let bias_momentum_corrected = self.divs(
-                &adam.bias_momentum[idx],
-                T::one() - adam.beta1.powi((adam.iters as i32) + 1),
-            );
-
-            let map_dweights = scalar_apply(self, &param.dweights, T::zero(), |c, a, _| {
-                *c = a.powi(2) * (T::one() - adam.beta2)
-            });
-            adam.weight_cache[idx] = self.muls(&adam.weight_cache[idx], adam.beta2) + map_dweights;
-
-            let map_dbias = scalar_apply(self, &param.dbias, T::zero(), |c, a, _| {
-                *c = a.powi(2) * (T::one() - adam.beta2)
-            });
-
-            adam.bias_cache[idx] = (&adam.bias_cache[idx] * adam.beta2) + map_dbias;
-            //adam.bias_cache[idx] = self.muls(&adam.bias_cache[idx], adam.beta2) + map_dbias;
-
-            let weight_cache_corrected = self.divs(
-                &adam.weight_cache[idx],
-                T::one() - adam.beta2.powi((adam.iters as i32) + 1),
-            );
-            let bias_cache_corrected = self.divs(
-                &adam.bias_cache[idx],
-                T::one() - adam.beta2.powi((adam.iters as i32) + 1),
-            );
-
-            let map_weight_cache_corrected =
-                scalar_apply(self, &weight_cache_corrected, T::zero(), |c, a, _| {
-                    *c = a.sqrt() + adam.epsilon
-                });
-            param.weights -= &self.div(
-                &self.muls(&weight_momentum_corrected, adam.lr),
-                &map_weight_cache_corrected,
-            );
-
-            let map_bias_cache_corrected =
-                scalar_apply(self, &bias_cache_corrected, T::zero(), |c, a, _| {
-                    *c = a.sqrt() + adam.epsilon
-                });
-            param.bias -= &self.div(
-                &self.muls(&bias_momentum_corrected, adam.lr),
-                &map_bias_cache_corrected,
-            );
+            adam_step_cpu(
+                &mut param.bias,
+                &param.dbias,
+                &mut adam.bias_momentum[idx],
+                &mut adam.bias_cache[idx],
+                adam.beta1,
+                adam.beta2,
+                adam.epsilon,
+                adam.lr,
+                adam.iters,
+            )
         }
-        let iters = &mut adam.iters;
-        *iters += 1;
     }
 }
 

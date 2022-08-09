@@ -1,4 +1,4 @@
-use custos::{get_device, number::Number, CDatatype, CPU};
+use custos::{get_device, number::Number, CDatatype, CPU, CacheBuf};
 use custos_math::Matrix;
 use purpur::utils::max;
 
@@ -24,7 +24,7 @@ impl<T: Number> OnehotOp<T> for CPU {
         assert!(matrix.cols() == 1);
 
         let max = max(&matrix).as_usize() + 1;
-        let mut onehot = Matrix::new(self, (matrix.rows(), max));
+        let mut onehot = self.cached(matrix.rows() * max);
 
         for (row, idx) in matrix.iter().enumerate() {
             for i in 0..max {
@@ -36,7 +36,7 @@ impl<T: Number> OnehotOp<T> for CPU {
             }
         }
 
-        onehot
+        (onehot, matrix.rows(), max).into()
     }
 }
 

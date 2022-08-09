@@ -24,6 +24,7 @@ struct Net {
 #[test]
 fn test_attribute_net() -> gradients::Result<()> {
     let device = CPU::new();
+    //let device = custos::CLDevice::new(0)?;
     let mut net = Net::<f32>::with_device(&device);
 
     let loader = CSVLoader::new(true);
@@ -61,5 +62,6 @@ fn test_attribute_net() -> gradients::Result<()> {
     }
 
     println!("training duration: {:?}", start.elapsed());
+    
     Ok(())
 }

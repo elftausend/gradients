@@ -1,9 +1,9 @@
 use gradients::purpur::{CSVLoader, CSVReturn, Converter};
 use gradients::OneHotMat;
 use gradients::{
-    correct_classes,
+    correct_classes, network,
     nn::{cce, cce_grad},
-    range, Adam, CLDevice, Linear, network, ReLU, Softmax,
+    range, Adam, CLDevice, Linear, ReLU, Softmax,
 };
 
 #[network]
@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // use cuda device (cuda feature enabled): let device = gradients::CudaDevice::new(0).unwrap().select();
     // use opencl device (opencl feature enabled):
     let device = CLDevice::new(0)?;
-    
+
     let mut net = Network::with_device(&device);
 
     let loader = CSVLoader::new(true);
@@ -36,7 +36,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
     let y = y.onehot();
-
 
     let mut opt = Adam::new(0.01);
 
