@@ -62,6 +62,6 @@ fn test_attribute_net() -> gradients::Result<()> {
     }
 
     println!("training duration: {:?}", start.elapsed());
-    
+
     Ok(())
 }

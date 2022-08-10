@@ -1,4 +1,4 @@
-use custos::{get_device, number::Number, CDatatype, CPU, CacheBuf};
+use custos::{get_device, number::Number, CDatatype, CacheBuf, CPU};
 use custos_math::Matrix;
 use purpur::utils::max;
 

@@ -19,8 +19,8 @@ custos = { version="0.4.4", default-features = false }
 custos-math = { version="0.4.4", default-features = false }
 purpur = "0.1.0"
 
-gradients-derive = { version = "0.3.0" }
-#gradients-derive = { path = "../gradients-derive" }
+#gradients-derive = { version = "0.3.0" }
+gradients-derive = { path = "../gradients-derive" }
 [features]
 default = ["opencl", ]
 opencl = ["custos/opencl", "custos-math/opencl"]
