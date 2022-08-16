@@ -18,8 +18,8 @@ struct SineNet<'a, T> {
 
 #[test]
 fn test_sine_derive() {
-    //let device = custos::CLDevice::new(0).unwrap().select();
-    //let device = custos::CudaDevice::new(0).unwrap().select();
+    //let device = custos::CLDevice::new(0).unwrap();
+    //let device = custos::CudaDevice::new(0).unwrap();
     let device = CPU::new();
 
     let mut net = SineNet {

@@ -71,7 +71,7 @@ where
     pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
         let samples = inputs.rows();
 
-        self.inputs = Some(inputs.shallow());
+        self.inputs = Some(inputs.shallow_or_clone());
         let (out_rows, out_cols) = self.output_shape;
 
         let mut output = get_device!(self.device, CacheBuf<T>)
@@ -136,7 +136,7 @@ where
         }
 
         // need to calculate w. r. t. inputs
-        grad.shallow()
+        grad.shallow_or_clone()
     }
 }
 

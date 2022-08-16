@@ -1,6 +1,6 @@
 [package]
 name = "gradients"
-version = "0.3.1"
+version = "0.3.3"
 edition = "2021"
 categories = ["mathematics", "science", "algorithms"]
 keywords = ["CUDA", "OpenCL", "machine-learning", "science", "deep-learning"]
@@ -13,19 +13,19 @@ repository = "https://github.com/elftausend/gradients"
 
 [dependencies]
 
-custos = { version="0.4.4", default-features = false }
+custos = { version="0.4.6", default-features = false }
 #custos = { path = "../../custos", default-features = false }
 #custos-math = { path = "../../custos-math", default-features = false }
-custos-math = { version="0.4.4", default-features = false }
+custos-math = { version="0.4.6", default-features = false }
 purpur = "0.1.0"
 
 #gradients-derive = { version = "0.3.0" }
 gradients-derive = { path = "../gradients-derive" }
 [features]
-default = ["opencl", ]
+default = ["opencl", "cuda"]
 opencl = ["custos/opencl", "custos-math/opencl"]
 cuda = ["custos/cuda", "custos-math/cuda"]
-#realloc = ["custos/realloc", "custos-math/realloc"]
+realloc = ["custos/realloc", "custos-math/realloc"]
 
 [dev-dependencies]
 graplot = { version = "0.1.20" }

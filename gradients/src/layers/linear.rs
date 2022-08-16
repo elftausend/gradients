@@ -46,7 +46,7 @@ impl<'a, T: Copy + Float, const I: usize, const O: usize> WithDevice<'a, T>
 
 impl<'a, T: Float + GenericBlas + CDatatype, const I: usize, const O: usize> Linear<'a, T, I, O> {
     pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
-        self.inputs = Some(inputs.shallow());
+        self.inputs = Some(inputs.shallow_or_clone());
         let mut forward = inputs.gemm(&self.weights);
         forward.add_row_mut(&self.bias);
         forward

@@ -13,7 +13,7 @@ impl<'a, T: Float + CDatatype> ReLU<'a, T> {
         ReLU { inputs: None }
     }
     pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
-        self.inputs = Some(inputs.shallow());
+        self.inputs = Some(inputs.shallow_or_clone());
         inputs.relu()
     }
     pub fn backward(&self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
@@ -41,7 +41,7 @@ impl<'a, T: CDatatype + GenericBlas> Softmax<'a, T> {
 
     pub fn forward(&mut self, x: &Matrix<'a, T>) -> Matrix<'a, T> {
         let activated = x.softmax();
-        self.activated = Some(activated.shallow());
+        self.activated = Some(activated.shallow_or_clone());
         activated
     }
 
@@ -71,7 +71,7 @@ impl<'a, T> Tanh<'a, T> {
 
 impl<'a, T: Float + CDatatype> Tanh<'a, T> {
     pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
-        self.inputs = Some(inputs.shallow());
+        self.inputs = Some(inputs.shallow_or_clone());
         inputs.tanh()
     }
     pub fn backward(&self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {

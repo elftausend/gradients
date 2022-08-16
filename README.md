@@ -1,7 +1,7 @@
 # gradients
 
 [![Crates.io version](https://img.shields.io/crates/v/gradients.svg)](https://crates.io/crates/gradients)
-[![Docs](https://docs.rs/gradients/badge.svg?version=0.3.1)](https://docs.rs/gradients/0.3.1/gradients/)
+[![Docs](https://docs.rs/gradients/badge.svg?version=0.3.3)](https://docs.rs/gradients/0.3.3/gradients/)
 
 Deep Learning library using [custos] and [custos-math].
 
@@ -22,10 +22,10 @@ For all feature-configurations, a BLAS library needs to be installed on the syst
 
 ```toml
 [dependencies]
-gradients = "0.3.1"
+gradients = "0.3.3"
 
 # to disable the default features (cuda, opencl) and use an own set of features:
-#gradients = {version = "0.3.1", default-features = false, features=["opencl"]}
+#gradients = {version = "0.3.3", default-features = false, features=["opencl"]}
 ```
 
 ## MNIST [example] 

@@ -71,14 +71,6 @@ fn add_lifetimes_derive_net(name: Ident, fields: Punctuated<Field, Comma>) -> To
                                         prev_out=prev_out_size.to_string(), 
                                     );
                                 }
-                                /*panic!(
-                                    "The output and input size of {prev_ident:?} (output size: {prev_out}) and {ident:?} (input size: {input}) do not match.",
-                                 
-                                    prev_ident=prev_out_size_info.1.as_ref().unwrap().to_string(), 
-                                    prev_out=prev_out_size.to_string(), 
-                                    ident=name.as_ref().unwrap().to_string(), 
-                                    input=lit_tokens.to_string()
-                                )*/
                             }
                         }
                         in_or_out_size += 1;
