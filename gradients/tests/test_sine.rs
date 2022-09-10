@@ -37,11 +37,15 @@ fn test_sine_derive() {
 
     for epoch in range(1000) {
         let pred = net.forward(&x);
-        let loss = mse(&device, &pred, &y);
-        let grad = mse_grad(&device, &pred, &y);
+        let loss = mse(&pred, &y);
+        let grad = mse_grad(&pred, &y);
         net.backward(&grad);
         opt.step(&device, net.params());
 
+        //let traces = device.graph().cache_traces();
+        //println!("traces: {traces:?}");
+        //device.optimize().unwrap();
+    
         println!("epoch: {epoch}, loss: {loss}");
     }
 

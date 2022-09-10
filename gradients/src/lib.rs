@@ -6,6 +6,7 @@ mod opt;
 
 //exports of dependencies
 pub use custos::*;
+use custos::number::Float;
 pub use custos_math::*;
 pub mod purpur {
     pub use purpur::*;
@@ -25,7 +26,7 @@ pub trait GetParam<'a, T> {
 }
 
 pub trait WithDevice<'a, T> {
-    fn with_device<D: Alloc<T>>(_device: &'a D) -> Self
+    fn with_device<D: Alloc<T>+GraphReturn>(_device: &'a D) -> Self
     where
         Self: Default,
     {
@@ -62,7 +63,7 @@ pub trait NeuralNetwork<'a, T> {
     fn params(&mut self) -> Vec<Param<'a, T>>;
 }
 
-pub fn create_sine<D: Alloc<f32>>(
+pub fn create_sine<D: Alloc<f32> + GraphReturn>(
     device: &D,
     min: usize,
     max: usize,
@@ -75,6 +76,24 @@ pub fn create_sine<D: Alloc<f32>>(
         .iter()
         .map(|v| (2. * v * std::f32::consts::PI).sin())
         .collect::<Vec<f32>>();
+    let x = Matrix::from((device, (max - min, 1), x));
+    let y = Matrix::from((device, (max - min, 1), y));
+    (x, y)
+}
+
+pub fn create_line<T: Float, D: Alloc<T> + GraphReturn>(
+    device: &D,
+    min: usize,
+    max: usize,
+) -> (Matrix<T>, Matrix<T>) {
+    let mut x: Vec<T> = Vec::with_capacity(max-min);
+    for add in min..max {
+        x.push(T::from_usize(add) / T::from_usize(1000));
+    }
+    let y = x
+        .iter()
+        .map(|v| T::two() * *v)
+        .collect::<Vec<T>>();
     let x = Matrix::from((device, (max - min, 1), x));
     let y = Matrix::from((device, (max - min, 1), y));
     (x, y)
