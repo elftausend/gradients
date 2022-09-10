@@ -101,14 +101,14 @@ fn add_lifetimes_derive_net(name: Ident, fields: Punctuated<Field, Comma>) -> To
         .collect::<TokenStream>();
 
     quote! {
-        use gradients::{NeuralNetwork, Alloc, WithDevice, number::Float};
+        use gradients::{NeuralNetwork, Alloc, WithDevice, number::Float, GraphReturn};
         #[derive(NeuralNetwork)]
         struct #name<'a, T> {
             #fields_with_lifetimes
         }
 
         impl<'a, T: Float> #name<'a, T> {
-            pub fn with_device<D: Alloc<T>>(device: &'a D) -> Self {
+            pub fn with_device<D: Alloc<T>+GraphReturn>(device: &'a D) -> Self {
                 Self { #with_device_chain }
             }
         }

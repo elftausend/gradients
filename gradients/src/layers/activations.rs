@@ -17,7 +17,7 @@ impl<'a, T: Float + CDatatype> ReLU<'a, T> {
         inputs.relu()
     }
     pub fn backward(&self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
-        self.inputs.as_ref().unwrap().relu_grad() * grad
+       self.inputs.as_ref().unwrap().relu_grad() * grad
     }
 }
 

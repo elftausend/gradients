@@ -1,5 +1,5 @@
 use crate::Param;
-use custos::{number::Float, Alloc, CDatatype, CPU};
+use custos::{number::Float, Alloc, CDatatype, CPU, GraphReturn};
 use custos_math::Matrix;
 
 #[cfg(feature = "cuda")]
@@ -34,7 +34,7 @@ impl<'a, T: Float> Adam<'a, T> {
             bias_cache: Vec::new(),
         }
     }
-    pub fn step<D: Alloc<T> + AdamOp<'a, T>>(&mut self, device: &'a D, params: Vec<Param<'a, T>>) {
+    pub fn step<D: Alloc<T> + GraphReturn + AdamOp<'a, T>>(&mut self, device: &'a D, params: Vec<Param<'a, T>>) {
         if self.weight_cache.len() < params.len() {
             for param in params.iter() {
                 self.weight_cache
@@ -142,7 +142,7 @@ impl<'a, T: CDatatype> AdamOp<'a, T> for custos::CudaDevice {
                 self,
                 &src,
                 "adam",
-                vec![
+                &[
                     &layer_data.weights.as_buf(),
                     &layer_data.dweights.as_buf(),
                     &adam.weight_momentum[idx].as_buf(),
@@ -162,7 +162,7 @@ impl<'a, T: CDatatype> AdamOp<'a, T> for custos::CudaDevice {
                 self,
                 &src,
                 "adam",
-                vec![
+                &[
                     &layer_data.bias.as_buf(),
                     &layer_data.dbias.as_buf(),
                     &adam.bias_momentum[idx].as_buf(),

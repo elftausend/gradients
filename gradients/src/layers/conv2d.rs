@@ -1,5 +1,5 @@
 use crate::{GetParam, WithDevice};
-use custos::{cached, get_device, number::Float, Alloc, CDatatype, CacheBuf, Device};
+use custos::{cached, get_device, number::Float, Alloc, CDatatype, CacheBuf, Device, GraphReturn};
 use custos_math::{correlate_valid_mut, Matrix};
 use gradients_derive::NoParams;
 
@@ -10,7 +10,7 @@ pub struct KernelBlock<'a, T> {
 }
 
 impl<'a, T> KernelBlock<'a, T> {
-    pub fn new<D: Alloc<T>>(
+    pub fn new<D: Alloc<T> + GraphReturn>(
         device: &'a D,
         shape: (usize, usize),
         bias_shape: (usize, usize),
@@ -43,7 +43,7 @@ impl<'a, T> Conv2D<'a, T>
 where
     T: Float + CDatatype,
 {
-    pub fn new<D: Alloc<T>>(
+    pub fn new<D: Alloc<T> + GraphReturn>(
         device: &'a D,
         input_shape: (usize, usize),
         kernel_shape: (usize, usize),

@@ -1,4 +1,4 @@
-use custos::{number::Float, Alloc, CDatatype, GenericBlas};
+use custos::{number::Float, Alloc, CDatatype, GenericBlas, GraphReturn};
 use custos_math::{CudaTranspose, Matrix};
 
 use crate::{GetParam, Param, WithDevice};
@@ -12,10 +12,11 @@ pub struct Linear<'a, T, const I: usize, const O: usize> {
 }
 
 impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
-    pub fn new<D: Alloc<T>>(device: &'a D) -> Linear<'a, T, I, O> {
+    pub fn new<D: Alloc<T> + GraphReturn>(device: &'a D) -> Linear<'a, T, I, O> {
         let mut weights = Matrix::<T>::from((device, I, O));
 
         let glorot = (T::from_usize(6) / T::from_usize(I + O)).sqrt();
+        //let glorot = T::one();
         weights.rand(glorot.negate(), glorot);
 
         //let weights = weights.muls(weight_size);
@@ -36,7 +37,7 @@ impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
 impl<'a, T: Copy + Float, const I: usize, const O: usize> WithDevice<'a, T>
     for Linear<'a, T, I, O>
 {
-    fn with_device<D: Alloc<T>>(device: &'a D) -> Self
+    fn with_device<D: Alloc<T> + GraphReturn>(device: &'a D) -> Self
     where
         Self: Default,
     {

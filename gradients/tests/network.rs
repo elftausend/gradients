@@ -10,18 +10,26 @@ use purpur::{CSVLoader, CSVReturn};
 #[derive(NeuralNetwork)]
 struct Xor<'a, T> {
     lin1: Linear<'a, T, 2, 4>,
-    relu1: Tanh<'a, T>,
+    tanh1: Tanh<'a, T>,
     lin2: Linear<'a, T, 4, 2>,
+    tanh2: Tanh<'a, T>,
 }
 
 #[test]
 fn test_xor() -> custos::Result<()> {
-    let device = custos::CPU::new();
-    //let device = custos::CLDevice::new(0)?;
+    //let device = custos::CPU::new();
+    let device = custos::CLDevice::new(0)?;
+    //let device = custos::CudaDevice::new(0)?;
 
     let xs = Matrix::from((&device, 4, 2, [0., 0., 0., 1., 1., 0., 1., 1.]));
 
-    let ys = Matrix::from((&device, 4, 2, [1., 0., 0., 1., 0., 1., 1., 0.]));
+
+    let ys = Matrix::from((&device, 4, 2, 
+        [1., 0., 
+        0., 1.,
+        0., 1., 
+        1., 0.]));
+    
 
     let mut net: Xor<f32> = Xor {
         lin1: Linear::new(&device),
@@ -31,19 +39,22 @@ fn test_xor() -> custos::Result<()> {
 
     let mut adam = Adam::new(0.001);
 
+//    let mut sgd = SGD::new(0.1);
+
     let start = Instant::now();
 
-    for epoch in range(10000) {
+    for epoch in range(500) {
         let preds = net.forward(&xs);
-        let loss = mse(&device, &preds, &ys);
+        let loss = mse(&preds, &ys);
         println!("epoch: {epoch}, loss: {loss}");
 
-        let grad = mse_grad(&device, &preds, &ys);
+        let grad = mse_grad(&preds, &ys);
         net.backward(&grad);
         adam.step(&device, net.params());
     }
 
     println!("training duration: {:?}", start.elapsed());
+    println!("fin");
     Ok(())
 }
 
@@ -66,13 +77,13 @@ fn test_sine() {
         let x = relu2.forward(&x);
         let x = lin3.forward(&x);
 
-        let loss = mse(&device, &x, &y);
+        let loss = mse(&x, &y);
 
         if epoch % 100 == 0 {
             println!("epoch: {epoch}, loss: {loss:?}");
         }
 
-        let grad = mse_grad(&device, &x, &y);
+        let grad = mse_grad(&x, &y);
 
         let x = lin3.backward(&grad);
         let x = relu2.backward(&x);

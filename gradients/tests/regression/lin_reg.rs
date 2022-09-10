@@ -28,8 +28,8 @@ fn test_lg() {
     for _ in range(2000) {
         let y_preds = x.muls(k).adds(d);
 
-        k -= /*(loss_fn_grad(y_preds, y) * x.muls(0.001)).sum()*/ (mse_grad(&device, &y_preds, &y) * x.muls(0.01)).sum();
-        d -= /*(loss_fn_grad(y_preds, y).muls(0.001)).sum()*/ mse_grad(&device, &y_preds, &y).muls(0.01).sum();
+        k -= /*(loss_fn_grad(y_preds, y) * x.muls(0.001)).sum()*/ (mse_grad(&y_preds, &y) * x.muls(0.01)).sum();
+        d -= /*(loss_fn_grad(y_preds, y).muls(0.001)).sum()*/ mse_grad( &y_preds, &y).muls(0.01).sum();
     }
 
     let y_preds = x.muls(k).adds(d);
