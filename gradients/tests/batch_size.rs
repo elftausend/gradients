@@ -1,6 +1,6 @@
 use gradients::{create_sine, prelude::*};
 
-const BATCH_SIZE: usize = 200;
+const BATCH_SIZE: usize = 211;
 
 #[network]
 struct SineNet {

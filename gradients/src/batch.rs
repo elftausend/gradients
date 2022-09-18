@@ -55,6 +55,8 @@ where
         let remainder = self.samples % self.batch_size;
         let iterations = self.samples / self.batch_size;
         
+        assert!(iterations > 0, "The batch size cannot be greater than the number of samples.");
+
         Iter {
             x: self.x.as_slice(),
             y: self.y.as_slice(),
