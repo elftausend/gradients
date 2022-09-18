@@ -1,5 +1,5 @@
 use crate::Param;
-use custos::{Alloc, CDatatype, CPU, GraphReturn};
+use custos::{Alloc, CDatatype, GraphReturn, CPU};
 use custos_math::Matrix;
 
 #[cfg(feature = "opencl")]
@@ -27,7 +27,11 @@ impl<'a, T: CDatatype> SGD<'a, T> {
         self
     }
 
-    pub fn step<D: Alloc<T> + SGDOp<T> + GraphReturn>(&mut self, device: &'a D, params: Vec<Param<T>>) {
+    pub fn step<D: Alloc<T> + SGDOp<T> + GraphReturn>(
+        &mut self,
+        device: &'a D,
+        params: Vec<Param<T>>,
+    ) {
         if self.momentum > T::zero() {
             if self.weight_momentum.len() < params.len() {
                 for param in &params {

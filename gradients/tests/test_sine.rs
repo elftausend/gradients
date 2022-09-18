@@ -45,7 +45,7 @@ fn test_sine_derive() {
         //let traces = device.graph().cache_traces();
         //println!("traces: {traces:?}");
         //device.optimize().unwrap();
-    
+
         println!("epoch: {epoch}, loss: {loss}");
     }
 

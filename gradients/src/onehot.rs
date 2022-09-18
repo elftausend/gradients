@@ -23,7 +23,7 @@ impl<T: Number> OnehotOp<T> for CPU {
     fn onehot(&self, matrix: &Matrix<T>) -> Matrix<T> {
         assert!(matrix.cols() == 1);
 
-        let max = max(&matrix).as_usize() + 1;
+        let max = max(matrix).as_usize() + 1;
         let mut onehot = self.cached(matrix.rows() * max);
 
         for (row, idx) in matrix.iter().enumerate() {

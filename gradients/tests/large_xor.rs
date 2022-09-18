@@ -1,6 +1,10 @@
 use std::time::Instant;
 
-use gradients::{network, Tanh, Linear, range, nn::{mse, mse_grad}};
+use gradients::{
+    network,
+    nn::{mse, mse_grad},
+    range, Linear, Tanh,
+};
 
 #[network]
 struct LargeXor {
@@ -14,21 +18,15 @@ struct LargeXor {
 
 #[test]
 fn test_large_xor() -> custos::Result<()> {
-
     let device = custos::CPU::new();
     //let device = custos::CLDevice::new(0)?;
     //let device = custos::CudaDevice::new(0)?;
 
     let xs = Matrix::from((&device, 4, 2, [0., 0., 0., 1., 1., 0., 1., 1.]));
 
-    let ys = Matrix::from((&device, 4, 2, 
-        [1., 0., 
-        0., 1.,
-        0., 1., 
-        1., 0.]));
-    
-    let mut net: LargeXor<f32> = LargeXor::with_device(&device);
+    let ys = Matrix::from((&device, 4, 2, [1., 0., 0., 1., 0., 1., 1., 0.]));
 
+    let mut net: LargeXor<f32> = LargeXor::with_device(&device);
 
     //let mut adam = Adam::new(0.001);
 

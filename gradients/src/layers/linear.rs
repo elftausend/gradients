@@ -58,7 +58,7 @@ impl<'a, T: Float + GenericBlas + CDatatype, const I: usize, const O: usize> Lin
         T: CudaTranspose,
     {
         self.dbias = Some(grad.sum_rows());
-        self.dweights = Some(self.inputs.as_ref().unwrap().T().gemm(&grad));
+        self.dweights = Some(self.inputs.as_ref().unwrap().T().gemm(grad));
         grad.gemm(&self.weights.T())
     }
 

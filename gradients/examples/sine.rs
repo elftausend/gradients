@@ -1,4 +1,4 @@
-use gradients::{prelude::*, create_sine};
+use gradients::{create_sine, prelude::*};
 
 use graplot::Plot;
 

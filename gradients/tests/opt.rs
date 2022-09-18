@@ -1,4 +1,8 @@
-use gradients::{network, Linear, ReLU, CPU, create_line, range, nn::{mse, mse_grad}, SGD, Adam};
+use gradients::{
+    create_line, network,
+    nn::{mse, mse_grad},
+    range, Adam, Linear, ReLU, CPU, SGD,
+};
 use graplot::Plot;
 
 #[network]
@@ -7,7 +11,7 @@ struct Network {
     relu1: ReLU,
     lin2: Linear<8, 16>,
     relu2: ReLU,
-    lin3: Linear<16, 1>
+    lin3: Linear<16, 1>,
 }
 
 #[test]
@@ -23,7 +27,7 @@ fn test_some_net() {
     for epoch in range(0) {
         let preds = net.forward(&x);
         let loss = mse(&preds, &y);
-        
+
         println!("epoch: {epoch}, loss: {loss}");
 
         let grad = mse_grad(&preds, &y);
@@ -45,8 +49,8 @@ fn test_some_net() {
     }
 
     let new_x = Matrix::from((&device, 1200, 1, new_x));
-    
+
     let mut plot = Plot::new((x.read(), y.read()));
     plot.add((new_x.read(), net.forward(&new_x).read(), "-r"));
- //   plot.show();
+    //   plot.show();
 }

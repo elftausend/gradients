@@ -17,7 +17,7 @@ impl<'a, T: Float + CDatatype> ReLU<'a, T> {
         inputs.relu()
     }
     pub fn backward(&self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
-       self.inputs.as_ref().unwrap().relu_grad() * grad
+        self.inputs.as_ref().unwrap().relu_grad() * grad
     }
 }
 
@@ -46,7 +46,7 @@ impl<'a, T: CDatatype + GenericBlas> Softmax<'a, T> {
     }
 
     pub fn backward(&self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
-        grad.softmax_grad(&self.activated.as_ref().unwrap())
+        grad.softmax_grad(self.activated.as_ref().unwrap())
     }
 }
 

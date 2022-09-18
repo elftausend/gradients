@@ -45,7 +45,7 @@ impl<'a, T: CDatatype + Float> PolynomialReg<'a, T> {
     }
 
     pub fn step(&mut self, lr: T) -> T {
-        let y_preds = self.predict(&self.xs);
+        let y_preds = self.predict(self.xs);
         let loss = y_preds - self.ys;
 
         let mut pow = self.coeffs.len();
