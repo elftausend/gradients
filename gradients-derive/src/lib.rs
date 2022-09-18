@@ -108,7 +108,7 @@ fn add_lifetimes_derive_net(name: Ident, fields: Punctuated<Field, Comma>) -> To
         }
 
         impl<'a, T: Float> #name<'a, T> {
-            pub fn with_device<D: Alloc<T>+GraphReturn>(device: &'a D) -> Self {
+            pub fn with_device<'b: 'a, D: Alloc<T>+GraphReturn>(device: &'b D) -> Self {
                 Self { #with_device_chain }
             }
         }
@@ -128,7 +128,7 @@ fn impl_params(name: Ident) -> TokenStream {
         impl<'a, T> GetParam<'a,T> for #name<'a, T> {}
         impl<'a, T> WithDevice<'a, T> for #name<'a, T> {}
         impl<'a, T> #name<'a, T> {
-            pub fn with_device<D>(_dev: &D) -> #name<'a, T> {
+            pub fn with_device<'b, D>(_dev: &'b D) -> #name<'a, T> {
                 Self::default()
             }
         }

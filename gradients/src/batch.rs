@@ -1,4 +1,4 @@
-use custos::{cache::CacheReturn, Alloc, Cache};
+use custos::{cache::CacheReturn, Alloc, Cache, get_count, set_count};
 use custos_math::Matrix;
 
 pub struct Batch<'a, T, U, D> {
@@ -54,7 +54,7 @@ where
     fn into_iter(self) -> Self::IntoIter {
         let remainder = self.samples % self.batch_size;
         let iterations = self.samples / self.batch_size;
-        
+
         assert!(iterations > 0, "The batch size cannot be greater than the number of samples.");
 
         Iter {
@@ -66,7 +66,8 @@ where
             device: self.device,
             remainder,
             iterations,
-            current_iter: 0
+            current_iter: 0,
+            start: get_count(),
         }
     }
 }
@@ -81,6 +82,7 @@ pub struct Iter<'a, T, U, D> {
     remainder: usize,
     iterations: usize,
     current_iter: usize,
+    start: usize,
 }
 
 impl<'a, T, U, D> Iterator for Iter<'a, T, U, D>
@@ -92,6 +94,7 @@ where
     type Item = (Matrix<'a, T>, Matrix<'a, U>);
 
     fn next(&mut self) -> Option<Self::Item> {
+        set_count(self.start);
         let mut batch_size = self.batch_size;
 
         if self.current_iter == self.iterations {

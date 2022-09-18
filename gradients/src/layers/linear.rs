@@ -12,7 +12,7 @@ pub struct Linear<'a, T, const I: usize, const O: usize> {
 }
 
 impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
-    pub fn new<D: Alloc<T> + GraphReturn>(device: &'a D) -> Linear<'a, T, I, O> {
+    pub fn new<'b: 'a, D: Alloc<T> + GraphReturn>(device: &'b D) -> Linear<'a, T, I, O> {
         let mut weights = Matrix::<T>::from((device, I, O));
 
         let glorot = (T::from_usize(6) / T::from_usize(I + O)).sqrt();
@@ -37,7 +37,7 @@ impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
 impl<'a, T: Copy + Float, const I: usize, const O: usize> WithDevice<'a, T>
     for Linear<'a, T, I, O>
 {
-    fn with_device<D: Alloc<T> + GraphReturn>(device: &'a D) -> Self
+    fn with_device<'b: 'a, D: Alloc<T> + GraphReturn>(device: &'b D) -> Self
     where
         Self: Default,
     {
