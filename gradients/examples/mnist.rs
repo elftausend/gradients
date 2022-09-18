@@ -1,10 +1,4 @@
-use gradients::purpur::{CSVLoader, CSVReturn, Converter};
-use gradients::OneHotMat;
-use gradients::{
-    correct_classes, network,
-    nn::{cce, cce_grad},
-    range, Adam, CLDevice, Linear, ReLU, Softmax,
-};
+use gradients::prelude::*;
 
 #[network]
 pub struct Network {

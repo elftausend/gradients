@@ -98,3 +98,11 @@ pub fn create_line<T: Float, D: Alloc<T> + GraphReturn>(
     let y = Matrix::from((device, (max - min, 1), y));
     (x, y)
 }
+
+pub mod prelude {
+    pub use crate::{Linear, ReLU, network, Tanh, Softmax, Matrix, OneHotMat, CPU, Adam, SGD, range, correct_classes, nn::*, LinearReg, PolynomialReg};
+    pub use purpur::*;
+
+    #[cfg(feature="opencl")]
+    pub use crate::CLDevice;
+}

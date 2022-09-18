@@ -1,4 +1,4 @@
-use gradients::{range, LinearReg, Matrix, PolynomialReg, CPU};
+use gradients::prelude::*;
 use graplot::Scatter;
 
 fn main() {

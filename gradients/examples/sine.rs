@@ -1,8 +1,5 @@
-use gradients::{
-    create_sine, network,
-    nn::{mse, mse_grad},
-    range, Adam, Linear, ReLU, CPU,
-};
+use gradients::{prelude::*, create_sine};
+
 use graplot::Plot;
 
 #[network]

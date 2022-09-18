@@ -36,13 +36,7 @@ gradients = "0.3.4"
 Use a struct that implements the NeuralNetwork trait (it is implemented via the `network` attribute) to define which layers you want to use:
 
 ```rust
-use gradients::purpur::{CSVLoader, CSVReturn, Converter};
-use gradients::OneHotMat;
-use gradients::{
-    correct_classes,
-    nn::{cce, cce_grad},
-    range, Adam, CLDevice, Linear, network, ReLU, Softmax,
-};
+use gradients::prelude::*;
 
 #[network]
 pub struct Network {

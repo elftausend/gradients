@@ -19,7 +19,7 @@ custos = { version="=0.5.0", default-features = false }
 custos-math = { version="=0.5.0", default-features = false }
 purpur = "0.1.0"
 
-gradients-derive = { version = "=0.3.4" }
+gradients-derive = { version = "=0.3.4" } 
 #gradients-derive = { path = "../gradients-derive" }
 [features]
 default = ["cuda", "opencl"]
