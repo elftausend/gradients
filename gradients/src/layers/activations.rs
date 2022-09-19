@@ -86,3 +86,35 @@ impl<'a, T> Default for Tanh<'a, T> {
         }
     }
 }
+
+#[derive(NoParams)]
+pub struct Sigmoid<'a, T> {
+    activated: Option<Matrix<'a, T>>
+}
+
+impl<'a, T> Sigmoid<'a, T> {
+    pub fn new() -> Sigmoid<'a, T> {
+        Sigmoid::default()
+    }
+}
+
+impl<'a, T: CDatatype + Float> Sigmoid<'a, T> {
+    pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
+        let activated = inputs.sigmoid();
+        self.activated = Some(inputs.shallow_or_clone());   
+        activated
+    }
+
+    pub fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
+        self.activated.as_ref().unwrap().sigmoid_grad() * grad
+    }
+}
+
+impl<'a, T> Default for Sigmoid<'a, T> {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            activated: Default::default(),
+        }
+    }
+}

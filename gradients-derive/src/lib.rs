@@ -125,7 +125,7 @@ pub fn derive_params(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
 fn impl_params(name: Ident) -> TokenStream {
     quote! {
-        impl<'a, T> GetParam<'a,T> for #name<'a, T> {}
+        impl<'a, T> GetParam<'a, T> for #name<'a, T> {}
         impl<'a, T> WithDevice<'a, T> for #name<'a, T> {}
         impl<'a, T> #name<'a, T> {
             pub fn with_device<'b, D>(_dev: &'b D) -> #name<'a, T> {

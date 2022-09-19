@@ -7,8 +7,7 @@ pub struct Batch<'a, T, U, D> {
     batch_size: usize,
     samples: usize,
     features: usize,
-    device: &'a D,
-    
+    device: &'a D,    
 }
 
 impl<'a, T, U, D> Batch<'a, T, U, D> {
