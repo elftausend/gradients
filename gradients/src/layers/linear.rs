@@ -1,40 +1,30 @@
-use custos::{number::{Float, Number}, Alloc, CDatatype, GenericBlas, GraphReturn};
+mod init;
+mod config;
+
+pub use init::{Glorot, RandomUniform};
+pub use config::*;
+
+use custos::{number::Float, Alloc, CDatatype, GenericBlas, GraphReturn};
 use custos_math::{CudaTranspose, Matrix};
 
 use crate::{GetParam, Param, WithDevice};
 
-pub enum Init {
-    Glorot,
-    Random
-}
 
-pub struct LinearConfig<T> {
-    init: Init,
-    bias: bool,
-    l2_reg: T
-}
-
-pub struct Linear<'a, T, const I: usize, const O: usize> {
+pub struct 
+Linear<'a, T, const I: usize, const O: usize> {
     pub weights: Matrix<'a, T>,
     pub bias: Matrix<'a, T>,
     pub dweights: Option<Matrix<'a, T>>,
     pub dbias: Option<Matrix<'a, T>>,
     inputs: Option<Matrix<'a, T>>,
-    config: LinearConfig<T>,
+    pub l2_reg: T,
 }
 
 impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
-    pub fn new<'b: 'a, D: Alloc<T> + GraphReturn>(device: &'b D, ) -> Linear<'a, T, I, O> {
-        let mut weights = Matrix::<T>::from((device, I, O));
+    pub fn new<'b: 'a, D: Alloc<T> + GraphReturn>(device: &'b D, config: impl AsLinearConfig<'a, T, D, I, O>) -> Linear<'a, T, I, O> {
+        let config = config.as_linear_config();
 
-        let glorot = (T::from_usize(6) / T::from_usize(I + O)).sqrt();
-        //let glorot = T::one();
-        weights.rand(glorot.negate(), glorot);
-
-        //let weights = weights.muls(weight_size);
-        //let weights = weights + (T::one() / T::from_usize(100));
-
-        let bias = Matrix::<T>::from((device, 1, O));
+        let (weights, bias) = config.init_params(device);
 
         Linear {
             weights,
@@ -42,11 +32,7 @@ impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
             dweights: None,
             dbias: None,
             inputs: None,
-            config: LinearConfig {
-                init: Init::Glorot,
-                bias: true,
-                l2_reg: T::zero()
-            }
+            l2_reg: T::zero(),
         }
     }
 }
@@ -58,7 +44,7 @@ impl<'a, T: Copy + Float, const I: usize, const O: usize> WithDevice<'a, T>
     where
         Self: Default,
     {
-        Self::new(device)
+        Self::new(device, ())
     }
 }
 
@@ -109,7 +95,7 @@ impl<'a, T: Copy, const I: usize, const O: usize> GetParam<'a, T> for Linear<'a,
     }
 }
 
-impl<'a, T: Number, const I: usize, const O: usize> Default for Linear<'a, T, I, O> {
+impl<'a, T: Default, const I: usize, const O: usize> Default for Linear<'a, T, I, O> {
     fn default() -> Self {
         Self {
             weights: Default::default(),
@@ -117,11 +103,7 @@ impl<'a, T: Number, const I: usize, const O: usize> Default for Linear<'a, T, I,
             dweights: Default::default(),
             dbias: Default::default(),
             inputs: Default::default(),
-            config: LinearConfig {
-                init: Init::Glorot,
-                bias: true,
-                l2_reg: T::zero()
-            }
+            l2_reg: Default::default(),
         }
     }
 }

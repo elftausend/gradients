@@ -40,9 +40,9 @@ fn test_conv_net() -> custos::Result<()> {
 
     let mut net: Network<f32> = Network {
         conv: Conv2D::new(&device, (28, 28), (3, 3), 5),
-        lin1: Linear::new(&device),
-        lin2: Linear::new(&device),
-        lin3: Linear::new(&device),
+        lin1: Linear::new(&device, ()),
+        lin2: Linear::new(&device, ()),
+        lin3: Linear::new(&device, ()),
         ..Default::default()
     };
 

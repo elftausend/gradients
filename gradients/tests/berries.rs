@@ -37,9 +37,9 @@ fn test_berries_net() -> Result<(), std::io::Error> {
     let y = device.onehot(&y);
 
     let mut net = Network {
-        lin1: Linear::new(&device),
-        lin2: Linear::new(&device),
-        lin3: Linear::new(&device),
+        lin1: Linear::new(&device, ()),
+        lin2: Linear::new(&device, ()),
+        lin3: Linear::new(&device, ()),
         ..Default::default()
     };
 

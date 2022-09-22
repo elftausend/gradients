@@ -26,8 +26,8 @@ fn test_xor() -> custos::Result<()> {
     let ys = Matrix::from((&device, 4, 2, [1., 0., 0., 1., 0., 1., 1., 0.]));
 
     let mut net: Xor<f32> = Xor {
-        lin1: Linear::new(&device),
-        lin2: Linear::new(&device),
+        lin1: Linear::new(&device, ()),
+        lin2: Linear::new(&device, ()),
         ..Default::default()
     };
 
@@ -58,11 +58,11 @@ fn test_sine() {
     //let device = CLDevice::get(0).unwrap().select();
 
     let (x, y) = create_sine(&device, 0, 1000);
-    let mut lin1 = Linear::<_, 1, 64>::new(&device);
+    let mut lin1 = Linear::<_, 1, 64>::new(&device, ());
     let mut relu1 = ReLU::new();
-    let mut lin2 = Linear::<_, 64, 64>::new(&device);
+    let mut lin2 = Linear::<_, 64, 64>::new(&device, ());
     let mut relu2 = ReLU::new();
-    let mut lin3 = Linear::<_, 64, 1>::new(&device);
+    let mut lin3 = Linear::<_, 64, 1>::new(&device,());
 
     for epoch in range(21000) {
         let x = lin1.forward(&x);
@@ -112,11 +112,11 @@ fn test_mnist() {
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), loaded_data.y));
     let y = y.onehot();
 
-    let mut lin1 = Linear::<_, 784, 512>::new(&device);
+    let mut lin1 = Linear::<_, 784, 512>::new(&device, ());
     let mut relu1 = ReLU::new();
-    let mut lin2 = Linear::<_, 512, 10>::new(&device);
+    let mut lin2 = Linear::<_, 512, 10>::new(&device, ());
     let mut relu2 = ReLU::new();
-    let mut lin3 = Linear::<_, 10, 10>::new(&device);
+    let mut lin3 = Linear::<_, 10, 10>::new(&device, ());
     let mut softmax = Softmax::new();
 
     for epoch in range(500) {
