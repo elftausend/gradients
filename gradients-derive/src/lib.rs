@@ -186,10 +186,10 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
     let return_vec = quote! {vec};
 
     quote! {
-        use gradients::{GetParam, Param, Matrix};
+        use gradients::{GetParam, Param, Matrix, number::Number};
 
 
-        impl<'a, T> Default for #name<'a, T> {
+        impl<'a, T: Number> Default for #name<'a, T> {
             fn default() -> Self {
                 Self { #default_chain }
             }
