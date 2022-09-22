@@ -1,19 +1,19 @@
-mod init;
 mod config;
+mod init;
 
-pub use init::{Glorot, RandomUniform};
 pub use config::*;
+pub use init::{Glorot, RandomUniform};
 
 use custos::{number::Float, Alloc, CDatatype, GenericBlas, GraphReturn};
 use custos_math::{CudaTranspose, Matrix};
 
 use crate::{GetParam, Param, WithDevice};
 
+type LinearParams<'a, T> = (Matrix<'a, T>, Option<Matrix<'a, T>>);
 
-pub struct 
-Linear<'a, T, const I: usize, const O: usize> {
+pub struct Linear<'a, T, const I: usize, const O: usize> {
     pub weights: Matrix<'a, T>,
-    pub bias: Matrix<'a, T>,
+    pub bias: Option<Matrix<'a, T>>,
     pub dweights: Option<Matrix<'a, T>>,
     pub dbias: Option<Matrix<'a, T>>,
     inputs: Option<Matrix<'a, T>>,
@@ -21,7 +21,10 @@ Linear<'a, T, const I: usize, const O: usize> {
 }
 
 impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
-    pub fn new<'b: 'a, D: Alloc<T> + GraphReturn>(device: &'b D, config: impl AsLinearConfig<'a, T, D, I, O>) -> Linear<'a, T, I, O> {
+    pub fn new<'b: 'a, D: Alloc<T> + GraphReturn>(
+        device: &'b D,
+        config: impl AsLinearConfig<'a, T, D, I, O>,
+    ) -> Linear<'a, T, I, O> {
         let config = config.as_linear_config();
 
         let (weights, bias) = config.init_params(device);
@@ -52,7 +55,11 @@ impl<'a, T: Float + GenericBlas + CDatatype, const I: usize, const O: usize> Lin
     pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
         self.inputs = Some(inputs.shallow_or_clone());
         let mut forward = inputs.gemm(&self.weights);
-        forward.add_row_mut(&self.bias);
+        
+        if let Some(bias) = &self.bias {
+            forward.add_row_mut(bias);
+        }
+        
         forward
     }
 
@@ -60,27 +67,14 @@ impl<'a, T: Float + GenericBlas + CDatatype, const I: usize, const O: usize> Lin
     where
         T: CudaTranspose,
     {
-        self.dbias = Some(grad.sum_rows());
+        self.dbias = if self.bias.is_some() {
+            Some(grad.sum_rows())
+        } else {
+            None
+        };
+        
         self.dweights = Some(self.inputs.as_ref().unwrap().T().gemm(grad));
         grad.gemm(&self.weights.T())
-    }
-
-    pub fn sgd(&mut self, lr: T) {
-        let dweights = self.dweights.as_ref().unwrap();
-        let dbias = self.dbias.as_ref().unwrap();
-
-        self.weights -= &dweights.muls(lr);
-        self.bias -= &dbias.muls(lr);
-
-        /*
-        for (idx, value) in self.weights.as_mut_slice().iter_mut().enumerate() {
-            *value -= dweights.as_slice()[idx] * lr;
-        }
-
-        for (idx, value) in self.bias.as_mut_slice().iter_mut().enumerate() {
-            *value -= dbias.as_slice()[idx] * lr;
-        }
-        */
     }
 }
 
@@ -88,7 +82,7 @@ impl<'a, T: Copy, const I: usize, const O: usize> GetParam<'a, T> for Linear<'a,
     fn params(&mut self) -> Option<Param<'a, T>> {
         Some(Param::new(
             self.weights.shallow(),
-            self.bias.shallow(),
+            self.bias.as_ref().map(|bias| bias.shallow()),
             self.dweights.as_ref().unwrap().shallow(),
             self.dbias.as_ref().unwrap().shallow(),
         ))
@@ -105,5 +99,24 @@ impl<'a, T: Default, const I: usize, const O: usize> Default for Linear<'a, T, I
             inputs: Default::default(),
             l2_reg: Default::default(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{Linear, LinearConfig, Glorot};
+    use custos::CPU;
+
+    #[test]
+    fn test_bias() {
+        let device = CPU::new();
+
+        let linear = Linear::<f32, 8, 16>::new(&device, LinearConfig {
+            init: Glorot::new(),
+            bias: false,
+            ..Default::default()
+        });
+
+        assert!(linear.bias.is_none());
     }
 }

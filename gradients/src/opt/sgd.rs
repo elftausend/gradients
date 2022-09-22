@@ -37,8 +37,12 @@ impl<'a, T: CDatatype> SGD<'a, T> {
                 for param in &params {
                     self.weight_momentum
                         .push(Matrix::new(device, param.weights.dims()));
-                    self.bias_momentum
-                        .push(Matrix::new(device, param.bias.dims()));
+
+                    if let Some(bias) = &param.bias {
+                        self.bias_momentum
+                            .push(Matrix::new(device, bias.dims()));
+                    }
+
                 }
             }
             return device.step_momentum(self, params);
@@ -51,7 +55,11 @@ pub trait SGDOp<T: CDatatype> {
     fn step(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>) {
         for mut param in params {
             param.weights -= param.dweights * sgd.lr;
-            param.bias -= param.dbias * sgd.lr;
+
+            if let Some(mut bias) = param.bias {
+                bias -= param.dbias * sgd.lr;
+            }
+            
         }
     }
     fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>);
@@ -67,12 +75,15 @@ impl<T: CDatatype> SGDOp<T> for CPU {
                 sgd.weight_momentum[layer_idx][idx] = update;
             }
 
-            for (idx, b) in param.bias.iter_mut().enumerate() {
-                let update =
-                    sgd.momentum * sgd.bias_momentum[layer_idx][idx] + param.dbias[idx] * sgd.lr;
-                *b -= update;
-                sgd.bias_momentum[layer_idx][idx] = update;
+            if let Some(bias) = &mut param.bias {
+                for (idx, b) in bias.iter_mut().enumerate() {
+                    let update = sgd.momentum * sgd.bias_momentum[layer_idx][idx]
+                        + param.dbias[idx] * sgd.lr;
+                    *b -= update;
+                    sgd.bias_momentum[layer_idx][idx] = update;
+                }
             }
+
         }
     }
 }
@@ -115,44 +126,16 @@ impl<T: CDatatype> SGDOp<T> for CLDevice {
             )
             .unwrap();
 
-            enqueue_kernel(
-                self,
-                &src,
-                [param.bias.size(), 0, 0],
-                None,
-                &[
-                    &param.bias,
-                    &param.dbias,
-                    &sgd.bias_momentum[idx],
-                    &sgd.momentum,
-                    &sgd.lr,
-                ],
-            )
-            .unwrap();
-            /*
-            KernelOptions::new(
-                self,
-                param.weights.as_buf(),
-                [param.weights.size(), 0, 0],
-                &src,
-            )
-            .unwrap()
-            .add_arg(&param.dweights)
-            .add_arg(&sgd.weight_momentum[idx])
-            .add_arg(&sgd.momentum)
-            .add_arg(&sgd.lr)
-            .run()
-            .unwrap();
-
-            KernelOptions::new(self, param.bias.as_buf(), [param.bias.size(), 0, 0], &src)
-                .unwrap()
-                .add_arg(&param.dbias)
-                .add_arg(&sgd.bias_momentum[idx])
-                .add_arg(&sgd.momentum)
-                .add_arg(&sgd.lr)
-                .run()
+            if let Some(bias) = &param.bias {
+                enqueue_kernel(
+                    self,
+                    &src,
+                    [bias.size(), 0, 0],
+                    None,
+                    &[&bias, &param.dbias, &sgd.bias_momentum[idx], &sgd.momentum, &sgd.lr],
+                )
                 .unwrap();
-            */
+            }
         }
     }
 }

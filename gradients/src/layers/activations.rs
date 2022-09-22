@@ -89,7 +89,7 @@ impl<'a, T> Default for Tanh<'a, T> {
 
 #[derive(NoParams)]
 pub struct Sigmoid<'a, T> {
-    activated: Option<Matrix<'a, T>>
+    activated: Option<Matrix<'a, T>>,
 }
 
 impl<'a, T> Sigmoid<'a, T> {
@@ -101,7 +101,7 @@ impl<'a, T> Sigmoid<'a, T> {
 impl<'a, T: CDatatype + Float> Sigmoid<'a, T> {
     pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
         let activated = inputs.sigmoid();
-        self.activated = Some(inputs.shallow_or_clone());   
+        self.activated = Some(inputs.shallow_or_clone());
         activated
     }
 

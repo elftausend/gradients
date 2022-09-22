@@ -20,7 +20,7 @@ fn forward_mut_bias(bench: &mut Criterion) {
 
     bench.bench_function("forward mut bias", |b| {
         b.iter(|| {
-            i.gemm(&lin.weights).add_row_mut(&lin.bias);
+            i.gemm(&lin.weights).add_row_mut(&lin.bias.as_ref().unwrap());
             set_count(0)
         })
     });
@@ -43,7 +43,7 @@ fn forward_bias(bench: &mut Criterion) {
     let lin = Linear::<_, 784, 256>::new(&device, ());
     bench.bench_function("forward bias", |b| {
         b.iter(|| {
-            i.gemm(&lin.weights).add_row(&lin.bias);
+            i.gemm(&lin.weights).add_row(&lin.bias.as_ref().unwrap());
             set_count(0)
         })
     });

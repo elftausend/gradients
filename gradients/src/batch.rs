@@ -1,4 +1,4 @@
-use custos::{cache::CacheReturn, Alloc, Cache, get_count, set_count};
+use custos::{cache::CacheReturn, get_count, set_count, Alloc, Cache};
 use custos_math::Matrix;
 
 pub struct Batch<'a, T, U, D> {
@@ -7,7 +7,7 @@ pub struct Batch<'a, T, U, D> {
     batch_size: usize,
     samples: usize,
     features: usize,
-    device: &'a D,    
+    device: &'a D,
 }
 
 impl<'a, T, U, D> Batch<'a, T, U, D> {
@@ -29,18 +29,17 @@ impl<'a, T, U, D> Batch<'a, T, U, D> {
         }
     }
     #[inline]
-    pub fn iter(&'a self) -> Iter<'a, T, U, D> 
+    pub fn iter(&'a self) -> Iter<'a, T, U, D>
     where
         D: Alloc<T> + CacheReturn + Alloc<U>,
         T: Copy + 'a,
         U: Copy + 'a,
-
     {
         self.into_iter()
     }
 }
 
-impl<'a, T, U, D> IntoIterator for &'a Batch<'a, T, U, D> 
+impl<'a, T, U, D> IntoIterator for &'a Batch<'a, T, U, D>
 where
     D: Alloc<T> + CacheReturn + Alloc<U>,
     T: Copy + 'a,
@@ -54,7 +53,10 @@ where
         let remainder = self.samples % self.batch_size;
         let iterations = self.samples / self.batch_size;
 
-        assert!(iterations > 0, "The batch size cannot be greater than the number of samples.");
+        assert!(
+            iterations > 0,
+            "The batch size cannot be greater than the number of samples."
+        );
 
         Iter {
             x: self.x.as_slice(),

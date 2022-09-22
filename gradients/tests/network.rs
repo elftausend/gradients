@@ -62,7 +62,7 @@ fn test_sine() {
     let mut relu1 = ReLU::new();
     let mut lin2 = Linear::<_, 64, 64>::new(&device, ());
     let mut relu2 = ReLU::new();
-    let mut lin3 = Linear::<_, 64, 1>::new(&device,());
+    let mut lin3 = Linear::<_, 64, 1>::new(&device, ());
 
     for epoch in range(21000) {
         let x = lin1.forward(&x);
@@ -85,9 +85,9 @@ fn test_sine() {
         let x = relu2.backward(&x);
         lin1.backward(&x);
 
-        lin1.sgd(0.001);
-        lin2.sgd(0.001);
-        lin3.sgd(0.001);
+        //lin1.sgd(0.001);
+        //lin2.sgd(0.001);
+        //lin3.sgd(0.001);
     }
 }
 
@@ -139,9 +139,9 @@ fn test_mnist() {
         let x = relu1.backward(&x);
         lin1.backward(&x);
 
-        lin1.sgd(0.1);
-        lin2.sgd(0.1);
-        lin3.sgd(0.1);
+        //lin1.sgd(0.1);
+        //lin2.sgd(0.1);
+        //lin3.sgd(0.1);
 
         println!("epoch: {epoch}, loss: {loss}");
     }

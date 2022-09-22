@@ -38,7 +38,7 @@ pub trait WithDevice<'a, T> {
 
 pub struct Param<'a, T> {
     pub weights: Matrix<'a, T>,
-    pub bias: Matrix<'a, T>,
+    pub bias: Option<Matrix<'a, T>>,
     pub dweights: Matrix<'a, T>,
     pub dbias: Matrix<'a, T>,
 }
@@ -46,7 +46,7 @@ pub struct Param<'a, T> {
 impl<'a, T> Param<'a, T> {
     pub fn new(
         weights: Matrix<'a, T>,
-        bias: Matrix<'a, T>,
+        bias: Option<Matrix<'a, T>>,
         dweights: Matrix<'a, T>,
         dbias: Matrix<'a, T>,
     ) -> Param<'a, T> {
@@ -100,8 +100,8 @@ pub fn create_line<T: Float, D: Alloc<T> + GraphReturn>(
 
 pub mod prelude {
     pub use crate::{
-        correct_classes, network, nn::*, range, Adam, Batch, Linear, LinearReg, Matrix,
-        OneHotMat, PolynomialReg, ReLU, Softmax, Tanh, CPU, SGD,
+        correct_classes, network, nn::*, range, Adam, Batch, Linear, LinearReg, Matrix, OneHotMat,
+        PolynomialReg, ReLU, Softmax, Tanh, CPU, SGD,
     };
     pub use purpur::*;
 

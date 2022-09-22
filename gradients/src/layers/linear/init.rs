@@ -1,41 +1,58 @@
 use custos::{number::Float, Alloc, GraphReturn};
 use custos_math::Matrix;
 
-pub(super) trait Init<'a, T, D> {
-    fn init(&self, device: &'a D) -> (Matrix<'a, T>, Matrix<'a, T>);
+use super::LinearParams;
+
+pub trait Init<'a, T, D, const I: usize, const O: usize> {
+    fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T>;
 }
 
-pub struct RandomUniform<T, const I: usize, const O: usize> {
+pub struct RandomUniform<T> {
     pub min: T,
     pub max: T,
 }
 
-impl<'a, T, D, const I: usize, const O: usize> Init<'a, T, D> for RandomUniform<T, I, O> 
-where 
+impl<'a, T, D, const I: usize, const O: usize> Init<'a, T, D, I, O> for RandomUniform<T>
+where
     T: Float,
-    D: Alloc<T> + GraphReturn 
+    D: Alloc<T> + GraphReturn,
 {
-    fn init(&self, device: &'a D) -> (Matrix<'a, T>, Matrix<'a, T>) {
+    fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T> {
         let mut weights = Matrix::<T>::from((device, I, O));
         weights.rand(self.min, self.max);
 
-        let bias = Matrix::<T>::from((device, 1, O));
+        let mut bias = None;
+        if with_bias {
+            bias = Some(Matrix::<T>::from((device, 1, O)));
+        }
+
         (weights, bias)
     }
 }
 
-pub struct Glorot<const I: usize, const O: usize> {}
+pub struct Glorot;
 
-impl<'a, T: Float, D: Alloc<T> + GraphReturn, const I: usize, const O: usize> Init<'a, T, D> for Glorot<I, O> {
-    fn init(&self, device: &'a D) -> (Matrix<'a, T>, Matrix<'a, T>) {
+impl Glorot {
+    pub fn new() -> Box<Self> {
+        Box::new(Self {})
+    }
+}
+
+impl<'a, T: Float, D: Alloc<T> + GraphReturn, const I: usize, const O: usize> Init<'a, T, D, I, O>
+    for Glorot
+{
+    fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T> {
         let mut weights = Matrix::<T>::from((device, I, O));
 
         let glorot = (T::from_usize(6) / T::from_usize(I + O)).sqrt();
-        
+
         weights.rand(glorot.negate(), glorot);
-        let bias = Matrix::<T>::from((device, 1, O));
-
+        
+        let mut bias = None;
+        if with_bias {
+            bias = Some(Matrix::<T>::from((device, 1, O)));
+        }
+        
         (weights, bias)
-
     }
 }

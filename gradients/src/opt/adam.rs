@@ -46,9 +46,13 @@ impl<'a, T: Float> Adam<'a, T> {
                 self.weight_momentum
                     .push(Matrix::new(device, param.weights.dims()));
 
-                self.bias_cache.push(Matrix::new(device, param.bias.dims()));
-                self.bias_momentum
-                    .push(Matrix::new(device, param.bias.dims()));
+                if let Some(bias) = &param.bias {
+                    self.bias_cache
+                        .push(Matrix::new(device, bias.dims()));
+                    self.bias_momentum
+                        .push(Matrix::new(device, bias.dims()));
+                }
+ 
             }
         }
         device.step(self, params);
@@ -94,17 +98,19 @@ impl<'a, T: CDatatype + Float> AdamOp<'a, T> for CPU {
                 adam.lr,
                 adam.iters,
             );
-            adam_step_cpu(
-                &mut param.bias,
-                &param.dbias,
-                &mut adam.bias_momentum[idx],
-                &mut adam.bias_cache[idx],
-                adam.beta1,
-                adam.beta2,
-                adam.epsilon,
-                adam.lr,
-                adam.iters,
-            )
+            if let Some(bias) = &mut param.bias {
+                adam_step_cpu(
+                    bias,
+                    &param.dbias,
+                    &mut adam.bias_momentum[idx],
+                    &mut adam.bias_cache[idx],
+                    adam.beta1,
+                    adam.beta2,
+                    adam.epsilon,
+                    adam.lr,
+                    adam.iters,
+                );
+            }
         }
     }
 }
@@ -229,24 +235,28 @@ impl<'a, T: CDatatype> AdamOp<'a, T> for CLDevice {
             )
             .unwrap();
 
-            enqueue_kernel(
-                self,
-                &src,
-                [layer_data.bias.size(), 0, 0],
-                None,
-                &[
-                    &layer_data.bias,
-                    &layer_data.dbias,
-                    &adam.bias_momentum[idx],
-                    &adam.bias_cache[idx],
-                    &adam.beta1,
-                    &adam.beta2,
-                    &adam.epsilon,
-                    &(adam.iters + 1),
-                    &adam.lr,
-                ],
-            )
-            .unwrap();
+            if let Some(bias) = &layer_data.bias {
+                enqueue_kernel(
+                    self,
+                    &src,
+                    [bias.size(), 0, 0],
+                    None,
+                    &[
+                        bias,
+                        &layer_data.dbias,
+                        &adam.bias_momentum[idx],
+                        &adam.bias_cache[idx],
+                        &adam.beta1,
+                        &adam.beta2,
+                        &adam.epsilon,
+                        &(adam.iters + 1),
+                        &adam.lr,
+                    ],
+                )
+                .unwrap();
+            }
+
+            
         }
     }
 }
