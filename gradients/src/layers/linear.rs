@@ -21,11 +21,14 @@ pub struct Linear<'a, T, const I: usize, const O: usize> {
 }
 
 impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
-    pub fn new<'b: 'a, D: Alloc<T> + GraphReturn>(
-        device: &'b D,
-        config: impl AsLinearConfig<'a, T, D, I, O>,
-    ) -> Linear<'a, T, I, O> {
-        let config = config.as_linear_config();
+    pub fn new<'b: 'a, D>(args: impl LinearArgs<'a, T, D, I, O>,) -> Linear<'a, T, I, O> 
+    where 
+        D: Alloc<T> + GraphReturn + 'a
+    {
+        let args = args.linear_arg();
+
+        let config = args.config;
+        let device = args.device;
 
         let (weights, bias) = config.init_params(device);
 
@@ -47,7 +50,7 @@ impl<'a, T: Copy + Float, const I: usize, const O: usize> WithDevice<'a, T>
     where
         Self: Default,
     {
-        Self::new(device, ())
+        Self::new(device)
     }
 }
 
@@ -111,11 +114,11 @@ mod tests {
     fn test_bias() {
         let device = CPU::new();
 
-        let linear = Linear::<f32, 8, 16>::new(&device, LinearConfig {
+        let linear = Linear::<f32, 8, 16>::new((&device, LinearConfig {
             init: Glorot::new(),
             bias: false,
             ..Default::default()
-        });
+        }));
 
         assert!(linear.bias.is_none());
     }

@@ -23,9 +23,9 @@ fn test_sine_derive() {
     let device = CPU::new();
 
     let mut net = SineNet {
-        linear1: Linear::new(&device, ()),
-        linear2: Linear::new(&device, ()),
-        linear3: Linear::new(&device, ()),
+        linear1: Linear::new(&device),
+        linear2: Linear::new(&device),
+        linear3: Linear::new(&device),
         ..Default::default()
     };
 

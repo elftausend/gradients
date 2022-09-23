@@ -26,28 +26,37 @@ impl<'a, T: Float, D: Alloc<T> + GraphReturn, const I: usize, const O: usize> De
     }
 }
 
-pub trait AsLinearConfig<'a, T, D, const I: usize, const O: usize> {
-    fn as_linear_config(self) -> LinearConfig<'a, T, D, I, O>;
+pub struct LinearArg<'a, T, D, const I: usize, const O: usize> {
+    pub device: &'a D,
+    pub config: LinearConfig<'a, T, D, I, O>,
 }
 
-impl<'a, T, D, const I: usize, const O: usize> AsLinearConfig<'a, T, D, I, O> for ()
-where
-    T: Float,
-    D: Alloc<T> + GraphReturn,
+pub trait LinearArgs<'a, T, D: 'a, const I: usize, const O: usize> {
+    fn linear_arg(self) -> LinearArg<'a, T, D, I, O>;
+}
+
+impl<'a, T, D, const I: usize, const O: usize> LinearArgs<'a, T, D, I, O> for &'a D 
+where 
+    T: Float, 
+    D: Alloc<T> + GraphReturn 
 {
-    fn as_linear_config(self) -> LinearConfig<'a, T, D, I, O> {
-        LinearConfig::default()
+    fn linear_arg(self) -> LinearArg<'a, T, D, I, O> {
+        LinearArg {
+            device: self,
+            config: LinearConfig::default(),
+        }
     }
 }
 
-impl<'a, T: Copy, D, const I: usize, const O: usize> AsLinearConfig<'a, T, D, I, O>
-    for LinearConfig<'a, T, D, I, O>
+impl<'a, T, D, const I: usize, const O: usize> LinearArgs<'a, T, D, I, O> for (&'a D, LinearConfig<'a, T, D, I, O> )
+where 
+    T: Float, 
+    D: Alloc<T> + GraphReturn 
 {
-    fn as_linear_config(self) -> Self {
-        LinearConfig {
-            init: self.init,
-            bias: self.bias,
-            l2_reg: self.l2_reg,
+    fn linear_arg(self) -> LinearArg<'a, T, D, I, O> {
+        LinearArg {
+            device: self.0,
+            config: self.1,
         }
     }
 }
