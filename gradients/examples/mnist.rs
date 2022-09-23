@@ -11,8 +11,8 @@ pub struct Network {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // use cpu (no features enabled): let device = gradients::CPU::new().select();
-    // use cuda device (cuda feature enabled): let device = gradients::CudaDevice::new(0).unwrap().select();
+    // let device = gradients::CPU::new(); // use cpu (no framework specific features enabled):
+    // let device = gradients::CudaDevice::new(0)?; // use cuda device (cuda feature enabled):
     // use opencl device (opencl feature enabled):
     let device = CLDevice::new(0)?;
 
@@ -21,12 +21,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let loader = CSVLoader::new(true);
     let loaded_data: CSVReturn<f32> = loader.load("PATH/TO/DATASET/mnist_train.csv")?;
 
-    let i = Matrix::from((
+    let mut i = Matrix::from((
         &device,
         (loaded_data.sample_count, loaded_data.features),
         &loaded_data.x,
     ));
-    let i = i / 255.;
+    i /= 255.;
 
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
     let y = y.onehot();
