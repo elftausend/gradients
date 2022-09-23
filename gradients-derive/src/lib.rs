@@ -106,9 +106,8 @@ fn add_lifetimes_derive_net(name: Ident, fields: Punctuated<Field, Comma>) -> To
         struct #name<'a, T> {
             #fields_with_lifetimes
         }
-
-        impl<'a, T: Float> #name<'a, T> {
-            pub fn with_device<'b: 'a, D: Alloc<T>+GraphReturn>(device: &'b D) -> Self {
+        impl<'a, T: Float> WithDevice<'a, T> for #name<'a, T> {
+            fn with_device<'b: 'a, D: Alloc<T>+GraphReturn>(device: &'b D) -> Self {
                 Self { #with_device_chain }
             }
         }
