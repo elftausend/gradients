@@ -96,7 +96,7 @@ fn add_lifetimes_derive_net(name: Ident, fields: Punctuated<Field, Comma>) -> To
         .map(|f| {
             let name = &f.ident;
 
-            quote!(#name: WithDevice::with_device(device),)
+            quote!(#name: WithDevice::with(device),)
         })
         .collect::<TokenStream>();
 
@@ -107,7 +107,7 @@ fn add_lifetimes_derive_net(name: Ident, fields: Punctuated<Field, Comma>) -> To
             #fields_with_lifetimes
         }
         impl<'a, T: Float> WithDevice<'a, T> for #name<'a, T> {
-            fn with_device<'b: 'a, D: Alloc<T>+GraphReturn>(device: &'b D) -> Self {
+            fn with<'b: 'a, D: Alloc<T>+GraphReturn>(device: &'b D) -> Self {
                 Self { #with_device_chain }
             }
         }

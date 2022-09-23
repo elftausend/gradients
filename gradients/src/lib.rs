@@ -28,7 +28,7 @@ pub trait GetParam<'a, T> {
 }
 
 pub trait WithDevice<'a, T> {
-    fn with_device<'b: 'a, D: Alloc<T> + GraphReturn>(_device: &'b D) -> Self
+    fn with<'b: 'a, D: Alloc<T> + GraphReturn>(_device: &'b D) -> Self
     where
         Self: Default,
     {

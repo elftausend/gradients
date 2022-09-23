@@ -14,7 +14,7 @@ struct SineNet {
 fn main() {
     let device = CPU::new();
 
-    let mut net = SineNet::with_device(&device);
+    let mut net = SineNet::with(&device);
 
     let (x, y) = create_sine(&device, 0, 1000);
 

@@ -26,7 +26,7 @@ fn test_large_xor() -> custos::Result<()> {
 
     let ys = Matrix::from((&device, 4, 2, [1., 0., 0., 1., 0., 1., 1., 0.]));
 
-    let mut net: LargeXor<f32> = LargeXor::with_device(&device);
+    let mut net: LargeXor<f32> = LargeXor::with(&device);
 
     //let mut adam = Adam::new(0.001);
 

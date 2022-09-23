@@ -46,7 +46,7 @@ impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
 impl<'a, T: Copy + Float, const I: usize, const O: usize> WithDevice<'a, T>
     for Linear<'a, T, I, O>
 {
-    fn with_device<'b: 'a, D: Alloc<T> + GraphReturn>(device: &'b D) -> Self
+    fn with<'b: 'a, D: Alloc<T> + GraphReturn>(device: &'b D) -> Self
     where
         Self: Default,
     {

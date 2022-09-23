@@ -16,7 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // use opencl device (opencl feature enabled):
     let device = CLDevice::new(0)?;
 
-    let mut net = Network::with_device(&device);
+    let mut net = Network::with(&device);
 
     let loader = CSVLoader::new(true);
     let loaded_data: CSVReturn<f32> = loader.load("PATH/TO/DATASET/mnist_train.csv")?;

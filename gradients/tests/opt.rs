@@ -18,7 +18,7 @@ struct Network {
 fn test_some_net() {
     let device = CPU::new();
 
-    let mut net = Network::with_device(&device);
+    let mut net = Network::with(&device);
 
     let (x, y) = create_line::<f32, _>(&device, 0, 800);
 

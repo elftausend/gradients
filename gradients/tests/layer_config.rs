@@ -39,7 +39,7 @@ fn test_net() {
             init: RandomUniform::new(-5., 5.,),
             ..Default::default()
         })),
-        ..WithDevice::with_device(&device)
+        ..WithDevice::with(&device)
     };
 
     let layer = net.lin2.weights;
