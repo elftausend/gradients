@@ -1,11 +1,7 @@
 use std::time::Instant;
 
-use gradients::{
-    create_sine,
-    nn::{mse, mse_grad},
-    range, Adam, Linear, NeuralNetwork, ReLU, CPU,
-};
-//use gradients_derive::NeuralNetwork;
+use gradients::{prelude::*, NeuralNetwork, create_sine};
+
 
 #[derive(NeuralNetwork)]
 struct SineNet<'a, T> {
@@ -23,9 +19,9 @@ fn test_sine_derive() {
     let device = CPU::new();
 
     let mut net = SineNet {
-        linear1: Linear::new(&device),
-        linear2: Linear::new(&device),
-        linear3: Linear::new(&device),
+        linear1: Linear::new(&device, ()),
+        linear2: Linear::new(&device, ()),
+        linear3: Linear::new(&device, ()),
         ..Default::default()
     };
 

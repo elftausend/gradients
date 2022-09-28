@@ -100,8 +100,9 @@ pub fn create_line<T: Float, D: Alloc<T> + GraphReturn>(
 
 pub mod prelude {
     pub use crate::{
-        correct_classes, network, nn::*, range, Adam, Batch, Linear, LinearReg, Matrix, OneHotMat,
-        PolynomialReg, ReLU, Softmax, Tanh, CPU, SGD,
+        correct_classes, network, nn::*, range, Adam, Batch, Matrix, OneHotMat,
+        PolynomialReg, ReLU, Softmax, Tanh, CPU, SGD, WithDevice, linear::*,
+        OnehotOp, LinearReg
     };
     pub use purpur::*;
 

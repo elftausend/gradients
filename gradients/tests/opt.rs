@@ -1,8 +1,4 @@
-use gradients::{
-    create_line, network,
-    nn::{mse, mse_grad},
-    range, Adam, Linear, ReLU, CPU, SGD,
-};
+use gradients::{prelude::*, create_line};
 use graplot::Plot;
 
 #[network]

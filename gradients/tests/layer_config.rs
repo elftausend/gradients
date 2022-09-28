@@ -1,10 +1,10 @@
-use gradients::{Linear, CPU, network, ReLU, LinearConfig, RandomUniform};
+use gradients::prelude::*;
 
 #[test]
 fn test_layer_config() {
     let device = CPU::new();
 
-    let linear = Linear::<f32, 8, 16>::new(&device);
+    let linear = Linear::<f32, 8, 16>::new(&device, ());
     println!("linear: {:?}", linear.weights);    
 }
 
@@ -35,13 +35,14 @@ fn test_net() {
     let device = CPU::new();
 
     let net: Network<f32> = Network {
-        lin1: Linear::new((&device, LinearConfig {
+        lin1: Linear::new(&device, LinearConfig {
             init: RandomUniform::new(-5., 5.,),
             ..Default::default()
-        })),
+        }),
         ..WithDevice::with(&device)
     };
 
     let layer = net.lin2.weights;
     println!("layer: {layer:?}",);
 }
+

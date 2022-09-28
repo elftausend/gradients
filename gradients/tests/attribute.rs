@@ -1,10 +1,6 @@
 use std::time::Instant;
 
-use gradients::{
-    correct_classes, network,
-    nn::{cce, cce_grad},
-    range, Linear, OneHotMat, ReLU, Softmax, CPU,
-};
+use gradients::prelude::*;
 use purpur::{CSVLoader, Converter};
 
 struct _Net1<'a, T> {

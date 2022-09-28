@@ -1,10 +1,6 @@
 use std::time::Instant;
 
-use gradients::{
-    network,
-    nn::{mse, mse_grad},
-    range, Linear, Tanh,
-};
+use gradients::prelude::*;
 
 #[network]
 struct LargeXor {

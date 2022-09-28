@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use custos_math::nn::{cce, cce_grad};
-use gradients::{correct_classes, Linear, NeuralNetwork, OneHotMat, ReLU, Softmax};
+use gradients::{prelude::*, NeuralNetwork};
 
 use custos::range;
 use purpur::{CSVLoader, Converter};
@@ -23,9 +23,9 @@ fn test_net() -> custos::Result<()> {
     //let device = custos::CudaDevice::new(0)?;
 
     let mut net: Network<f32> = Network {
-        lin1: Linear::new(&device),
-        lin2: Linear::new(&device),
-        lin3: Linear::new(&device),
+        lin1: Linear::new(&device, ()),
+        lin2: Linear::new(&device, ()),
+        lin3: Linear::new(&device, ()),
         ..Default::default()
     };
     let loader = CSVLoader::new(true);

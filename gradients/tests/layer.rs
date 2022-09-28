@@ -1,7 +1,7 @@
 #![allow(unused)]
 //use gradients::{CPU, Linear, Matrix, GetParam, NeuralNetwork, number::Float, GenericBlas, CDatatype, CudaTranspose};
 
-use gradients::{Linear, NeuralNetwork, CPU};
+use gradients::{linear::Linear, NeuralNetwork, CPU};
 
 #[derive(NeuralNetwork)]
 pub struct Net<'a, T> {
@@ -38,8 +38,8 @@ fn test_layer() {
     //let mut net = Net::new(&device);
 
     let mut net = Net {
-        lin1: Linear::<f32, 16, 16>::new(&device),
-        lin2: Linear::<f32, 16, 16>::new(&device),
+        lin1: Linear::<f32, 16, 16>::new(&device, ()),
+        lin2: Linear::<f32, 16, 16>::new(&device, ()),
         ..Default::default()
     };
 
@@ -50,9 +50,9 @@ fn test_layer() {
 
     let out = net.backward(&inputs);
 
-    let mut lin1 = Linear::<_, 16, 16>::new(&device);
-    let mut lin2 = Linear::<_, 16, 16>::new(&device);
-    let mut lin3 = Linear::<f32, 16, 16>::new(&device);
+    let mut lin1 = Linear::<_, 16, 16>::new(&device, ());
+    let mut lin2 = Linear::<_, 16, 16>::new(&device, ());
+    let mut lin3 = Linear::<f32, 16, 16>::new(&device, ());
 
     let out = lin1.forward(&inputs);
     let out = lin2.forward(&out);

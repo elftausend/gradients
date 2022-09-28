@@ -1,6 +1,6 @@
 use custos::{range, CPU};
 use custos_math::nn::{cce, cce_grad};
-use gradients::{Adam, Linear, NeuralNetwork, OnehotOp, ReLU, Softmax};
+use gradients::{prelude::*, NeuralNetwork};
 use purpur::{Apply, Converter, ImageReturn, Transforms};
 
 #[derive(NeuralNetwork)]
@@ -37,9 +37,9 @@ fn test_berries_net() -> Result<(), std::io::Error> {
     let y = device.onehot(&y);
 
     let mut net = Network {
-        lin1: Linear::new(&device),
-        lin2: Linear::new(&device),
-        lin3: Linear::new(&device),
+        lin1: Linear::new(&device, ()),
+        lin2: Linear::new(&device, ()),
+        lin3: Linear::new(&device, ()),
         ..Default::default()
     };
 

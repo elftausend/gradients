@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use gradients::{set_count, Linear, Matrix, CPU};
+use gradients::{set_count, linear::Linear, Matrix, CPU};
 use purpur::CSVLoader;
 
 fn forward_mut_bias(bench: &mut Criterion) {
@@ -16,7 +16,7 @@ fn forward_mut_bias(bench: &mut Criterion) {
     ));
     let i = i / 255.;
 
-    let lin = Linear::<_, 784, 256>::new(&device);
+    let lin = Linear::<_, 784, 256>::new(&device, ());
 
     bench.bench_function("forward mut bias", |b| {
         b.iter(|| {
@@ -40,7 +40,7 @@ fn forward_bias(bench: &mut Criterion) {
     ));
     let i = i / 255.;
 
-    let lin = Linear::<_, 784, 256>::new(&device);
+    let lin = Linear::<_, 784, 256>::new(&device, ());
     bench.bench_function("forward bias", |b| {
         b.iter(|| {
             i.gemm(&lin.weights).add_row(&lin.bias.as_ref().unwrap());
@@ -64,7 +64,7 @@ fn forward(bench: &mut Criterion) {
     ));
     let i = i / 255.;
 
-    let mut lin = Linear::<_, 784, 256>::new(&device);
+    let mut lin = Linear::<_, 784, 256>::new(&device, ());
     bench.bench_function("forward", |b| {
         b.iter(|| {
             lin.forward(&i);

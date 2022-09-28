@@ -1,10 +1,8 @@
 use std::time::Instant;
 
-use gradients::{
-    correct_classes,
-    nn::{cce, cce_grad},
-    range, Conv2D, Linear, NeuralNetwork, OneHotMat, ReLU, Softmax,
-};
+use gradients::NeuralNetwork;
+use gradients::prelude::*;
+use gradients::Conv2D;
 use purpur::{CSVLoader, Converter};
 
 #[derive(NeuralNetwork)]
@@ -40,9 +38,9 @@ fn test_conv_net() -> custos::Result<()> {
 
     let mut net: Network<f32> = Network {
         conv: Conv2D::new(&device, (28, 28), (3, 3), 5),
-        lin1: Linear::new(&device),
-        lin2: Linear::new(&device),
-        lin3: Linear::new(&device),
+        lin1: Linear::new(&device, ()),
+        lin2: Linear::new(&device, ()),
+        lin3: Linear::new(&device, ()),
         ..Default::default()
     };
 
