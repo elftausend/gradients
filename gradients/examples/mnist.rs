@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let device = gradients::CPU::new(); // use cpu (no framework specific features enabled):
     // let device = gradients::CudaDevice::new(0)?; // use cuda device (cuda feature enabled):
     // use opencl device (opencl feature enabled):
-    let device = CLDevice::new(0)?;
+    let device = OpenCL::new(0)?;
 
     let mut net = Network::with(&device);
 

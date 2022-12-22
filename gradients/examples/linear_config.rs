@@ -13,13 +13,15 @@ fn main() {
     let device = CPU::new();
 
     let _: SineNet<f32> = SineNet {
-        linear1: Linear::new(&device, LinearConfig {
-            init: RandomUniform::new(-0.5, 0.5),
-            bias: false,
-            l2_reg: 2.,
-            ..Default::default()
-        }),
+        linear1: Linear::new(
+            &device,
+            LinearConfig {
+                init: RandomUniform::new(-0.5, 0.5),
+                bias: false,
+                l2_reg: 2.,
+                ..Default::default()
+            },
+        ),
         ..WithDevice::with(&device)
     };
 }
-

@@ -1,7 +1,6 @@
 use std::time::Instant;
 
-use gradients::{prelude::*, NeuralNetwork, create_sine};
-
+use gradients::{create_sine, prelude::*, NeuralNetwork};
 
 #[derive(NeuralNetwork)]
 struct SineNet<'a, T> {
@@ -14,7 +13,7 @@ struct SineNet<'a, T> {
 
 #[test]
 fn test_sine_derive() {
-    //let device = custos::CLDevice::new(0).unwrap();
+    //let device = custos::OpenCL::new(0).unwrap();
     //let device = custos::CudaDevice::new(0).unwrap();
     let device = CPU::new();
 

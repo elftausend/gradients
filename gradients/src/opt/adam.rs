@@ -6,7 +6,7 @@ use custos_math::Matrix;
 use custos::cuda::launch_kernel1d;
 
 #[cfg(feature = "opencl")]
-use custos::{opencl::enqueue_kernel, CLDevice};
+use custos::{opencl::enqueue_kernel, OpenCL};
 
 pub struct Adam<'a, T> {
     lr: T,
@@ -47,12 +47,9 @@ impl<'a, T: Float> Adam<'a, T> {
                     .push(Matrix::new(device, param.weights.dims()));
 
                 if let Some(bias) = &param.bias {
-                    self.bias_cache
-                        .push(Matrix::new(device, bias.dims()));
-                    self.bias_momentum
-                        .push(Matrix::new(device, bias.dims()));
+                    self.bias_cache.push(Matrix::new(device, bias.dims()));
+                    self.bias_momentum.push(Matrix::new(device, bias.dims()));
                 }
- 
             }
         }
         device.step(self, params);
@@ -191,7 +188,7 @@ impl<'a, T: CDatatype> AdamOp<'a, T> for custos::CudaDevice {
 }
 
 #[cfg(feature = "opencl")]
-impl<'a, T: CDatatype> AdamOp<'a, T> for CLDevice {
+impl<'a, T: CDatatype> AdamOp<'a, T> for OpenCL {
     fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
         let src = format!("__kernel void adam(
             __global {dt}* value, 
@@ -255,8 +252,6 @@ impl<'a, T: CDatatype> AdamOp<'a, T> for CLDevice {
                 )
                 .unwrap();
             }
-
-            
         }
     }
 }

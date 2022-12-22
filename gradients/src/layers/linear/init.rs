@@ -1,10 +1,10 @@
-use custos::{number::Float, Alloc, GraphReturn};
-use custos_math::Matrix;
+use custos::{number::Float, Alloc, GraphReturn, Device};
+use custos_math::{Matrix, RandOp, RandBuf};
 
 use super::LinearParams;
 
-pub trait Init<'a, T, D, const I: usize, const O: usize> {
-    fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T>;
+pub trait Init<'a, T, D: Device, const I: usize, const O: usize> {
+    fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T, D>;
 }
 
 pub struct RandomUniform<T> {
@@ -14,31 +14,25 @@ pub struct RandomUniform<T> {
 
 impl<T> RandomUniform<T> {
     pub fn new(min: T, max: T) -> Box<RandomUniform<T>> {
-        Box::new(
-            RandomUniform { 
-                min, 
-                max 
-            }
-        )
+        Box::new(RandomUniform { min, max })
     }
-    pub fn one() -> Box<RandomUniform<T>> 
-    where T: Float
+    pub fn one() -> Box<RandomUniform<T>>
+    where
+        T: Float,
     {
-        Box::new(
-            RandomUniform { 
-                min: -T::one(), 
-                max: T::one() 
-            }
-        )
+        Box::new(RandomUniform {
+            min: -T::one(),
+            max: T::one(),
+        })
     }
 }
 
 impl<'a, T, D, const I: usize, const O: usize> Init<'a, T, D, I, O> for RandomUniform<T>
 where
     T: Float,
-    D: Alloc<T> + GraphReturn,
+    D: Alloc<'a, T> + GraphReturn,
 {
-    fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T> {
+    fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T, D> {
         let mut weights = Matrix::<T>::from((device, I, O));
         weights.rand(self.min, self.max);
 
@@ -59,21 +53,23 @@ impl Glorot {
     }
 }
 
-impl<'a, T: Float, D: Alloc<T> + GraphReturn, const I: usize, const O: usize> Init<'a, T, D, I, O>
-    for Glorot
+impl<'a, T, D, const I: usize, const O: usize> Init<'a, T, D, I, O> for Glorot
+where
+    T: Float,
+    D: Alloc<'a, T> + GraphReturn + RandOp<T>,
 {
-    fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T> {
-        let mut weights = Matrix::<T>::from((device, I, O));
+    fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T, D> {
+        let mut weights = Matrix::<T, D>::from((device, I, O));
 
         let glorot = (T::from_usize(6) / T::from_usize(I + O)).sqrt();
 
         weights.rand(-glorot, glorot);
-        
+
         let mut bias = None;
         if with_bias {
-            bias = Some(Matrix::<T>::from((device, 1, O)));
+            bias = Some(Matrix::<T, D>::from((device, 1, O)));
         }
-        
+
         (weights, bias)
     }
 }

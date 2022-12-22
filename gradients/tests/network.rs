@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use custos_math::nn::{cce, cce_grad, mse, mse_grad};
-use gradients::{prelude::*, NeuralNetwork, create_sine};
+use gradients::{create_sine, prelude::*, NeuralNetwork};
 //use gradients_derive::NeuralNetwork;
 
 use custos::range;
@@ -18,7 +18,7 @@ struct Xor<'a, T> {
 #[test]
 fn test_xor() -> custos::Result<()> {
     //let device = custos::CPU::new();
-    let device = custos::CLDevice::new(0)?;
+    let device = custos::OpenCL::new(0)?;
     //let device = custos::CudaDevice::new(0)?;
 
     let xs = Matrix::from((&device, 4, 2, [0., 0., 0., 1., 1., 0., 1., 1.]));
@@ -55,7 +55,7 @@ fn test_xor() -> custos::Result<()> {
 #[test]
 fn test_sine() {
     let device = custos::CPU::new();
-    //let device = CLDevice::get(0).unwrap().select();
+    //let device = OpenCL::get(0).unwrap().select();
 
     let (x, y) = create_sine(&device, 0, 1000);
     let mut lin1 = Linear::<_, 1, 64>::new(&device, ());
@@ -94,7 +94,7 @@ fn test_sine() {
 #[test]
 fn test_mnist() {
     let device = custos::CPU::new();
-    //let device = CLDevice::get(0).unwrap().select();
+    //let device = OpenCL::get(0).unwrap().select();
 
     let loader = CSVLoader::new(true);
 

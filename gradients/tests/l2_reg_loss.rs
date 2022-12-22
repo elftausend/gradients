@@ -1,6 +1,5 @@
-use gradients::{prelude::*, create_sine};
+use gradients::{create_sine, prelude::*};
 use graplot::Plot;
-
 
 #[network]
 struct SineNet {
@@ -23,7 +22,6 @@ fn test_l2_reg_loss() {
         linear3: Linear::new(&device, &l2),
         ..WithDevice::with(&device)
     };
-
 
     let (x, y) = create_sine(&device, 0, 1000);
 

@@ -5,15 +5,15 @@ mod l2_reg;
 use std::cell::RefCell;
 
 pub use config::*;
-pub use l2_reg::*;
 pub use init::{Glorot, RandomUniform};
+pub use l2_reg::*;
 
-use custos::{number::Float, Alloc, CDatatype, GenericBlas, GraphReturn};
+use custos::{number::Float, Alloc, CDatatype, GenericBlas, GraphReturn, Device};
 use custos_math::{CudaTranspose, Matrix};
 
 use crate::{GetParam, Param, WithDevice};
 
-type LinearParams<'a, T> = (Matrix<'a, T>, Option<Matrix<'a, T>>);
+type LinearParams<'a, T, D: Device> = (Matrix<'a, T, D>, Option<Matrix<'a, T, D>>);
 
 pub struct Linear<'a, T, const I: usize, const O: usize> {
     pub weights: Matrix<'a, T>,
@@ -22,13 +22,16 @@ pub struct Linear<'a, T, const I: usize, const O: usize> {
     pub dbias: Option<Matrix<'a, T>>,
     inputs: Option<Matrix<'a, T>>,
     pub l2_reg: T,
-    pub l2_reg_loss: Option<&'a RefCell<T>>
+    pub l2_reg_loss: Option<&'a RefCell<T>>,
 }
 
 impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
-    pub fn new<'b: 'a, D>(device: &'b D, args: impl IntoLinearConfig<'a, T, D, I, O>,) -> Linear<'a, T, I, O> 
-    where 
-        D: Alloc<T> + GraphReturn + 'a
+    pub fn new<'b: 'a, D>(
+        device: &'b D,
+        args: impl IntoLinearConfig<'a, T, D, I, O>,
+    ) -> Linear<'a, T, I, O>
+    where
+        D: Alloc<'a, T> + GraphReturn + 'a,
     {
         let config = args.into_config();
         let (weights, bias) = config.init_params(device);
@@ -40,7 +43,7 @@ impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
             dbias: None,
             inputs: None,
             l2_reg: config.l2_reg,
-            l2_reg_loss: config.l2_reg_loss
+            l2_reg_loss: config.l2_reg_loss,
         }
     }
 
@@ -53,7 +56,7 @@ impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
 impl<'a, T: Copy + Float, const I: usize, const O: usize> WithDevice<'a, T>
     for Linear<'a, T, I, O>
 {
-    fn with<'b: 'a, D: Alloc<T> + GraphReturn>(device: &'b D) -> Self
+    fn with<'b: 'a, D: Alloc<'b, T> + GraphReturn>(device: &'b D) -> Self
     where
         Self: Default,
     {
@@ -65,7 +68,7 @@ impl<'a, T: Float + GenericBlas + CDatatype, const I: usize, const O: usize> Lin
     pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
         self.inputs = Some(inputs.shallow_or_clone());
         let mut forward = inputs.gemm(&self.weights);
-        
+
         if let Some(bias) = &self.bias {
             forward.add_row_mut(bias);
         }
@@ -73,10 +76,9 @@ impl<'a, T: Float + GenericBlas + CDatatype, const I: usize, const O: usize> Lin
         // l2 reg loss
         if let Some(l2_reg_loss) = self.l2_reg_loss {
             let mut l2_reg_loss = l2_reg_loss.borrow_mut();
-            
+
             *l2_reg_loss += (&self.weights * &self.weights).sum() * self.l2_reg;
 
-            
             if let Some(bias) = &self.bias {
                 *l2_reg_loss += (bias * bias).sum() * self.l2_reg;
             }
@@ -94,7 +96,7 @@ impl<'a, T: Float + GenericBlas + CDatatype, const I: usize, const O: usize> Lin
         }
 
         let mut dweights = self.inputs.as_ref().unwrap().T().gemm(grad);
-        
+
         if self.l2_reg > T::zero() {
             dweights += &self.weights * (self.l2_reg * T::two());
 
@@ -128,25 +130,28 @@ impl<'a, T: Default, const I: usize, const O: usize> Default for Linear<'a, T, I
             dbias: Default::default(),
             inputs: Default::default(),
             l2_reg: Default::default(),
-            l2_reg_loss: Default::default()
+            l2_reg_loss: Default::default(),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::linear::{Linear, LinearConfig, Glorot};
+    use crate::linear::{Glorot, Linear, LinearConfig};
     use custos::CPU;
 
     #[test]
     fn test_bias() {
         let device = CPU::new();
 
-        let linear = Linear::<f32, 8, 16>::new(&device, LinearConfig {
-            init: Glorot::new(),
-            bias: false,
-            ..Default::default()
-        });
+        let linear = Linear::<f32, 8, 16>::new(
+            &device,
+            LinearConfig {
+                init: Glorot::new(),
+                bias: false,
+                ..Default::default()
+            },
+        );
 
         assert!(linear.bias.is_none());
     }

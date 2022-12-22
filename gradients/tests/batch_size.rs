@@ -13,7 +13,7 @@ struct SineNet {
 
 #[test]
 fn test_batch_size() -> custos::Result<()> {
-    let device = CLDevice::new(0)?;
+    let device = OpenCL::new(0)?;
 
     let sine = create_sine(&device, 0, 1000);
 

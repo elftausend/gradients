@@ -65,7 +65,7 @@ pub trait NeuralNetwork<'a, T> {
     fn params(&mut self) -> Vec<Param<'a, T>>;
 }
 
-pub fn create_sine<D: Alloc<f32> + GraphReturn>(
+pub fn create_sine<'a, D: Alloc<'a, f32> + GraphReturn>(
     device: &D,
     min: usize,
     max: usize,
@@ -100,12 +100,11 @@ pub fn create_line<T: Float, D: Alloc<T> + GraphReturn>(
 
 pub mod prelude {
     pub use crate::{
-        correct_classes, network, nn::*, range, Adam, Batch, Matrix, OneHotMat,
-        PolynomialReg, ReLU, Softmax, Tanh, CPU, SGD, WithDevice, linear::*,
-        OnehotOp, LinearReg
+        correct_classes, linear::*, network, nn::*, range, Adam, Batch, LinearReg, Matrix,
+        OneHotMat, OnehotOp, PolynomialReg, ReLU, Softmax, Tanh, WithDevice, CPU, SGD,
     };
     pub use purpur::*;
 
     #[cfg(feature = "opencl")]
-    pub use crate::CLDevice;
+    pub use crate::OpenCL;
 }

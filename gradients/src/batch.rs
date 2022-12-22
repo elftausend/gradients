@@ -1,4 +1,4 @@
-use custos::{cache::CacheReturn, get_count, set_count, Alloc, Cache};
+use custos::{cache::CacheReturn, get_count, set_count, Alloc, Cache, RawConv, WriteBuf};
 use custos_math::Matrix;
 
 pub struct Batch<'a, T, U, D> {
@@ -31,7 +31,7 @@ impl<'a, T, U, D> Batch<'a, T, U, D> {
     #[inline]
     pub fn iter(&'a self) -> Iter<'a, T, U, D>
     where
-        D: Alloc<T> + CacheReturn + Alloc<U>,
+        D: Alloc<'a, T> + CacheReturn + Alloc<'a, U> + RawConv + WriteBuf<T> + WriteBuf<U>,
         T: Copy + 'a,
         U: Copy + 'a,
     {
@@ -41,11 +41,11 @@ impl<'a, T, U, D> Batch<'a, T, U, D> {
 
 impl<'a, T, U, D> IntoIterator for &'a Batch<'a, T, U, D>
 where
-    D: Alloc<T> + CacheReturn + Alloc<U>,
+    D: Alloc<'a, T> + CacheReturn + Alloc<'a, U> + RawConv + WriteBuf<T> + WriteBuf<U>,
     T: Copy + 'a,
     U: Copy + 'a,
 {
-    type Item = (Matrix<'a, T>, Matrix<'a, U>);
+    type Item = (Matrix<'a, T, D>, Matrix<'a, U, D>);
 
     type IntoIter = Iter<'a, T, U, D>;
 
@@ -88,11 +88,11 @@ pub struct Iter<'a, T, U, D> {
 
 impl<'a, T, U, D> Iterator for Iter<'a, T, U, D>
 where
-    D: Alloc<T> + CacheReturn + Alloc<U>,
+    D: Alloc<'a, T> + CacheReturn + Alloc<'a, U> + RawConv + WriteBuf<T> + WriteBuf<U>,
     T: Copy + 'a,
     U: Copy + 'a,
 {
-    type Item = (Matrix<'a, T>, Matrix<'a, U>);
+    type Item = (Matrix<'a, T, D>, Matrix<'a, U, D>);
 
     fn next(&mut self) -> Option<Self::Item> {
         set_count(self.start);
@@ -118,7 +118,7 @@ where
 
         let y = &self.y[self.batch_progress..self.batch_progress + batch_size];
 
-        let mut buf_y = Cache::get::<U, _>(self.device, y.len(), ());
+        let mut buf_y = Cache::get::<U, 0>(self.device, y.len(), ());
         buf_y.write(y);
 
         self.batch_progress += batch_size;

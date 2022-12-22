@@ -2,7 +2,8 @@ use std::cell::RefCell;
 
 use super::{init::Init, LinearParams};
 use crate::linear::Glorot;
-use custos::{number::Float, Alloc, GraphReturn};
+use custos::{number::Float, Alloc, GraphReturn, Device};
+use custos_math::RandOp;
 
 pub struct LinearConfig<'a, T, D, const I: usize, const O: usize> {
     pub init: Box<dyn Init<'a, T, D, I, O>>,
@@ -11,13 +12,13 @@ pub struct LinearConfig<'a, T, D, const I: usize, const O: usize> {
     pub l2_reg_loss: Option<&'a RefCell<T>>,
 }
 
-impl<'a, T, D, const I: usize, const O: usize> LinearConfig<'a, T, D, I, O> {
-    pub fn init_params(&self, device: &'a D) -> LinearParams<'a, T> {
+impl<'a, T, D: Device, const I: usize, const O: usize> LinearConfig<'a, T, D, I, O> {
+    pub fn init_params(&self, device: &'a D) -> LinearParams<'a, T, D> {
         self.init.init(device, self.bias)
     }
 }
 
-impl<'a, T: Float, D: Alloc<T> + GraphReturn, const I: usize, const O: usize> Default
+impl<'a, T: Float, D: Alloc<'a, T> + GraphReturn + RandOp<T>, const I: usize, const O: usize> Default
     for LinearConfig<'a, T, D, I, O>
 {
     fn default() -> Self {
@@ -30,7 +31,6 @@ impl<'a, T: Float, D: Alloc<T> + GraphReturn, const I: usize, const O: usize> De
     }
 }
 
-
 pub trait IntoLinearConfig<'a, T, D: 'a, const I: usize, const O: usize> {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O>;
 }
@@ -38,14 +38,15 @@ pub trait IntoLinearConfig<'a, T, D: 'a, const I: usize, const O: usize> {
 impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for ()
 where
     T: Float,
-    D: Alloc<T> + GraphReturn + 'a
+    D: Alloc<'a, T> + GraphReturn + 'a + RandOp<T>,
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
-        LinearConfig::default() 
+        LinearConfig::default()
     }
 }
 
-impl<'a, T, D: 'a, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for LinearConfig<'a, T, D, I, O> 
+impl<'a, T, D: 'a, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O>
+    for LinearConfig<'a, T, D, I, O>
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
         self
@@ -54,13 +55,13 @@ impl<'a, T, D: 'a, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I,
 
 pub struct Bias(pub bool);
 
-impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for Bias 
+impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for Bias
 where
     T: Float,
-    D: Alloc<T> + GraphReturn + 'a
+    D: Alloc<'a, T> + GraphReturn + 'a + RandOp<T>,
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
-        LinearConfig { 
+        LinearConfig {
             bias: self.0,
             ..Default::default()
         }
@@ -69,13 +70,13 @@ where
 
 pub struct L2<T>(pub T);
 
-impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for L2<T> 
+impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for L2<T>
 where
     T: Float,
-    D: Alloc<T> + GraphReturn + 'a
+    D: Alloc<'a, T> + GraphReturn + 'a + RandOp<T>,
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
-        LinearConfig { 
+        LinearConfig {
             l2_reg: self.0,
             ..Default::default()
         }

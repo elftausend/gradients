@@ -3,7 +3,7 @@ use custos::{Alloc, CDatatype, GraphReturn, CPU};
 use custos_math::Matrix;
 
 #[cfg(feature = "opencl")]
-use custos::{opencl::enqueue_kernel, CLDevice};
+use custos::{opencl::enqueue_kernel, OpenCL};
 
 pub struct SGD<'a, T> {
     lr: T,
@@ -39,10 +39,8 @@ impl<'a, T: CDatatype> SGD<'a, T> {
                         .push(Matrix::new(device, param.weights.dims()));
 
                     if let Some(bias) = &param.bias {
-                        self.bias_momentum
-                            .push(Matrix::new(device, bias.dims()));
+                        self.bias_momentum.push(Matrix::new(device, bias.dims()));
                     }
-
                 }
             }
             return device.step_momentum(self, params);
@@ -59,7 +57,6 @@ pub trait SGDOp<T: CDatatype> {
             if let Some(mut bias) = param.bias {
                 bias -= param.dbias * sgd.lr;
             }
-            
         }
     }
     fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>);
@@ -83,13 +80,12 @@ impl<T: CDatatype> SGDOp<T> for CPU {
                     sgd.bias_momentum[layer_idx][idx] = update;
                 }
             }
-
         }
     }
 }
 
 #[cfg(feature = "opencl")]
-impl<T: CDatatype> SGDOp<T> for CLDevice {
+impl<T: CDatatype> SGDOp<T> for OpenCL {
     fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>) {
         let src = format!(
             "
@@ -132,7 +128,13 @@ impl<T: CDatatype> SGDOp<T> for CLDevice {
                     &src,
                     [bias.size(), 0, 0],
                     None,
-                    &[&bias, &param.dbias, &sgd.bias_momentum[idx], &sgd.momentum, &sgd.lr],
+                    &[
+                        &bias,
+                        &param.dbias,
+                        &sgd.bias_momentum[idx],
+                        &sgd.momentum,
+                        &sgd.lr,
+                    ],
                 )
                 .unwrap();
             }
