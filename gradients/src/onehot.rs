@@ -1,26 +1,26 @@
-use custos::{get_device, number::Number, CDatatype, CacheBuf, CPU};
+use custos::{number::Number, CDatatype, CacheBuf, Device, MainMemory, CPU};
 use custos_math::Matrix;
 use purpur::utils::max;
 
 #[cfg(feature = "opencl")]
 use custos_math::cl_to_cpu_s;
 
-pub trait OneHotMat<'a, T> {
-    fn onehot(&self) -> Matrix<'a, T>;
+pub trait OneHotMat<'a, T, D: Device> {
+    fn onehot(&self) -> Matrix<'a, T, D>;
 }
 
-impl<'a, T: Number + CDatatype> OneHotMat<'a, T> for Matrix<'a, T> {
-    fn onehot(&self) -> Matrix<'a, T> {
-        get_device!(self.device, OnehotOp<T>).onehot(self)
+impl<'a, T: Number + CDatatype, D: OnehotOp<T>> OneHotMat<'a, T, D> for Matrix<'a, T, D> {
+    fn onehot(&self) -> Matrix<'a, T, D> {
+        self.device().onehot(self)
     }
 }
 
-pub trait OnehotOp<T> {
-    fn onehot(&self, matrix: &Matrix<T>) -> Matrix<T>;
+pub trait OnehotOp<T, D: Device = Self>: Device {
+    fn onehot(&self, matrix: &Matrix<T, D>) -> Matrix<T, Self>;
 }
 
-impl<T: Number> OnehotOp<T> for CPU {
-    fn onehot(&self, matrix: &Matrix<T>) -> Matrix<T> {
+impl<T: Number, D: MainMemory> OnehotOp<T, D> for CPU {
+    fn onehot(&self, matrix: &Matrix<T, D>) -> Matrix<T> {
         assert!(matrix.cols() == 1);
 
         let max = max(matrix).as_usize() + 1;
@@ -42,7 +42,7 @@ impl<T: Number> OnehotOp<T> for CPU {
 
 #[cfg(feature = "opencl")]
 impl<T: CDatatype> OnehotOp<T> for custos::OpenCL {
-    fn onehot(&self, x: &Matrix<T>) -> Matrix<T> {
+    fn onehot(&self, x: &Matrix<T, Self>) -> Matrix<T, Self> {
         cl_to_cpu_s(self, x, |device, x| device.onehot(x))
     }
 }

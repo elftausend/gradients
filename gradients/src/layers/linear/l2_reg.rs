@@ -1,6 +1,7 @@
 use std::{cell::RefCell, fmt::Display};
 
 use custos::{number::Float, Alloc, GraphReturn};
+use custos_math::RandOp;
 
 use crate::linear::{IntoLinearConfig, LinearConfig};
 
@@ -31,7 +32,7 @@ impl<T: Display> Display for L2Reg<T> {
 impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for &'a L2Reg<T>
 where
     T: Float,
-    D: Alloc<'a, T> + GraphReturn + 'a,
+    D: Alloc<'a, T> + GraphReturn + RandOp<T> + 'a,
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
         LinearConfig {
@@ -49,7 +50,7 @@ pub struct L2Loss<'a, T> {
 impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for L2Loss<'a, T>
 where
     T: Float,
-    D: Alloc<'a, T> + GraphReturn + 'a,
+    D: Alloc<'a, T> + GraphReturn + RandOp<T> + 'a,
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
         LinearConfig {

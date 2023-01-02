@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use super::{init::Init, LinearParams};
 use crate::linear::Glorot;
-use custos::{number::Float, Alloc, GraphReturn, Device};
+use custos::{number::Float, Alloc, Device, GraphReturn};
 use custos_math::RandOp;
 
 pub struct LinearConfig<'a, T, D, const I: usize, const O: usize> {
@@ -18,8 +18,8 @@ impl<'a, T, D: Device, const I: usize, const O: usize> LinearConfig<'a, T, D, I,
     }
 }
 
-impl<'a, T: Float, D: Alloc<'a, T> + GraphReturn + RandOp<T>, const I: usize, const O: usize> Default
-    for LinearConfig<'a, T, D, I, O>
+impl<'a, T: Float, D: Alloc<'a, T> + GraphReturn + RandOp<T>, const I: usize, const O: usize>
+    Default for LinearConfig<'a, T, D, I, O>
 {
     fn default() -> Self {
         Self {

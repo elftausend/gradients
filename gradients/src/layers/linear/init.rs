@@ -1,5 +1,5 @@
-use custos::{number::Float, Alloc, GraphReturn, Device};
-use custos_math::{Matrix, RandOp, RandBuf};
+use custos::{number::Float, Alloc, Device, GraphReturn};
+use custos_math::{Matrix, RandBuf, RandOp};
 
 use super::LinearParams;
 
@@ -30,15 +30,15 @@ impl<T> RandomUniform<T> {
 impl<'a, T, D, const I: usize, const O: usize> Init<'a, T, D, I, O> for RandomUniform<T>
 where
     T: Float,
-    D: Alloc<'a, T> + GraphReturn,
+    D: Alloc<'a, T> + GraphReturn + RandOp<T>,
 {
     fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T, D> {
-        let mut weights = Matrix::<T>::from((device, I, O));
+        let mut weights = Matrix::from((device, I, O));
         weights.rand(self.min, self.max);
 
         let mut bias = None;
         if with_bias {
-            bias = Some(Matrix::<T>::from((device, 1, O)));
+            bias = Some(Matrix::from((device, 1, O)));
         }
 
         (weights, bias)

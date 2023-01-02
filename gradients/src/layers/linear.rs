@@ -8,31 +8,35 @@ pub use config::*;
 pub use init::{Glorot, RandomUniform};
 pub use l2_reg::*;
 
-use custos::{number::Float, Alloc, CDatatype, GenericBlas, GraphReturn, Device};
-use custos_math::{CudaTranspose, Matrix};
+use custos::{number::Float, Alloc, CDatatype, CloneBuf, Device, GenericBlas, GraphReturn};
+use custos_math::{
+    AdditionalOps, AssignOps, BaseOps, CudaTranspose, Gemm, Matrix, RandOp, RowOp, SumOps,
+    TransposeOp,
+};
 
 use crate::{GetParam, Param, WithDevice};
 
-type LinearParams<'a, T, D: Device> = (Matrix<'a, T, D>, Option<Matrix<'a, T, D>>);
+type LinearParams<'a, T, D> = (Matrix<'a, T, D>, Option<Matrix<'a, T, D>>);
 
-pub struct Linear<'a, T, const I: usize, const O: usize> {
-    pub weights: Matrix<'a, T>,
-    pub bias: Option<Matrix<'a, T>>,
-    pub dweights: Option<Matrix<'a, T>>,
-    pub dbias: Option<Matrix<'a, T>>,
-    inputs: Option<Matrix<'a, T>>,
+// TODO: remove default types
+pub struct Linear<'a, T, const I: usize, const O: usize, D: Device = custos::CPU,> {
+    pub weights: Matrix<'a, T, D>,
+    pub bias: Option<Matrix<'a, T, D>>,
+    pub dweights: Option<Matrix<'a, T, D>>,
+    pub dbias: Option<Matrix<'a, T, D>>,
+    inputs: Option<Matrix<'a, T, D>>,
     pub l2_reg: T,
     pub l2_reg_loss: Option<&'a RefCell<T>>,
 }
 
-impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
-    pub fn new<'b: 'a, D>(
+impl<'a, T: Copy + Float, D, const I: usize, const O: usize> Linear<'a, T, I, O, D>
+where
+    D: Alloc<'a, T> + GraphReturn + 'a,
+{
+    pub fn new<'b: 'a>(
         device: &'b D,
         args: impl IntoLinearConfig<'a, T, D, I, O>,
-    ) -> Linear<'a, T, I, O>
-    where
-        D: Alloc<'a, T> + GraphReturn + 'a,
-    {
+    ) -> Linear<'a, T, I, O, D> {
         let config = args.into_config();
         let (weights, bias) = config.init_params(device);
 
@@ -53,10 +57,12 @@ impl<'a, T: Copy + Float, const I: usize, const O: usize> Linear<'a, T, I, O> {
     }
 }
 
-impl<'a, T: Copy + Float, const I: usize, const O: usize> WithDevice<'a, T>
-    for Linear<'a, T, I, O>
+impl<'a, T, D, const I: usize, const O: usize> WithDevice<'a, T, D> for Linear<'a, T, I, O, D>
+where
+    T: Copy + Float,
+    D: Alloc<'a, T> + GraphReturn + RandOp<T>,
 {
-    fn with<'b: 'a, D: Alloc<'b, T> + GraphReturn>(device: &'b D) -> Self
+    fn with<'b: 'a>(device: &'b D) -> Self
     where
         Self: Default,
     {
@@ -64,11 +70,17 @@ impl<'a, T: Copy + Float, const I: usize, const O: usize> WithDevice<'a, T>
     }
 }
 
-impl<'a, T: Float + GenericBlas + CDatatype, const I: usize, const O: usize> Linear<'a, T, I, O> {
-    pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
+impl<'a, T, D, const I: usize, const O: usize> Linear<'a, T, I, O, D>
+where
+    T: Float + GenericBlas + CDatatype,
+    D: CloneBuf<'a, T> + Gemm<T> + RowOp<T> + BaseOps<T> + SumOps<T>,
+    D::Ptr<T, ()>: Copy,
+{
+    pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D> {
+        
         self.inputs = Some(inputs.shallow_or_clone());
         let mut forward = inputs.gemm(&self.weights);
-
+ 
         if let Some(bias) = &self.bias {
             forward.add_row_mut(bias);
         }
@@ -83,13 +95,13 @@ impl<'a, T: Float + GenericBlas + CDatatype, const I: usize, const O: usize> Lin
                 *l2_reg_loss += (bias * bias).sum() * self.l2_reg;
             }
         }
-
         forward
     }
 
-    pub fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T>
+    pub fn backward(&mut self, grad: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
     where
         T: CudaTranspose,
+        D: TransposeOp<T> + AdditionalOps<T> + AssignOps<T>,
     {
         if self.bias.is_some() {
             self.dbias = Some(grad.sum_rows());
@@ -110,8 +122,11 @@ impl<'a, T: Float + GenericBlas + CDatatype, const I: usize, const O: usize> Lin
     }
 }
 
-impl<'a, T: Copy, const I: usize, const O: usize> GetParam<'a, T> for Linear<'a, T, I, O> {
-    fn params(&mut self) -> Option<Param<'a, T>> {
+impl<'a, T: Copy, D: Device, const I: usize, const O: usize> GetParam<'a, T, D>
+    for Linear<'a, T, I, O, D>
+where D::Ptr<T, ()>: Copy
+{
+    fn params(&mut self) -> Option<Param<'a, T, D>> {
         Some(Param::new(
             self.weights.shallow(),
             self.bias.as_ref().map(|bias| bias.shallow()),
@@ -121,9 +136,10 @@ impl<'a, T: Copy, const I: usize, const O: usize> GetParam<'a, T> for Linear<'a,
     }
 }
 
-impl<'a, T: Default, const I: usize, const O: usize> Default for Linear<'a, T, I, O> {
+impl<'a, T: Default, D: Device, const I: usize, const O: usize> Default for Linear<'a, T, I, O, D> {
     fn default() -> Self {
-        Self {
+        unimplemented!()
+        /*Self {
             weights: Default::default(),
             bias: Default::default(),
             dweights: Default::default(),
@@ -131,7 +147,7 @@ impl<'a, T: Default, const I: usize, const O: usize> Default for Linear<'a, T, I
             inputs: Default::default(),
             l2_reg: Default::default(),
             l2_reg_loss: Default::default(),
-        }
+        }*/
     }
 }
 

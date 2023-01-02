@@ -1,18 +1,21 @@
 use crate::Param;
-use custos::{Alloc, CDatatype, GraphReturn, CPU};
-use custos_math::Matrix;
+use custos::{Alloc, CDatatype, Device, GraphReturn, CPU, MainMemory};
+use custos_math::{Matrix, BaseOps, AssignOps, AdditionalOps};
 
 #[cfg(feature = "opencl")]
 use custos::{opencl::enqueue_kernel, OpenCL};
 
-pub struct SGD<'a, T> {
+pub struct SGD<'a, T, D: Device = CPU> {
     lr: T,
-    weight_momentum: Vec<Matrix<'a, T>>,
-    bias_momentum: Vec<Matrix<'a, T>>,
+    weight_momentum: Vec<Matrix<'a, T, D>>,
+    bias_momentum: Vec<Matrix<'a, T, D>>,
     momentum: T,
 }
 
-impl<'a, T: CDatatype> SGD<'a, T> {
+impl<'a, T: CDatatype, D> SGD<'a, T, D>
+where
+    D: Alloc<'a, T> + SGDOp<T> + GraphReturn,
+{
     pub fn new(lr: T) -> Self {
         SGD {
             lr,
@@ -27,11 +30,7 @@ impl<'a, T: CDatatype> SGD<'a, T> {
         self
     }
 
-    pub fn step<D: Alloc<T> + SGDOp<T> + GraphReturn>(
-        &mut self,
-        device: &'a D,
-        params: Vec<Param<T>>,
-    ) {
+    pub fn step(&mut self, device: &'a D, params: Vec<Param<T, D>>) {
         if self.momentum > T::zero() {
             if self.weight_momentum.len() < params.len() {
                 for param in &params {
@@ -49,8 +48,11 @@ impl<'a, T: CDatatype> SGD<'a, T> {
     }
 }
 
-pub trait SGDOp<T: CDatatype> {
-    fn step(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>) {
+pub trait SGDOp<T: CDatatype, D: Device = Self>: BaseOps<T> + AssignOps<T> + AdditionalOps<T> {
+    fn step(&self, sgd: &mut SGD<T, D>, params: Vec<Param<T, D>>) 
+    where
+        D: BaseOps<T> + AssignOps<T> + AdditionalOps<T>
+    {
         for mut param in params {
             param.weights -= param.dweights * sgd.lr;
 
@@ -59,11 +61,11 @@ pub trait SGDOp<T: CDatatype> {
             }
         }
     }
-    fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>);
+    fn step_momentum(&self, sgd: &mut SGD<T, D>, params: Vec<Param<T, D>>);
 }
 
-impl<T: CDatatype> SGDOp<T> for CPU {
-    fn step_momentum(&self, sgd: &mut SGD<T>, mut params: Vec<Param<T>>) {
+impl<T: CDatatype, D: MainMemory> SGDOp<T, D> for CPU {
+    fn step_momentum(&self, sgd: &mut SGD<T, D>, mut params: Vec<Param<T, D>>) {
         for (layer_idx, param) in params.iter_mut().enumerate() {
             for (idx, w) in param.weights.iter_mut().enumerate() {
                 let update = sgd.momentum * sgd.weight_momentum[layer_idx][idx]
@@ -86,7 +88,7 @@ impl<T: CDatatype> SGDOp<T> for CPU {
 
 #[cfg(feature = "opencl")]
 impl<T: CDatatype> SGDOp<T> for OpenCL {
-    fn step_momentum(&self, sgd: &mut SGD<T>, params: Vec<Param<T>>) {
+    fn step_momentum(&self, sgd: &mut SGD<T, Self>, params: Vec<Param<T, Self>>) {
         let src = format!(
             "
             __kernel void sgd_momentum(

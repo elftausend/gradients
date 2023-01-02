@@ -1,5 +1,5 @@
 use crate::Param;
-use custos::{number::Float, Alloc, CDatatype, GraphReturn, CPU};
+use custos::{number::Float, Alloc, CDatatype, Device, GraphReturn, CPU};
 use custos_math::Matrix;
 
 #[cfg(feature = "cuda")]
@@ -8,20 +8,23 @@ use custos::cuda::launch_kernel1d;
 #[cfg(feature = "opencl")]
 use custos::{opencl::enqueue_kernel, OpenCL};
 
-pub struct Adam<'a, T> {
+pub struct Adam<'a, T, D: Device = CPU> {
     lr: T,
     epsilon: T,
     beta1: T,
     beta2: T,
     pub iters: u64,
-    weight_momentum: Vec<Matrix<'a, T>>,
-    weight_cache: Vec<Matrix<'a, T>>,
-    bias_momentum: Vec<Matrix<'a, T>>,
-    bias_cache: Vec<Matrix<'a, T>>,
+    weight_momentum: Vec<Matrix<'a, T, D>>,
+    weight_cache: Vec<Matrix<'a, T, D>>,
+    bias_momentum: Vec<Matrix<'a, T, D>>,
+    bias_cache: Vec<Matrix<'a, T, D>>,
 }
 
-impl<'a, T: Float> Adam<'a, T> {
-    pub fn new(lr: T) -> Adam<'a, T> {
+impl<'a, T: Float, D> Adam<'a, T, D>
+where
+    D: Alloc<'a, T> + GraphReturn + AdamOp<'a, T>,
+{
+    pub fn new(lr: T) -> Adam<'a, T, D> {
         Adam {
             lr,
             epsilon: T::as_generic(1e-7),
@@ -34,11 +37,7 @@ impl<'a, T: Float> Adam<'a, T> {
             bias_cache: Vec::new(),
         }
     }
-    pub fn step<D: Alloc<T> + GraphReturn + AdamOp<'a, T>>(
-        &mut self,
-        device: &'a D,
-        params: Vec<Param<'a, T>>,
-    ) {
+    pub fn step(&mut self, device: &'a D, params: Vec<Param<'a, T, D>>) {
         if self.weight_cache.len() < params.len() {
             for param in params.iter() {
                 self.weight_cache
@@ -57,8 +56,8 @@ impl<'a, T: Float> Adam<'a, T> {
     }
 }
 
-pub trait AdamOp<'a, T> {
-    fn step(&'a self, adam: &mut Adam<'a, T>, params: Vec<Param<'a, T>>);
+pub trait AdamOp<'a, T, D: Device = Self> {
+    fn step(&'a self, adam: &mut Adam<'a, T, D>, params: Vec<Param<'a, T, D>>);
 }
 
 fn adam_step_cpu<T: Float>(
@@ -189,7 +188,7 @@ impl<'a, T: CDatatype> AdamOp<'a, T> for custos::CudaDevice {
 
 #[cfg(feature = "opencl")]
 impl<'a, T: CDatatype> AdamOp<'a, T> for OpenCL {
-    fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
+    fn step(&self, adam: &mut Adam<T, Self>, mut params: Vec<Param<T, Self>>) {
         let src = format!("__kernel void adam(
             __global {dt}* value, 
             __global const {dt}* dvalue, 

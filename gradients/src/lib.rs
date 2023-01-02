@@ -21,14 +21,14 @@ pub use ml::*;
 pub use onehot::*;
 pub use opt::*;
 
-pub trait GetParam<'a, T> {
-    fn params(&mut self) -> Option<Param<'a, T>> {
+pub trait GetParam<'a, T, D: Device = CPU> {
+    fn params(&mut self) -> Option<Param<'a, T, D>> {
         None
     }
 }
 
-pub trait WithDevice<'a, T> {
-    fn with<'b: 'a, D: Alloc<T> + GraphReturn>(_device: &'b D) -> Self
+pub trait WithDevice<'a, T, D: Device = CPU> {
+    fn with<'b: 'a>(_device: &'b D) -> Self
     where
         Self: Default,
     {
@@ -36,20 +36,20 @@ pub trait WithDevice<'a, T> {
     }
 }
 
-pub struct Param<'a, T> {
-    pub weights: Matrix<'a, T>,
-    pub bias: Option<Matrix<'a, T>>,
-    pub dweights: Matrix<'a, T>,
-    pub dbias: Matrix<'a, T>,
+pub struct Param<'a, T, D: Device = CPU> {
+    pub weights: Matrix<'a, T, D>,
+    pub bias: Option<Matrix<'a, T, D>>,
+    pub dweights: Matrix<'a, T, D>,
+    pub dbias: Matrix<'a, T, D>,
 }
 
-impl<'a, T> Param<'a, T> {
+impl<'a, T, D: Device> Param<'a, T, D> {
     pub fn new(
-        weights: Matrix<'a, T>,
-        bias: Option<Matrix<'a, T>>,
-        dweights: Matrix<'a, T>,
-        dbias: Matrix<'a, T>,
-    ) -> Param<'a, T> {
+        weights: Matrix<'a, T, D>,
+        bias: Option<Matrix<'a, T, D>>,
+        dweights: Matrix<'a, T, D>,
+        dbias: Matrix<'a, T, D>,
+    ) -> Param<'a, T, D> {
         Param {
             weights,
             bias,
@@ -66,10 +66,10 @@ pub trait NeuralNetwork<'a, T> {
 }
 
 pub fn create_sine<'a, D: Alloc<'a, f32> + GraphReturn>(
-    device: &D,
+    device: &'a D,
     min: usize,
     max: usize,
-) -> (Matrix<f32>, Matrix<f32>) {
+) -> (Matrix<f32, D>, Matrix<f32, D>) {
     let mut x: Vec<f32> = Vec::new();
     for add in min..max {
         x.push(add as f32 / 1000.);
@@ -83,11 +83,11 @@ pub fn create_sine<'a, D: Alloc<'a, f32> + GraphReturn>(
     (x, y)
 }
 
-pub fn create_line<T: Float, D: Alloc<T> + GraphReturn>(
-    device: &D,
+pub fn create_line<'a, T: Float, D: Alloc<'a, T> + GraphReturn>(
+    device: &'a D,
     min: usize,
     max: usize,
-) -> (Matrix<T>, Matrix<T>) {
+) -> (Matrix<T, D>, Matrix<T, D>) {
     let mut x: Vec<T> = Vec::with_capacity(max - min);
     for add in min..max {
         x.push(T::from_usize(add) / T::from_usize(1000));

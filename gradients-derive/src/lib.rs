@@ -68,7 +68,7 @@ fn add_lifetimes_derive_net(name: Ident, fields: Punctuated<Field, Comma>) -> To
                                     );
                                     help=format!("Set the input size of {ident:?} to {prev_out}.",
                                         ident=name.as_ref().unwrap(),
-                                        prev_out=prev_out_size, 
+                                        prev_out=prev_out_size,
                                     );
                                 }
                             }
@@ -107,7 +107,7 @@ fn add_lifetimes_derive_net(name: Ident, fields: Punctuated<Field, Comma>) -> To
             #fields_with_lifetimes
         }
         impl<'a, T: Float> WithDevice<'a, T> for #name<'a, T> {
-            fn with<'b: 'a, D: Alloc<T>+GraphReturn>(device: &'b D) -> Self {
+            fn with<'b: 'a>(device: &'b custos::CPU) -> Self {
                 Self { #with_device_chain }
             }
         }
@@ -127,7 +127,7 @@ fn impl_params(name: Ident) -> TokenStream {
         impl<'a, T> GetParam<'a, T> for #name<'a, T> {}
         impl<'a, T> WithDevice<'a, T> for #name<'a, T> {}
         impl<'a, T> #name<'a, T> {
-            pub fn with_device<'b, D>(_dev: &'b D) -> #name<'a, T> {
+            pub fn with_device<'b>(_dev: &'b custos::CPU) -> #name<'a, T> {
                 Self::default()
             }
         }

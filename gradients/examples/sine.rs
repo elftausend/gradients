@@ -30,7 +30,7 @@ fn main() {
         println!("epoch: {epoch}, loss: {loss}");
     }
 
-    let mut plot = Plot::new((x.read(), y.read()));
-    plot.add((x.read(), net.forward(&x).read(), "-r"));
+    let mut plot = Plot::new((x.read_to_vec(), y.read_to_vec()));
+    plot.add((x.read_to_vec(), net.forward(&x).read(), "-r"));
     plot.show()
 }

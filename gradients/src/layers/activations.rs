@@ -34,7 +34,11 @@ pub struct Softmax<'a, T> {
     activated: Option<Matrix<'a, T>>,
 }
 
-impl<'a, T: CDatatype + GenericBlas> Softmax<'a, T> {
+impl<'a, T: CDatatype + GenericBlas> Softmax<'a, T>
+// FIXME: Remove?
+where
+    custos::CPU: custos_math::nn::SoftmaxOps<T>,
+{
     pub fn new() -> Self {
         Softmax { activated: None }
     }

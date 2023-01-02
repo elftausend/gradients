@@ -15,7 +15,7 @@ repository = "https://github.com/elftausend/gradients"
 
 #custos = { version="=0.5.0", default-features = false }
 custos = { path = "../../custos", default-features = false }
-custos-math = { path = "../../custos-math", default-features = false }
+custos-math = { path = "../../custos-math", default-features = false, features=["fastrand", "blas", "cpu"] }
 #custos-math = { version="=0.5.0", default-features = false }
 purpur = "0.1.0"
 
@@ -29,7 +29,7 @@ realloc = ["custos/realloc", "custos-math/realloc"]
 opt-cache = ["custos/opt-cache"]
 
 [dev-dependencies]
-graplot = { version = "0.1.20" }
+graplot = { version = "0.1.21" }
 criterion = "0.3.6"
 
 [[example]]

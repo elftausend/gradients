@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use custos_math::nn::{cce, cce_grad, mse, mse_grad};
+use custos_math::nn::{mse, mse_grad};
 use gradients::{create_sine, prelude::*, NeuralNetwork};
 //use gradients_derive::NeuralNetwork;
 
