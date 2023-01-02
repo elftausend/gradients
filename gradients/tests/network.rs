@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use custos_math::nn::{cce, cce_grad, mse, mse_grad};
-use gradients::{prelude::*, NeuralNetwork, create_sine};
+use gradients::{create_sine, prelude::*, NeuralNetwork};
 //use gradients_derive::NeuralNetwork;
 
 use custos::range;

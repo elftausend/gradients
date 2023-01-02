@@ -1,6 +1,5 @@
-use gradients::{prelude::*, create_sine};
+use gradients::{create_sine, prelude::*};
 use graplot::Plot;
-
 
 #[network]
 struct SineNet {
@@ -11,11 +10,14 @@ struct SineNet {
     linear3: Linear<64, 1>,
 }
 
+
 #[test]
 fn test_l2_reg_loss() {
     let device = CPU::new();
 
     let l2 = L2Reg::new(1e-5);
+
+    
 
     let mut net = SineNet {
         linear1: Linear::new(&device, &l2),
@@ -23,7 +25,6 @@ fn test_l2_reg_loss() {
         linear3: Linear::new(&device, &l2),
         ..WithDevice::with(&device)
     };
-
 
     let (x, y) = create_sine(&device, 0, 1000);
 
@@ -37,8 +38,6 @@ fn test_l2_reg_loss() {
         opt.step(&device, net.params());
 
         println!("epoch: {epoch}, reg_loss: {l2}, loss: {loss},");
-
-        println!("weights: {:?}", net.linear1.weights);
 
         l2.zero();
     }

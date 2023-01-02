@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use gradients::{set_count, linear::Linear, Matrix, CPU};
+use gradients::{linear::Linear, set_count, Matrix, CPU};
 use purpur::CSVLoader;
 
 fn forward_mut_bias(bench: &mut Criterion) {
@@ -20,7 +20,8 @@ fn forward_mut_bias(bench: &mut Criterion) {
 
     bench.bench_function("forward mut bias", |b| {
         b.iter(|| {
-            i.gemm(&lin.weights).add_row_mut(&lin.bias.as_ref().unwrap());
+            i.gemm(&lin.weights)
+                .add_row_mut(&lin.bias.as_ref().unwrap());
             set_count(0)
         })
     });

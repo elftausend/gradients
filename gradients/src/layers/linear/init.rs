@@ -14,22 +14,16 @@ pub struct RandomUniform<T> {
 
 impl<T> RandomUniform<T> {
     pub fn new(min: T, max: T) -> Box<RandomUniform<T>> {
-        Box::new(
-            RandomUniform { 
-                min, 
-                max 
-            }
-        )
+        Box::new(RandomUniform { min, max })
     }
-    pub fn one() -> Box<RandomUniform<T>> 
-    where T: Float
+    pub fn one() -> Box<RandomUniform<T>>
+    where
+        T: Float,
     {
-        Box::new(
-            RandomUniform { 
-                min: -T::one(), 
-                max: T::one() 
-            }
-        )
+        Box::new(RandomUniform {
+            min: -T::one(),
+            max: T::one(),
+        })
     }
 }
 
@@ -68,12 +62,12 @@ impl<'a, T: Float, D: Alloc<T> + GraphReturn, const I: usize, const O: usize> In
         let glorot = (T::from_usize(6) / T::from_usize(I + O)).sqrt();
 
         weights.rand(-glorot, glorot);
-        
+
         let mut bias = None;
         if with_bias {
             bias = Some(Matrix::<T>::from((device, 1, O)));
         }
-        
+
         (weights, bias)
     }
 }

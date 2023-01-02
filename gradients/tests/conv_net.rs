@@ -1,8 +1,8 @@
 use std::time::Instant;
 
-use gradients::NeuralNetwork;
 use gradients::prelude::*;
 use gradients::Conv2D;
+use gradients::NeuralNetwork;
 use purpur::{CSVLoader, Converter};
 
 #[derive(NeuralNetwork)]

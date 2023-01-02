@@ -47,12 +47,9 @@ impl<'a, T: Float> Adam<'a, T> {
                     .push(Matrix::new(device, param.weights.dims()));
 
                 if let Some(bias) = &param.bias {
-                    self.bias_cache
-                        .push(Matrix::new(device, bias.dims()));
-                    self.bias_momentum
-                        .push(Matrix::new(device, bias.dims()));
+                    self.bias_cache.push(Matrix::new(device, bias.dims()));
+                    self.bias_momentum.push(Matrix::new(device, bias.dims()));
                 }
- 
             }
         }
         device.step(self, params);
@@ -255,8 +252,6 @@ impl<'a, T: CDatatype> AdamOp<'a, T> for CLDevice {
                 )
                 .unwrap();
             }
-
-            
         }
     }
 }

@@ -4,11 +4,10 @@ use custos::{number::Float, Alloc, GraphReturn};
 
 use crate::linear::{IntoLinearConfig, LinearConfig};
 
-
 #[derive(Debug, Clone)]
 pub struct L2Reg<T> {
     pub l2: T,
-    pub loss: RefCell<T>
+    pub loss: RefCell<T>,
 }
 
 impl<T: Default> L2Reg<T> {
@@ -29,10 +28,10 @@ impl<T: Display> Display for L2Reg<T> {
     }
 }
 
-impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for &'a L2Reg<T> 
+impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for &'a L2Reg<T>
 where
     T: Float,
-    D: Alloc<T> + GraphReturn + 'a
+    D: Alloc<T> + GraphReturn + 'a,
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
         LinearConfig {
@@ -44,16 +43,16 @@ where
 }
 
 pub struct L2Loss<'a, T> {
-    pub loss: &'a RefCell<T>
+    pub loss: &'a RefCell<T>,
 }
 
-impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for L2Loss<'a, T> 
+impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for L2Loss<'a, T>
 where
     T: Float,
-    D: Alloc<T> + GraphReturn + 'a
+    D: Alloc<T> + GraphReturn + 'a,
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
-        LinearConfig { 
+        LinearConfig {
             l2_reg_loss: Some(self.loss),
             ..Default::default()
         }

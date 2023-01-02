@@ -1,4 +1,4 @@
-use gradients::{prelude::*, create_line};
+use gradients::{create_line, prelude::*};
 use graplot::Plot;
 
 #[network]

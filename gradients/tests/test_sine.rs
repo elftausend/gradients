@@ -1,7 +1,6 @@
 use std::time::Instant;
 
-use gradients::{prelude::*, NeuralNetwork, create_sine};
-
+use gradients::{create_sine, prelude::*, NeuralNetwork};
 
 #[derive(NeuralNetwork)]
 struct SineNet<'a, T> {
