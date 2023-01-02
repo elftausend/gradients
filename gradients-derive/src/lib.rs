@@ -193,7 +193,7 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
                 Self { #default_chain }
             }
         }
-        impl<'a, T: gradients::number::Float+gradients::CDatatype+gradients::GenericBlas + gradients::CudaTranspose> NeuralNetwork<'a, T> for #name<'a, T> {
+        impl<'a, T: gradients::number::Float+gradients::CDatatype+gradients::GenericBlas + gradients::matrix_multiply::MatrixMultiply + gradients::CudaTranspose> NeuralNetwork<'a, T> for #name<'a, T> {
             fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
                 #forward_chain
             }

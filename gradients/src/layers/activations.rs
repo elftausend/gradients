@@ -1,6 +1,6 @@
 use crate::{GetParam, WithDevice};
 use custos::{number::Float, CDatatype, GenericBlas};
-use custos_math::Matrix;
+use custos_math::{Matrix, matrix_multiply::MatrixMultiply};
 use gradients_derive::NoParams;
 
 #[derive(NoParams)]
@@ -34,7 +34,7 @@ pub struct Softmax<'a, T> {
     activated: Option<Matrix<'a, T>>,
 }
 
-impl<'a, T: CDatatype + GenericBlas> Softmax<'a, T>
+impl<'a, T: CDatatype + GenericBlas + MatrixMultiply> Softmax<'a, T>
 // FIXME: Remove?
 where
     custos::CPU: custos_math::nn::SoftmaxOps<T>,

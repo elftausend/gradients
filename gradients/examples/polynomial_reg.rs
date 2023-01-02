@@ -30,7 +30,7 @@ fn main() {
         poly.step(0.001);
     }
 
-    let mut scatter = Scatter::new((xs.read_to_vec(), ys.read_to_vec()));
+    let mut scatter = Scatter::new((xs.read(), ys.read()));
     scatter.set_title("linear vs. polynomial regression");
     scatter.add((|x| lg.k as f64 * x + lg.d as f64, "-b"));
     scatter.add((|x: f64| poly.single_predict(x as f32) as f64, "-r"));

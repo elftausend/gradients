@@ -14,7 +14,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let device = gradients::CPU::new(); // use cpu (no framework specific features enabled):
     // let device = gradients::CudaDevice::new(0)?; // use cuda device (cuda feature enabled):
     // use opencl device (opencl feature enabled):
-    let device = OpenCL::new(0)?;
+    //let device = OpenCL::new(0)?;
+    let device = gradients::CPU::new();
 
     let mut net = Network::with(&device);
 
@@ -37,13 +38,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let preds = net.forward(&i);
         let correct_training = correct_classes(&loaded_data.y.as_usize(), &preds) as f32;
 
-        let loss = cce(&device, &preds, &y);
+        let (loss, grad) = preds.cce(&y);
         println!(
             "epoch: {epoch}, loss: {loss}, training_acc: {acc}",
             acc = correct_training / loaded_data.sample_count() as f32
         );
 
-        let grad = cce_grad(&device, &preds, &y);
         net.backward(&grad);
         opt.step(&device, net.params());
     }

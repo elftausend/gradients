@@ -29,7 +29,8 @@ realloc = ["custos/realloc", "custos-math/realloc"]
 opt-cache = ["custos/opt-cache"]
 
 [dev-dependencies]
-graplot = { version = "0.1.21" }
+#graplot = { version = "0.1.21" }
+graplot = {path="../../graplot"}
 criterion = "0.3.6"
 
 [[example]]

@@ -29,7 +29,7 @@ fn main() {
     /*let plot = graplot::Plot::new(loss_values);
     plot.show();*/
 
-    let mut scatter = Scatter::new((x.read_to_vec(), y.read_to_vec()));
+    let mut scatter = Scatter::new((x.read(), y.read()));
     scatter.add((|x| lg.k as f64 * x + lg.d as f64, "-b"));
     scatter.show();
 }
