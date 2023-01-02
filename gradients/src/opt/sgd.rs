@@ -1,6 +1,6 @@
 use crate::Param;
-use custos::{Alloc, CDatatype, Device, GraphReturn, CPU, MainMemory};
-use custos_math::{Matrix, BaseOps, AssignOps, AdditionalOps};
+use custos::{Alloc, CDatatype, Device, GraphReturn, MainMemory, CPU};
+use custos_math::{AdditionalOps, AssignOps, BaseOps, Matrix};
 
 #[cfg(feature = "opencl")]
 use custos::{opencl::enqueue_kernel, OpenCL};
@@ -48,10 +48,12 @@ where
     }
 }
 
-pub trait SGDOp<T: CDatatype, D: Device = Self>: BaseOps<T> + AssignOps<T> + AdditionalOps<T> {
-    fn step(&self, sgd: &mut SGD<T, D>, params: Vec<Param<T, D>>) 
+pub trait SGDOp<T: CDatatype, D: Device = Self>:
+    BaseOps<T> + AssignOps<T> + AdditionalOps<T>
+{
+    fn step(&self, sgd: &mut SGD<T, D>, params: Vec<Param<T, D>>)
     where
-        D: BaseOps<T> + AssignOps<T> + AdditionalOps<T>
+        D: BaseOps<T> + AssignOps<T> + AdditionalOps<T>,
     {
         for mut param in params {
             param.weights -= param.dweights * sgd.lr;

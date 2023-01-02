@@ -1,27 +1,37 @@
 use crate::{GetParam, WithDevice};
-use custos::{number::Float, CDatatype, GenericBlas};
-use custos_math::{Matrix, matrix_multiply::MatrixMultiply};
+use custos::{number::Float, CDatatype, CloneBuf, Device, GenericBlas};
+use custos_math::{
+    matrix_multiply::MatrixMultiply,
+    nn::{ActivationOps, SoftmaxOps},
+    BaseOps, Matrix,
+};
 use gradients_derive::NoParams;
 
 #[derive(NoParams)]
-pub struct ReLU<'a, T> {
-    inputs: Option<Matrix<'a, T>>,
+pub struct ReLU<'a, T, D: Device> {
+    inputs: Option<Matrix<'a, T, D>>,
 }
 
-impl<'a, T: Float + CDatatype> ReLU<'a, T> {
-    pub fn new() -> ReLU<'a, T> {
+impl<'a, T: Float + CDatatype, D: CloneBuf<'a, T> + ActivationOps<T>> ReLU<'a, T, D> {
+    pub fn new() -> ReLU<'a, T, D> {
         ReLU { inputs: None }
     }
-    pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
+    pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
+    where
+        D::Ptr<T, ()>: Copy,
+    {
         self.inputs = Some(inputs.shallow_or_clone());
         inputs.relu()
     }
-    pub fn backward(&self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
+    pub fn backward(&self, grad: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
+    where
+        D: BaseOps<T>,
+    {
         self.inputs.as_ref().unwrap().relu_grad() * grad
     }
 }
 
-impl<'a, T> Default for ReLU<'a, T> {
+impl<'a, T, D: Device> Default for ReLU<'a, T, D> {
     fn default() -> Self {
         Self {
             inputs: Default::default(),
@@ -30,31 +40,35 @@ impl<'a, T> Default for ReLU<'a, T> {
 }
 
 #[derive(NoParams)]
-pub struct Softmax<'a, T> {
-    activated: Option<Matrix<'a, T>>,
+pub struct Softmax<'a, T, D: Device> {
+    activated: Option<Matrix<'a, T, D>>,
 }
 
-impl<'a, T: CDatatype + GenericBlas + MatrixMultiply> Softmax<'a, T>
-// FIXME: Remove?
-where
-    custos::CPU: custos_math::nn::SoftmaxOps<T>,
+impl<'a, T: CDatatype + GenericBlas + MatrixMultiply, D: CloneBuf<'a, T> + SoftmaxOps<T>>
+    Softmax<'a, T, D>
 {
     pub fn new() -> Self {
         Softmax { activated: None }
     }
 
-    pub fn forward(&mut self, x: &Matrix<'a, T>) -> Matrix<'a, T> {
+    pub fn forward(&mut self, x: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
+    where
+        D::Ptr<T, ()>: Copy,
+    {
         let activated = x.softmax();
         self.activated = Some(activated.shallow_or_clone());
         activated
     }
 
-    pub fn backward(&self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
+    pub fn backward(&self, grad: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
+    where
+        D: BaseOps<T>,
+    {
         grad.softmax_grad(self.activated.as_ref().unwrap())
     }
 }
 
-impl<'a, T> Default for Softmax<'a, T> {
+impl<'a, T, D: Device> Default for Softmax<'a, T, D> {
     fn default() -> Self {
         Self {
             activated: Default::default(),
@@ -63,27 +77,33 @@ impl<'a, T> Default for Softmax<'a, T> {
 }
 
 #[derive(NoParams)]
-pub struct Tanh<'a, T> {
-    inputs: Option<Matrix<'a, T>>,
+pub struct Tanh<'a, T, D: Device> {
+    inputs: Option<Matrix<'a, T, D>>,
 }
 
-impl<'a, T> Tanh<'a, T> {
-    pub fn new() -> Tanh<'a, T> {
+impl<'a, T, D: Device> Tanh<'a, T, D> {
+    pub fn new() -> Tanh<'a, T, D> {
         Tanh { inputs: None }
     }
 }
 
-impl<'a, T: Float + CDatatype> Tanh<'a, T> {
-    pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
+impl<'a, T: Float + CDatatype, D: CloneBuf<'a, T> + ActivationOps<T>> Tanh<'a, T, D> {
+    pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
+    where
+        D::Ptr<T, ()>: Copy,
+    {
         self.inputs = Some(inputs.shallow_or_clone());
         inputs.tanh()
     }
-    pub fn backward(&self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
+    pub fn backward(&self, grad: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
+    where
+        D: BaseOps<T>,
+    {
         self.inputs.as_ref().unwrap().tanh_grad() * grad
     }
 }
 
-impl<'a, T> Default for Tanh<'a, T> {
+impl<'a, T, D: Device> Default for Tanh<'a, T, D> {
     fn default() -> Self {
         Self {
             inputs: Default::default(),
@@ -92,29 +112,35 @@ impl<'a, T> Default for Tanh<'a, T> {
 }
 
 #[derive(NoParams)]
-pub struct Sigmoid<'a, T> {
-    activated: Option<Matrix<'a, T>>,
+pub struct Sigmoid<'a, T, D: Device> {
+    activated: Option<Matrix<'a, T, D>>,
 }
 
-impl<'a, T> Sigmoid<'a, T> {
-    pub fn new() -> Sigmoid<'a, T> {
+impl<'a, T, D: Device> Sigmoid<'a, T, D> {
+    pub fn new() -> Sigmoid<'a, T, D> {
         Sigmoid::default()
     }
 }
 
-impl<'a, T: CDatatype + Float> Sigmoid<'a, T> {
-    pub fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
+impl<'a, T: CDatatype + Float, D: CloneBuf<'a, T> + ActivationOps<T>> Sigmoid<'a, T, D> {
+    pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
+    where
+        D::Ptr<T, ()>: Copy,
+    {
         let activated = inputs.sigmoid();
         self.activated = Some(inputs.shallow_or_clone());
         activated
     }
 
-    pub fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
+    pub fn backward(&mut self, grad: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
+    where
+        D: BaseOps<T>,
+    {
         self.activated.as_ref().unwrap().sigmoid_grad() * grad
     }
 }
 
-impl<'a, T> Default for Sigmoid<'a, T> {
+impl<'a, T, D: Device> Default for Sigmoid<'a, T, D> {
     #[inline]
     fn default() -> Self {
         Self {

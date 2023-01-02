@@ -4,9 +4,9 @@
 use gradients::{linear::Linear, NeuralNetwork, CPU};
 
 #[derive(NeuralNetwork)]
-pub struct Net<'a, T> {
-    lin1: Linear<'a, T, 16, 16>,
-    lin2: Linear<'a, T, 16, 16>,
+pub struct Net<'a, T, D: Device> {
+    lin1: Linear<'a, T, 16, 16, D>,
+    lin2: Linear<'a, T, 16, 16, D>,
 }
 
 /*
@@ -40,7 +40,7 @@ fn test_layer() {
     let mut net = Net {
         lin1: Linear::<f32, 16, 16>::new(&device, ()),
         lin2: Linear::<f32, 16, 16>::new(&device, ()),
-        ..Default::default()
+        ..WithDevice::with(&device)
     };
 
     let inputs = Matrix::<f32>::from((&device, 5, 16, [0.5; 16 * 5]));

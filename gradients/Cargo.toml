@@ -22,15 +22,15 @@ purpur = "0.1.0"
 #gradients-derive = { version = "=0.3.4" } 
 gradients-derive = { path = "../gradients-derive" }
 [features]
-default = ["opencl"]
+default = ["cpu"]
+cpu = ["custos/cpu", "custos-math/cpu"]
 opencl = ["custos/opencl", "custos-math/opencl"]
 cuda = ["custos/cuda", "custos-math/cuda"]
 realloc = ["custos/realloc", "custos-math/realloc"]
 opt-cache = ["custos/opt-cache"]
 
 [dev-dependencies]
-#graplot = { version = "0.1.21" }
-graplot = {path="../../graplot"}
+graplot = { version = "0.1.22" }
 criterion = "0.3.6"
 
 [[example]]

@@ -21,7 +21,7 @@ struct Net {
 fn test_attribute_net() -> gradients::Result<()> {
     let device = CPU::new();
     //let device = custos::OpenCL::new(0)?;
-    let mut net = Net::<f32>::with(&device);
+    let mut net = Net::with(&device);
 
     let loader = CSVLoader::new(true);
 
@@ -46,13 +46,12 @@ fn test_attribute_net() -> gradients::Result<()> {
         let preds = net.forward(&i);
         let correct_training = correct_classes(&loaded_data.y.as_usize(), &preds) as f32;
 
-        let loss = cce(&device, &preds, &y);
+        let (loss, grad) = preds.cce(&y);
         println!(
             "epoch: {epoch}, loss: {loss}, training_acc: {acc}",
             acc = correct_training / loaded_data.sample_count() as f32
         );
 
-        let grad = cce_grad(&device, &preds, &y);
         net.backward(&grad);
         opt.step(&device, net.params());
     }

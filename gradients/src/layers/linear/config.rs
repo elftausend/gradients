@@ -18,7 +18,7 @@ impl<'a, T, D: Device, const I: usize, const O: usize> LinearConfig<'a, T, D, I,
     }
 }
 
-impl<'a, T: Float, D: Alloc<'a, T> + GraphReturn + RandOp<T>, const I: usize, const O: usize>
+impl<'a, T: Float, D: Alloc<'a, T> + RandOp<T>, const I: usize, const O: usize>
     Default for LinearConfig<'a, T, D, I, O>
 {
     fn default() -> Self {
@@ -38,7 +38,7 @@ pub trait IntoLinearConfig<'a, T, D: 'a, const I: usize, const O: usize> {
 impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for ()
 where
     T: Float,
-    D: Alloc<'a, T> + GraphReturn + 'a + RandOp<T>,
+    D: Alloc<'a, T> + 'a + RandOp<T>,
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
         LinearConfig::default()

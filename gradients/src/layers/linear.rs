@@ -11,7 +11,7 @@ pub use l2_reg::*;
 use custos::{number::Float, Alloc, CDatatype, CloneBuf, Device, GenericBlas, GraphReturn};
 use custos_math::{
     AdditionalOps, AssignOps, BaseOps, CudaTranspose, Gemm, Matrix, RandOp, RowOp, SumOps,
-    TransposeOp,
+    TransposeOp, nn::ActivationOps,
 };
 
 use crate::{GetParam, Param, WithDevice};
@@ -19,7 +19,7 @@ use crate::{GetParam, Param, WithDevice};
 type LinearParams<'a, T, D> = (Matrix<'a, T, D>, Option<Matrix<'a, T, D>>);
 
 // TODO: remove default types
-pub struct Linear<'a, T, const I: usize, const O: usize, D: Device = custos::CPU,> {
+pub struct Linear<'a, T, const I: usize, const O: usize, D: Device = custos::CPU> {
     pub weights: Matrix<'a, T, D>,
     pub bias: Option<Matrix<'a, T, D>>,
     pub dweights: Option<Matrix<'a, T, D>>,
@@ -31,7 +31,7 @@ pub struct Linear<'a, T, const I: usize, const O: usize, D: Device = custos::CPU
 
 impl<'a, T: Copy + Float, D, const I: usize, const O: usize> Linear<'a, T, I, O, D>
 where
-    D: Alloc<'a, T> + GraphReturn + 'a,
+    D:  Device+ 'a,
 {
     pub fn new<'b: 'a>(
         device: &'b D,
@@ -60,7 +60,7 @@ where
 impl<'a, T, D, const I: usize, const O: usize> WithDevice<'a, T, D> for Linear<'a, T, I, O, D>
 where
     T: Copy + Float,
-    D: Alloc<'a, T> + GraphReturn + RandOp<T>,
+    D: Alloc<'a, T> + RandOp<T>,
 {
     fn with<'b: 'a>(device: &'b D) -> Self
     where
@@ -70,17 +70,18 @@ where
     }
 }
 
-impl<'a, T, D, const I: usize, const O: usize> Linear<'a, T, I, O, D>
+impl<'a, T, D: Device, const I: usize, const O: usize> Linear<'a, T, I, O, D>
 where
     T: Float + GenericBlas + CDatatype,
-    D: CloneBuf<'a, T> + Gemm<T> + RowOp<T> + BaseOps<T> + SumOps<T>,
-    D::Ptr<T, ()>: Copy,
 {
-    pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D> {
-        
+    pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
+    where
+        D: CloneBuf<'a, T> + Gemm<T> + RowOp<T> + BaseOps<T> + SumOps<T>,
+        D::Ptr<T, ()>: Copy,
+    {
         self.inputs = Some(inputs.shallow_or_clone());
         let mut forward = inputs.gemm(&self.weights);
- 
+
         if let Some(bias) = &self.bias {
             forward.add_row_mut(bias);
         }
@@ -101,7 +102,7 @@ where
     pub fn backward(&mut self, grad: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
     where
         T: CudaTranspose,
-        D: TransposeOp<T> + AdditionalOps<T> + AssignOps<T>,
+        D: TransposeOp<T> + AdditionalOps<T> + AssignOps<T> + Gemm<T> + RowOp<T> + SumOps<T>,
     {
         if self.bias.is_some() {
             self.dbias = Some(grad.sum_rows());
@@ -124,7 +125,8 @@ where
 
 impl<'a, T: Copy, D: Device, const I: usize, const O: usize> GetParam<'a, T, D>
     for Linear<'a, T, I, O, D>
-where D::Ptr<T, ()>: Copy
+where
+    D::Ptr<T, ()>: Copy,
 {
     fn params(&mut self) -> Option<Param<'a, T, D>> {
         Some(Param::new(
@@ -136,18 +138,9 @@ where D::Ptr<T, ()>: Copy
     }
 }
 
-impl<'a, T: Default, D: Device, const I: usize, const O: usize> Default for Linear<'a, T, I, O, D> {
+impl<'a, T, D: Device, const I: usize, const O: usize> Default for Linear<'a, T, I, O, D> {
     fn default() -> Self {
-        unimplemented!()
-        /*Self {
-            weights: Default::default(),
-            bias: Default::default(),
-            dweights: Default::default(),
-            dbias: Default::default(),
-            inputs: Default::default(),
-            l2_reg: Default::default(),
-            l2_reg_loss: Default::default(),
-        }*/
+        unimplemented!();
     }
 }
 

@@ -59,10 +59,10 @@ impl<'a, T, D: Device> Param<'a, T, D> {
     }
 }
 
-pub trait NeuralNetwork<'a, T> {
-    fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T>;
-    fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T>;
-    fn params(&mut self) -> Vec<Param<'a, T>>;
+pub trait NeuralNetwork<'a, T, D: Device> {
+    fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>;
+    fn backward(&mut self, grad: &Matrix<'a, T, D>) -> Matrix<'a, T, D>;
+    fn params(&mut self) -> Vec<Param<'a, T, D>>;
 }
 
 pub fn create_sine<'a, D: Alloc<'a, f32> + GraphReturn>(
@@ -96,6 +96,42 @@ pub fn create_line<'a, T: Float, D: Alloc<'a, T> + GraphReturn>(
     let x = Matrix::from((device, (max - min, 1), x));
     let y = Matrix::from((device, (max - min, 1), y));
     (x, y)
+}
+
+
+pub trait Bounds<'a, T>:
+    CloneBuf<'a, T>
+    + Gemm<T>
+    + RowOp<T>
+    + BaseOps<T>
+    + SumOps<T>
+    + TransposeOp<T>
+    + AdditionalOps<T>
+    + AssignOps<T>
+    + Alloc<'a, T>
+    + RandOp<T>
+    + nn::ActivationOps<T>
+    + nn::SoftmaxOps<T>
+{
+}
+
+impl<
+        'a,
+        T: custos::number::Number + GenericBlas,
+        D: CloneBuf<'a, T>
+            + Gemm<T>
+            + RowOp<T>
+            + BaseOps<T>
+            + SumOps<T>
+            + TransposeOp<T>
+            + AdditionalOps<T>
+            + AssignOps<T>
+            + Alloc<'a, T>
+            + RandOp<T>
+            + nn::ActivationOps<T>
+            + nn::SoftmaxOps<T>,
+    > Bounds<'a, T> for D
+{
 }
 
 pub mod prelude {

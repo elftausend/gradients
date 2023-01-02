@@ -18,7 +18,7 @@ fn test_some_net() {
 
     let (x, y) = create_line::<f32, _>(&device, 0, 800);
 
-    let mut sgd = SGD::new(0.05).momentum(0.2);
+    let mut sgd = SGD::<f64>::new(0.05).momentum(0.2);
 
     for epoch in range(0) {
         let preds = net.forward(&x);

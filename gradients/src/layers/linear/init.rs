@@ -1,4 +1,4 @@
-use custos::{number::Float, Alloc, Device, GraphReturn};
+use custos::{number::Float, Alloc, Device};
 use custos_math::{Matrix, RandBuf, RandOp};
 
 use super::LinearParams;
@@ -30,7 +30,7 @@ impl<T> RandomUniform<T> {
 impl<'a, T, D, const I: usize, const O: usize> Init<'a, T, D, I, O> for RandomUniform<T>
 where
     T: Float,
-    D: Alloc<'a, T> + GraphReturn + RandOp<T>,
+    D: Alloc<'a, T> + RandOp<T>,
 {
     fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T, D> {
         let mut weights = Matrix::from((device, I, O));
@@ -56,7 +56,7 @@ impl Glorot {
 impl<'a, T, D, const I: usize, const O: usize> Init<'a, T, D, I, O> for Glorot
 where
     T: Float,
-    D: Alloc<'a, T> + GraphReturn + RandOp<T>,
+    D: Alloc<'a, T> + RandOp<T>,
 {
     fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T, D> {
         let mut weights = Matrix::<T, D>::from((device, I, O));

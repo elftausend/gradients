@@ -1,16 +1,15 @@
 use custos::{range, CPU};
-use custos_math::nn::{cce, cce_grad};
 use gradients::{prelude::*, NeuralNetwork};
 use purpur::{Apply, Converter, ImageReturn, Transforms};
 
 #[derive(NeuralNetwork)]
-struct Network<'a, T> {
-    lin1: Linear<'a, T, { 100 * 100 * 3 }, 512>,
-    relu1: ReLU<'a, T>,
-    lin2: Linear<'a, T, 512, 16>,
-    relu2: ReLU<'a, T>,
-    lin3: Linear<'a, T, 16, 3>,
-    softmax: Softmax<'a, T>,
+struct Network<'a, T, D: Device> {
+    lin1: Linear<'a, T, { 100 * 100 * 3 }, 512, D>,
+    relu1: ReLU<'a, T, D>,
+    lin2: Linear<'a, T, 512, 16, D>,
+    relu2: ReLU<'a, T, D>,
+    lin3: Linear<'a, T, 16, 3, D>,
+    softmax: Softmax<'a, T, D>,
 }
 
 #[test]
@@ -48,8 +47,7 @@ fn test_berries_net() -> Result<(), std::io::Error> {
     for epoch in range(1000) {
         let predicted = net.forward(&x);
 
-        let loss = cce(&device, &predicted, &y);
-        let grad = cce_grad(&device, &predicted, &y);
+        let (loss, grad) = predicted.cce(&y);
         net.backward(&grad);
         opt.step(&device, net.params());
 

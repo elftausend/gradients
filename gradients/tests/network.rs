@@ -8,11 +8,11 @@ use custos::range;
 use purpur::{CSVLoader, CSVReturn};
 
 #[derive(NeuralNetwork)]
-struct Xor<'a, T> {
-    lin1: Linear<'a, T, 2, 4>,
-    tanh1: Tanh<'a, T>,
-    lin2: Linear<'a, T, 4, 2>,
-    tanh2: Tanh<'a, T>,
+struct Xor<'a, T, D: Device> {
+    lin1: Linear<'a, T, 2, 4, D>,
+    tanh1: Tanh<'a, T, D>,
+    lin2: Linear<'a, T, 4, 2, D>,
+    tanh2: Tanh<'a, T, D>,
 }
 
 #[test]
@@ -21,11 +21,11 @@ fn test_xor() -> custos::Result<()> {
     let device = custos::OpenCL::new(0)?;
     //let device = custos::CudaDevice::new(0)?;
 
-    let xs = Matrix::from((&device, 4, 2, [0., 0., 0., 1., 1., 0., 1., 1.]));
+    let xs = Matrix::from((&device, 4, 2, [0f32, 0., 0., 1., 1., 0., 1., 1.]));
 
     let ys = Matrix::from((&device, 4, 2, [1., 0., 0., 1., 0., 1., 1., 0.]));
 
-    let mut net: Xor<f32> = Xor {
+    let mut net = Xor {
         lin1: Linear::new(&device, ()),
         lin2: Linear::new(&device, ()),
         ..Default::default()
@@ -128,9 +128,8 @@ fn test_mnist() {
 
         let x = softmax.forward(&x);
 
-        let loss = cce(&device, &x, &y);
-        let grad = cce_grad(&device, &x, &y);
-
+        let (loss, grad) = x.cce(&y);
+        
         let x = softmax.backward(&grad);
 
         let x = lin3.backward(&x);

@@ -32,7 +32,7 @@ pub struct Network {
 fn test_net() {
     let device = CPU::new();
 
-    let net: Network<f32> = Network {
+    let net: Network<f32, _> = Network {
         lin1: Linear::new(
             &device,
             LinearConfig {

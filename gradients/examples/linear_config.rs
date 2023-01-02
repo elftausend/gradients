@@ -12,7 +12,7 @@ struct SineNet {
 fn main() {
     let device = CPU::new();
 
-    let _: SineNet<f32> = SineNet {
+    let _: SineNet<f32, _> = SineNet {
         linear1: Linear::new(
             &device,
             LinearConfig {

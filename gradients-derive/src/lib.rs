@@ -84,32 +84,27 @@ fn add_lifetimes_derive_net(name: Ident, fields: Punctuated<Field, Comma>) -> To
                     }
                 }
 
-                quote! {#name: Linear<'a, T, #in_out_size>,}
+                quote! {#name: Linear<'a, T, #in_out_size, D>,}
             } else {
-                quote!(#name: #t<'a, T>,)
+                quote!(#name: #t<'a, T, D>,)
             }
         })
         .collect::<TokenStream>();
 
-    let with_device_chain = fields
-        .iter()
-        .map(|f| {
-            let name = &f.ident;
+    /*let with_device_chain = fields
+    .iter()
+    .map(|f| {
+        let name = &f.ident;
 
-            quote!(#name: WithDevice::with(device),)
-        })
-        .collect::<TokenStream>();
+        quote!(#name: WithDevice::with(device),)
+    })
+    .collect::<TokenStream>();*/
 
     quote! {
-        use gradients::{NeuralNetwork, Alloc, WithDevice, number::Float, GraphReturn};
+        use gradients::{NeuralNetwork, Alloc, GraphReturn};
         #[derive(NeuralNetwork)]
-        struct #name<'a, T> {
+        struct #name<'a, T, D: Device> {
             #fields_with_lifetimes
-        }
-        impl<'a, T: Float> WithDevice<'a, T> for #name<'a, T> {
-            fn with<'b: 'a>(device: &'b custos::CPU) -> Self {
-                Self { #with_device_chain }
-            }
         }
     }
 }
@@ -124,10 +119,13 @@ pub fn derive_params(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
 fn impl_params(name: Ident) -> TokenStream {
     quote! {
-        impl<'a, T> GetParam<'a, T> for #name<'a, T> {}
-        impl<'a, T> WithDevice<'a, T> for #name<'a, T> {}
-        impl<'a, T> #name<'a, T> {
-            pub fn with_device<'b>(_dev: &'b custos::CPU) -> #name<'a, T> {
+        impl<'a, T, D: custos::Device> GetParam<'a, T, D> for #name<'a, T, D>
+        where
+            <D as Device>::Ptr<T, ()>: Copy
+        {}
+        impl<'a, T, D: custos::Device> WithDevice<'a, T, D> for #name<'a, T, D> {}
+        impl<'a, T, D: custos::Device> #name<'a, T, D> {
+            pub fn with_device<'b>(_dev: &'b D) -> #name<'a, T, D> {
                 Self::default()
             }
         }
@@ -157,10 +155,19 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
     });
 
     let default_chain = fields
+    .iter()
+    .map(|f| {
+        let name = &f.ident;
+        quote!(#name: Default::default(),)
+    })
+    .collect::<TokenStream>();
+
+    let with_device_chain = fields
         .iter()
         .map(|f| {
             let name = &f.ident;
-            quote!(#name: Default::default(),)
+
+            quote!(#name: WithDevice::with(device),)
         })
         .collect::<TokenStream>();
 
@@ -185,24 +192,32 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
     let return_vec = quote! {vec};
 
     quote! {
-        use gradients::{GetParam, Param, Matrix, number::Number};
+        use gradients::{GetParam, Param, Matrix, number::{Number, Float}, Device, WithDevice};
 
+        impl<'a, T: Float, D: gradients::Bounds<'a, T>> WithDevice<'a, T, D> for #name<'a, T, D> {
+            fn with<'b: 'a>(device: &'b D) -> Self {
+                Self { #with_device_chain }
+            }
+        }
 
-        impl<'a, T: Number> Default for #name<'a, T> {
+        impl<'a, T: Number, D: Device> Default for #name<'a, T, D> {
             fn default() -> Self {
                 Self { #default_chain }
             }
         }
-        impl<'a, T: gradients::number::Float+gradients::CDatatype+gradients::GenericBlas + gradients::matrix_multiply::MatrixMultiply + gradients::CudaTranspose> NeuralNetwork<'a, T> for #name<'a, T> {
-            fn forward(&mut self, inputs: &Matrix<'a, T>) -> Matrix<'a, T> {
+
+        impl<'a, D: gradients::Bounds<'a, T>, T:Float+gradients::CDatatype+gradients::GenericBlas + gradients::matrix_multiply::MatrixMultiply + gradients::CudaTranspose> NeuralNetwork<'a, T, D> for #name<'a, T, D>
+        where <D as Device>::Ptr<T, ()>: Copy
+        {
+            fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D> {
                 #forward_chain
             }
 
-            fn backward(&mut self, grad: &Matrix<'a, T>) -> Matrix<'a, T> {
+            fn backward(&mut self, grad: &Matrix<'a, T, D>) -> Matrix<'a, T, D> {
                 #backward_chain
             }
 
-            fn params(&mut self) -> Vec<Param<'a, T>> {
+            fn params(&mut self) -> Vec<Param<'a, T, D>> {
                 #vec
                 #params
                 #return_vec
