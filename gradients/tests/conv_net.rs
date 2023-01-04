@@ -6,14 +6,14 @@ use gradients::NeuralNetwork;
 use purpur::{CSVLoader, Converter};
 
 #[derive(NeuralNetwork)]
-pub struct Network<'a, T> {
-    conv: Conv2D<'a, T>,
-    lin1: Linear<'a, T, { 5 * 26 * 26 }, 128>,
-    relu1: ReLU<'a, T>,
-    lin2: Linear<'a, T, 128, 10>,
-    relu2: ReLU<'a, T>,
-    lin3: Linear<'a, T, 10, 10>,
-    softmax: Softmax<'a, T>,
+pub struct Network<'a, T, D: Device> {
+    conv: Conv2D<'a, T, D>,
+    lin1: Linear<'a, T, { 5 * 26 * 26 }, 128, D>,
+    relu1: ReLU<'a, T, D>,
+    lin2: Linear<'a, T, 128, 10, D>,
+    relu2: ReLU<'a, T, D>,
+    lin3: Linear<'a, T, 10, 10, D>,
+    softmax: Softmax<'a, T, D>,
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn test_conv_net() -> custos::Result<()> {
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
     let y = y.onehot();
 
-    let mut net: Network<f32> = Network {
+    let mut net = Network {
         conv: Conv2D::new(&device, (28, 28), (3, 3), 5),
         lin1: Linear::new(&device, ()),
         lin2: Linear::new(&device, ()),
@@ -88,8 +88,7 @@ fn test_conv_net() -> custos::Result<()> {
         let preds = net.forward(&i);
         let correct_training = correct_classes(&loaded_data.y.as_usize(), &preds) as f32;
 
-        let loss = cce(&device, &preds, &y);
-
+        let (loss, grad) = preds.cce(&y);
         //println!("epoch: {epoch}, loss: {loss}");
 
         println!(
@@ -97,7 +96,6 @@ fn test_conv_net() -> custos::Result<()> {
             acc = correct_training / loaded_data.sample_count() as f32
         );
 
-        let grad = cce_grad(&device, &preds, &y);
         net.backward(&grad);
         opt.step(&device, net.params());
     }

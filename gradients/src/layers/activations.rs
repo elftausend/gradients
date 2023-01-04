@@ -1,5 +1,5 @@
 use crate::{GetParam, WithDevice};
-use custos::{number::Float, CDatatype, CloneBuf, Device, GenericBlas};
+use custos::{number::Float, CDatatype, CloneBuf, Device, GenericBlas, ShallowCopy};
 use custos_math::{
     matrix_multiply::MatrixMultiply,
     nn::{ActivationOps, SoftmaxOps},
@@ -18,7 +18,7 @@ impl<'a, T: Float + CDatatype, D: CloneBuf<'a, T> + ActivationOps<T>> ReLU<'a, T
     }
     pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
     where
-        D::Ptr<T, ()>: Copy,
+        D::Ptr<T, ()>: ShallowCopy,
     {
         self.inputs = Some(inputs.shallow_or_clone());
         inputs.relu()
@@ -53,7 +53,7 @@ impl<'a, T: CDatatype + GenericBlas + MatrixMultiply, D: CloneBuf<'a, T> + Softm
 
     pub fn forward(&mut self, x: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
     where
-        D::Ptr<T, ()>: Copy,
+        D::Ptr<T, ()>: ShallowCopy,
     {
         let activated = x.softmax();
         self.activated = Some(activated.shallow_or_clone());
@@ -90,7 +90,7 @@ impl<'a, T, D: Device> Tanh<'a, T, D> {
 impl<'a, T: Float + CDatatype, D: CloneBuf<'a, T> + ActivationOps<T>> Tanh<'a, T, D> {
     pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
     where
-        D::Ptr<T, ()>: Copy,
+        D::Ptr<T, ()>: ShallowCopy,
     {
         self.inputs = Some(inputs.shallow_or_clone());
         inputs.tanh()
@@ -125,7 +125,7 @@ impl<'a, T, D: Device> Sigmoid<'a, T, D> {
 impl<'a, T: CDatatype + Float, D: CloneBuf<'a, T> + ActivationOps<T>> Sigmoid<'a, T, D> {
     pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
     where
-        D::Ptr<T, ()>: Copy,
+        D::Ptr<T, ()>: ShallowCopy,
     {
         let activated = inputs.sigmoid();
         self.activated = Some(inputs.shallow_or_clone());

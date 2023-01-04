@@ -129,7 +129,7 @@ fn test_mnist() {
         let x = softmax.forward(&x);
 
         let (loss, grad) = x.cce(&y);
-        
+
         let x = softmax.backward(&grad);
 
         let x = lin3.backward(&x);

@@ -17,7 +17,14 @@ fn test_batch_size() -> custos::Result<()> {
 
     let sine = create_sine(&device, 0, 1000);
 
-    let dataset = Batch::new(&device, BATCH_SIZE, 1000, 1, sine.0.read(), sine.1.read());
+    let dataset = Batch::new(
+        &device,
+        BATCH_SIZE,
+        1000,
+        1,
+        sine.0.read_to_vec(),
+        sine.1.read_to_vec(),
+    );
 
     // mind order: there is somewhere a lifetime bug
     let mut net = SineNet::with(&device);

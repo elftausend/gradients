@@ -1,4 +1,4 @@
-use custos::{number::Number, CDatatype, CacheBuf, Device, MainMemory, CPU};
+use custos::{number::Number, CDatatype, Device, MainMemory, Shape, CPU};
 use custos_math::Matrix;
 use purpur::utils::max;
 
@@ -15,16 +15,16 @@ impl<'a, T: Number + CDatatype, D: OnehotOp<T>> OneHotMat<'a, T, D> for Matrix<'
     }
 }
 
-pub trait OnehotOp<T, D: Device = Self>: Device {
-    fn onehot(&self, matrix: &Matrix<T, D>) -> Matrix<T, Self>;
+pub trait OnehotOp<T, IS: Shape = (), OS: Shape = (), D: Device = Self>: Device {
+    fn onehot(&self, matrix: &Matrix<T, D, IS>) -> Matrix<T, Self, OS>;
 }
 
-impl<T: Number, D: MainMemory> OnehotOp<T, D> for CPU {
-    fn onehot(&self, matrix: &Matrix<T, D>) -> Matrix<T> {
+impl<T: Number, IS: Shape, OS: Shape, D: MainMemory> OnehotOp<T, IS, OS, D> for CPU {
+    fn onehot(&self, matrix: &Matrix<T, D, IS>) -> Matrix<T, Self, OS> {
         assert!(matrix.cols() == 1);
 
         let max = max(matrix).as_usize() + 1;
-        let mut onehot = self.cached(matrix.rows() * max);
+        let mut onehot = self.retrieve(matrix.rows() * max, matrix.as_buf());
 
         for (row, idx) in matrix.iter().enumerate() {
             for i in 0..max {

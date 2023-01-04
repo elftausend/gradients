@@ -121,7 +121,7 @@ fn impl_params(name: Ident) -> TokenStream {
     quote! {
         impl<'a, T, D: custos::Device> GetParam<'a, T, D> for #name<'a, T, D>
         where
-            <D as Device>::Ptr<T, ()>: Copy
+            <D as Device>::Ptr<T, ()>: custos::ShallowCopy
         {}
         impl<'a, T, D: custos::Device> WithDevice<'a, T, D> for #name<'a, T, D> {}
         impl<'a, T, D: custos::Device> #name<'a, T, D> {
@@ -155,12 +155,12 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
     });
 
     let default_chain = fields
-    .iter()
-    .map(|f| {
-        let name = &f.ident;
-        quote!(#name: Default::default(),)
-    })
-    .collect::<TokenStream>();
+        .iter()
+        .map(|f| {
+            let name = &f.ident;
+            quote!(#name: Default::default(),)
+        })
+        .collect::<TokenStream>();
 
     let with_device_chain = fields
         .iter()
@@ -207,7 +207,7 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
         }
 
         impl<'a, D: gradients::Bounds<'a, T>, T:Float+gradients::CDatatype+gradients::GenericBlas + gradients::matrix_multiply::MatrixMultiply + gradients::CudaTranspose> NeuralNetwork<'a, T, D> for #name<'a, T, D>
-        where <D as Device>::Ptr<T, ()>: Copy
+        where <D as Device>::Ptr<T, ()>: custos::ShallowCopy
         {
             fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D> {
                 #forward_chain

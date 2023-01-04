@@ -8,10 +8,10 @@ pub use config::*;
 pub use init::{Glorot, RandomUniform};
 pub use l2_reg::*;
 
-use custos::{number::Float, Alloc, CDatatype, CloneBuf, Device, GenericBlas, GraphReturn};
+use custos::{number::Float, Alloc, CDatatype, CloneBuf, Device, GenericBlas, ShallowCopy};
 use custos_math::{
     AdditionalOps, AssignOps, BaseOps, CudaTranspose, Gemm, Matrix, RandOp, RowOp, SumOps,
-    TransposeOp, nn::ActivationOps,
+    TransposeOp,
 };
 
 use crate::{GetParam, Param, WithDevice};
@@ -19,7 +19,14 @@ use crate::{GetParam, Param, WithDevice};
 type LinearParams<'a, T, D> = (Matrix<'a, T, D>, Option<Matrix<'a, T, D>>);
 
 // TODO: remove default types
-pub struct Linear<'a, T, const I: usize, const O: usize, D: Device = custos::CPU> {
+pub struct Linear<
+    'a,
+    T,
+    const I: usize,
+    const O: usize,
+    D: Device = custos::CPU,
+    const SAMPLES: usize = 1,
+> {
     pub weights: Matrix<'a, T, D>,
     pub bias: Option<Matrix<'a, T, D>>,
     pub dweights: Option<Matrix<'a, T, D>>,
@@ -29,14 +36,15 @@ pub struct Linear<'a, T, const I: usize, const O: usize, D: Device = custos::CPU
     pub l2_reg_loss: Option<&'a RefCell<T>>,
 }
 
-impl<'a, T: Copy + Float, D, const I: usize, const O: usize> Linear<'a, T, I, O, D>
+impl<'a, T: Copy + Float, D, const I: usize, const O: usize, const SAMPLES: usize>
+    Linear<'a, T, I, O, D, SAMPLES>
 where
-    D:  Device+ 'a,
+    D: Device + 'a,
 {
     pub fn new<'b: 'a>(
         device: &'b D,
         args: impl IntoLinearConfig<'a, T, D, I, O>,
-    ) -> Linear<'a, T, I, O, D> {
+    ) -> Linear<'a, T, I, O, D, SAMPLES> {
         let config = args.into_config();
         let (weights, bias) = config.init_params(device);
 
@@ -57,7 +65,8 @@ where
     }
 }
 
-impl<'a, T, D, const I: usize, const O: usize> WithDevice<'a, T, D> for Linear<'a, T, I, O, D>
+impl<'a, T, D, const I: usize, const O: usize, const SAMPLES: usize> WithDevice<'a, T, D>
+    for Linear<'a, T, I, O, D, SAMPLES>
 where
     T: Copy + Float,
     D: Alloc<'a, T> + RandOp<T>,
@@ -70,14 +79,15 @@ where
     }
 }
 
-impl<'a, T, D: Device, const I: usize, const O: usize> Linear<'a, T, I, O, D>
+impl<'a, T, D: Device, const I: usize, const O: usize, const SAMPLES: usize>
+    Linear<'a, T, I, O, D, SAMPLES>
 where
     T: Float + GenericBlas + CDatatype,
 {
     pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
     where
         D: CloneBuf<'a, T> + Gemm<T> + RowOp<T> + BaseOps<T> + SumOps<T>,
-        D::Ptr<T, ()>: Copy,
+        D::Ptr<T, ()>: ShallowCopy,
     {
         self.inputs = Some(inputs.shallow_or_clone());
         let mut forward = inputs.gemm(&self.weights);
@@ -126,7 +136,7 @@ where
 impl<'a, T: Copy, D: Device, const I: usize, const O: usize> GetParam<'a, T, D>
     for Linear<'a, T, I, O, D>
 where
-    D::Ptr<T, ()>: Copy,
+    D::Ptr<T, ()>: ShallowCopy,
 {
     fn params(&mut self) -> Option<Param<'a, T, D>> {
         Some(Param::new(

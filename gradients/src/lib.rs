@@ -98,7 +98,6 @@ pub fn create_line<'a, T: Float, D: Alloc<'a, T> + GraphReturn>(
     (x, y)
 }
 
-
 pub trait Bounds<'a, T>:
     CloneBuf<'a, T>
     + Gemm<T>

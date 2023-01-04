@@ -18,8 +18,8 @@ impl<'a, T, D: Device, const I: usize, const O: usize> LinearConfig<'a, T, D, I,
     }
 }
 
-impl<'a, T: Float, D: Alloc<'a, T> + RandOp<T>, const I: usize, const O: usize>
-    Default for LinearConfig<'a, T, D, I, O>
+impl<'a, T: Float, D: Alloc<'a, T> + RandOp<T>, const I: usize, const O: usize> Default
+    for LinearConfig<'a, T, D, I, O>
 {
     fn default() -> Self {
         Self {

@@ -1,5 +1,5 @@
 use custos::{number::Float, Alloc, Device};
-use custos_math::{Matrix, RandBuf, RandOp};
+use custos_math::{Matrix, RandOp};
 
 use super::LinearParams;
 
