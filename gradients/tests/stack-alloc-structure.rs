@@ -1,6 +1,6 @@
 use gradients::{
     number::Float, Buffer, CDatatype, CloneBuf, Device, Dim2, Gemm, Matrix, RowOp, ShallowCopy,
-    Shape, Stack, CPU,
+    Shape, Stack, CPU, RawConv, PtrType,
 };
 
 pub trait Forward<T, D: Device = CPU, IS: Shape = (), OS: Shape = ()> {
@@ -32,6 +32,29 @@ pub struct Linear2<'a, T, const I: usize, const O: usize, D: Device = CPU, const
     fn forward() ->
 }*/
 
+// Generify
+pub trait ToDim2<T, const A: usize, const B: usize, S: Shape>: Device {
+    fn to_dim2(&self, ptr: Self::Ptr<T, S>) -> Self::Ptr<T, Dim2<A, B>>;
+}
+
+impl<T, D: RawConv, const A: usize, const B: usize> ToDim2<T, A, B, ()> for D 
+where Self::Ptr<T, ()>: PtrType
+{
+    fn to_dim2(&self, ptr: Self::Ptr<T, ()>) -> <D as Device>::Ptr<T, Dim2<A, B>> {
+        let raw_ptr = D::construct(&ptr, ptr.len(), Default::default());
+        D::destruct(&raw_ptr).0
+    }
+}
+
+impl<T, D: Device, const A: usize, const B: usize> ToDim2<T, A, B, Dim2<A, B>> for D 
+where Self::Ptr<T, ()>: PtrType
+{
+    #[inline]
+    fn to_dim2(&self, ptr: Self::Ptr<T, Dim2<A, B>>) -> <D as Device>::Ptr<T, Dim2<A, B>> {
+        ptr
+    }
+}
+
 impl<'a, T: CDatatype + Float, const I: usize, const O: usize, D: Device, const SAMPLES: usize>
     Linear2<'a, T, I, O, D, SAMPLES>
 {
@@ -49,10 +72,14 @@ impl<'a, T: CDatatype + Float, const I: usize, const O: usize, D: Device, const 
     where
         D: CloneBuf<'a, T, IS>
             + Gemm<T, IS, Dim2<I, O>, Dim2<SAMPLES, O>>
-            + RowOp<T, Dim2<SAMPLES, O>, Dim2<1, O>, D>,
+            + RowOp<T, Dim2<SAMPLES, O>, Dim2<1, O>, D>
+            + ToDim2<T, SAMPLES, I, IS>,
         D::Ptr<T, IS>: ShallowCopy,
         IS: MayDim2<SAMPLES, I>,
     {
+
+        let mat = inputs.shallow_or_clone();
+        inputs.device().to_dim2(mat.ptr);
         /*unsafe {
             core::mem::transmute::<_, Matrix<T, D, IS>>(inputs.shallow_or_clone())
         };*/
