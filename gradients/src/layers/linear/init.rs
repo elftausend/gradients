@@ -13,7 +13,6 @@ pub struct RandomUniform<T> {
     pub max: T,
 }
 
-
 impl<T> RandomUniform<T> {
     pub fn new(min: T, max: T) -> RandomUniform<T> {
         RandomUniform { min, max }

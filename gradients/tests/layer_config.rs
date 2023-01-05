@@ -42,10 +42,7 @@ fn test_net() {
                 ..Default::default()
             },
         ),
-        lin2: Linear::new(
-            &device,
-            init
-        ),
+        lin2: Linear::new(&device, init),
         ..WithDevice::with(&device)
     };
 

@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use core::cell::RefCell;
 
 use super::{init::Init, LinearParams};
 use crate::linear::Glorot;
@@ -73,7 +73,7 @@ pub struct L2<T>(pub T);
 impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for L2<T>
 where
     T: Float,
-    D: Alloc<'a, T>  + 'a + RandOp<T>,
+    D: Alloc<'a, T> + 'a + RandOp<T>,
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
         LinearConfig {
@@ -93,10 +93,9 @@ macro_rules! impl_into_linear_conf {
                         ..Default::default()
                     }
                 }
-            }        
+            }
         )*
     };
 }
 
-impl_into_linear_conf!{super::RandomUniform<T>, Glorot}
-
+impl_into_linear_conf! {super::RandomUniform<T>, Glorot}

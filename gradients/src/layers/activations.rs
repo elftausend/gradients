@@ -1,7 +1,6 @@
 use crate::{GetParam, WithDevice};
-use custos::{number::Float, CDatatype, CloneBuf, Device, GenericBlas, ShallowCopy};
+use custos::{CloneBuf, Device, ShallowCopy};
 use custos_math::{
-    matrix_multiply::MatrixMultiply,
     nn::{ActivationOps, SoftmaxOps},
     BaseOps, Matrix,
 };
@@ -12,7 +11,7 @@ pub struct ReLU<'a, T, D: Device> {
     inputs: Option<Matrix<'a, T, D>>,
 }
 
-impl<'a, T: Float + CDatatype, D: CloneBuf<'a, T> + ActivationOps<T>> ReLU<'a, T, D> {
+impl<'a, T: Clone, D: CloneBuf<'a, T> + ActivationOps<T>> ReLU<'a, T, D> {
     pub fn new() -> ReLU<'a, T, D> {
         ReLU { inputs: None }
     }
@@ -44,7 +43,7 @@ pub struct Softmax<'a, T, D: Device> {
     activated: Option<Matrix<'a, T, D>>,
 }
 
-impl<'a, T: CDatatype + GenericBlas + MatrixMultiply, D: CloneBuf<'a, T> + SoftmaxOps<T>>
+impl<'a, T: Clone, D: CloneBuf<'a, T> + SoftmaxOps<T>>
     Softmax<'a, T, D>
 {
     pub fn new() -> Self {
@@ -87,7 +86,7 @@ impl<'a, T, D: Device> Tanh<'a, T, D> {
     }
 }
 
-impl<'a, T: Float + CDatatype, D: CloneBuf<'a, T> + ActivationOps<T>> Tanh<'a, T, D> {
+impl<'a, T: Clone, D: CloneBuf<'a, T> + ActivationOps<T>> Tanh<'a, T, D> {
     pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
     where
         D::Ptr<T, ()>: ShallowCopy,
@@ -122,7 +121,7 @@ impl<'a, T, D: Device> Sigmoid<'a, T, D> {
     }
 }
 
-impl<'a, T: CDatatype + Float, D: CloneBuf<'a, T> + ActivationOps<T>> Sigmoid<'a, T, D> {
+impl<'a, T: Clone, D: CloneBuf<'a, T> + ActivationOps<T>> Sigmoid<'a, T, D> {
     pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
     where
         D::Ptr<T, ()>: ShallowCopy,

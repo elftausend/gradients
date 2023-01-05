@@ -118,7 +118,7 @@ where
 
         let y = &self.y[self.batch_progress..self.batch_progress + batch_size];
 
-        let mut buf_y = Cache::get::<U, ()>(self.device, y.len(), ());
+        let mut buf_y = Cache::get(self.device, y.len(), ());
         buf_y.write(y);
 
         self.batch_progress += batch_size;

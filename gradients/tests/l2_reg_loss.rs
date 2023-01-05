@@ -36,7 +36,7 @@ fn test_l2_reg_loss() {
 
         println!("epoch: {epoch}, reg_loss: {l2}, loss: {loss},");
 
-        println!("weights: {:?}", net.linear1.weights);
+        //println!("weights: {:?}", net.linear1.weights);
 
         l2.zero();
     }

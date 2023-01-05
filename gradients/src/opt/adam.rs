@@ -80,7 +80,7 @@ fn adam_step_cpu<T: Float>(
     }
 }
 
-impl<'a, T: CDatatype + Float> AdamOp<'a, T> for CPU {
+impl<'a, T: Float> AdamOp<'a, T> for CPU {
     fn step(&'a self, adam: &mut Adam<'a, T>, mut params: Vec<Param<'a, T>>) {
         for (idx, param) in params.iter_mut().enumerate() {
             adam_step_cpu(

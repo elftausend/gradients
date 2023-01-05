@@ -1,5 +1,5 @@
 use crate::Param;
-use custos::{Alloc, CDatatype, Device, GraphReturn, MainMemory, CPU};
+use custos::{Alloc, CDatatype, Device, GraphReturn, MainMemory, CPU, prelude::Number};
 use custos_math::{AdditionalOps, AssignOps, BaseOps, Matrix};
 
 #[cfg(feature = "opencl")]
@@ -12,7 +12,7 @@ pub struct SGD<'a, T, D: Device = CPU> {
     momentum: T,
 }
 
-impl<'a, T: CDatatype, D> SGD<'a, T, D>
+impl<'a, T: Number, D> SGD<'a, T, D>
 where
     D: Alloc<'a, T> + SGDOp<T> + GraphReturn,
 {
@@ -48,7 +48,7 @@ where
     }
 }
 
-pub trait SGDOp<T: CDatatype, D: Device = Self>:
+pub trait SGDOp<T: Number, D: Device = Self>:
     BaseOps<T> + AssignOps<T> + AdditionalOps<T>
 {
     fn step(&self, sgd: &mut SGD<T, D>, params: Vec<Param<T, D>>)
@@ -66,7 +66,7 @@ pub trait SGDOp<T: CDatatype, D: Device = Self>:
     fn step_momentum(&self, sgd: &mut SGD<T, D>, params: Vec<Param<T, D>>);
 }
 
-impl<T: CDatatype, D: MainMemory> SGDOp<T, D> for CPU {
+impl<T: Number, D: MainMemory> SGDOp<T, D> for CPU {
     fn step_momentum(&self, sgd: &mut SGD<T, D>, mut params: Vec<Param<T, D>>) {
         for (layer_idx, param) in params.iter_mut().enumerate() {
             for (idx, w) in param.weights.iter_mut().enumerate() {
