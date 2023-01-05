@@ -12,11 +12,13 @@ struct SineNet {
 fn main() {
     let device = CPU::new();
 
+    let init = &RandomUniform::new(-0.5, 0.5);
+
     let _: SineNet<f32, _> = SineNet {
         linear1: Linear::new(
             &device,
             LinearConfig {
-                init: RandomUniform::new(-0.5, 0.5),
+                init,
                 bias: false,
                 l2_reg: 2.,
                 ..Default::default()

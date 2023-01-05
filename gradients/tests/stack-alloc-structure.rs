@@ -1,6 +1,6 @@
 use gradients::{
     number::Float, Buffer, CDatatype, CloneBuf, Device, Dim2, Gemm, Matrix, RowOp, ShallowCopy,
-    Shape, Stack, CPU, RawConv, PtrType,
+    Shape, Stack, CPU, RawConv, PtrType, ToDim
 };
 
 pub trait Forward<T, D: Device = CPU, IS: Shape = (), OS: Shape = ()> {
@@ -25,35 +25,12 @@ pub struct Linear2<'a, T, const I: usize, const O: usize, D: Device = CPU, const
 {
     weights: Matrix<'a, T, D, Dim2<I, O>>,
     bias: Option<Matrix<'a, T, D, Dim2<1, O>>>,
-    inputs: Matrix<'a, T, D, Dim2<SAMPLES, I>>,
+    inputs: Option<Matrix<'a, T, D, Dim2<SAMPLES, I>>>,
 }
 
 /*pub trait Forward2<const N: usize = 0> {
     fn forward() ->
 }*/
-
-// Generify
-pub trait ToDim2<T, const A: usize, const B: usize, S: Shape>: Device {
-    fn to_dim2(&self, ptr: Self::Ptr<T, S>) -> Self::Ptr<T, Dim2<A, B>>;
-}
-
-impl<T, D: RawConv, const A: usize, const B: usize> ToDim2<T, A, B, ()> for D 
-where Self::Ptr<T, ()>: PtrType
-{
-    fn to_dim2(&self, ptr: Self::Ptr<T, ()>) -> <D as Device>::Ptr<T, Dim2<A, B>> {
-        let raw_ptr = D::construct(&ptr, ptr.len(), Default::default());
-        D::destruct(&raw_ptr).0
-    }
-}
-
-impl<T, D: Device, const A: usize, const B: usize> ToDim2<T, A, B, Dim2<A, B>> for D 
-where Self::Ptr<T, ()>: PtrType
-{
-    #[inline]
-    fn to_dim2(&self, ptr: Self::Ptr<T, Dim2<A, B>>) -> <D as Device>::Ptr<T, Dim2<A, B>> {
-        ptr
-    }
-}
 
 impl<'a, T: CDatatype + Float, const I: usize, const O: usize, D: Device, const SAMPLES: usize>
     Linear2<'a, T, I, O, D, SAMPLES>
@@ -68,22 +45,17 @@ impl<'a, T: CDatatype + Float, const I: usize, const O: usize, D: Device, const 
         todo!()
     }
 
-    pub fn forward_samples<IS>(&self, inputs: &Matrix<'a, T, D, IS>) -> Matrix<T, D, Dim2<SAMPLES, O>>
+    pub fn forward_samples<IS>(&mut self, inputs: &Matrix<'a, T, D, IS>) -> Matrix<T, D, Dim2<SAMPLES, O>>
     where
         D: CloneBuf<'a, T, IS>
             + Gemm<T, IS, Dim2<I, O>, Dim2<SAMPLES, O>>
             + RowOp<T, Dim2<SAMPLES, O>, Dim2<1, O>, D>
-            + ToDim2<T, SAMPLES, I, IS>,
+            + ToDim<T, IS, Dim2<SAMPLES, I>>,
         D::Ptr<T, IS>: ShallowCopy,
         IS: MayDim2<SAMPLES, I>,
     {
-
-        let mat = inputs.shallow_or_clone();
-        inputs.device().to_dim2(mat.ptr);
-        /*unsafe {
-            core::mem::transmute::<_, Matrix<T, D, IS>>(inputs.shallow_or_clone())
-        };*/
-
+        self.inputs = Some(inputs.shallow_or_clone().to_dims());
+        
         let mut forward = inputs.gemm(&self.weights);
 
         if let Some(bias) = &self.bias {
@@ -132,8 +104,8 @@ fn test_forward_stack() {
 
     let inputs = Matrix::from((&device, 2, 10, [3f32; 2 * 10]));
 
-    let lin1 = Linear2::<f32, 10, 100>::new();
-    let lin2 = Linear2::<f32, 100, 90>::new();
+    let mut lin1 = Linear2::<f32, 10, 100>::new();
+    let mut lin2 = Linear2::<f32, 100, 90>::new();
 
     let x = lin1.forward_samples(&inputs);
 
@@ -150,8 +122,8 @@ fn test_forward_stack() {
 
     let inputs = Matrix::<_, _, Dim2<1, 10>>::from((&device, 1, 10, [3f32; 1 * 10]));
 
-    let lin1 = Linear2::<f32, 10, 100, Stack>::new();
-    let lin2 = Linear2::<f32, 100, 90, Stack>::new();
+    let mut lin1 = Linear2::<f32, 10, 100, Stack>::new();
+    let mut lin2 = Linear2::<f32, 100, 90, Stack>::new();
 
     let out = lin1.forward_samples(&inputs);
     let out = lin2.forward_samples(&out);

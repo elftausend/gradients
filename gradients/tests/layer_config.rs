@@ -32,13 +32,19 @@ pub struct Network {
 fn test_net() {
     let device = CPU::new();
 
+    let init = &RandomUniform::new(-5., 5.);
+
     let net: Network<f32, _> = Network {
         lin1: Linear::new(
             &device,
             LinearConfig {
-                init: RandomUniform::new(-5., 5.),
+                init,
                 ..Default::default()
             },
+        ),
+        lin2: Linear::new(
+            &device,
+            init
         ),
         ..WithDevice::with(&device)
     };

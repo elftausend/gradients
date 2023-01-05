@@ -2,11 +2,11 @@ use std::cell::RefCell;
 
 use super::{init::Init, LinearParams};
 use crate::linear::Glorot;
-use custos::{number::Float, Alloc, Device, GraphReturn};
+use custos::{number::Float, Alloc, Device};
 use custos_math::RandOp;
 
 pub struct LinearConfig<'a, T, D, const I: usize, const O: usize> {
-    pub init: Box<dyn Init<'a, T, D, I, O>>,
+    pub init: &'a dyn Init<'a, T, D, I, O>,
     pub bias: bool,
     pub l2_reg: T,
     pub l2_reg_loss: Option<&'a RefCell<T>>,
@@ -23,7 +23,7 @@ impl<'a, T: Float, D: Alloc<'a, T> + RandOp<T>, const I: usize, const O: usize> 
 {
     fn default() -> Self {
         Self {
-            init: Box::new(Glorot),
+            init: &Glorot,
             bias: true,
             l2_reg: T::default(),
             l2_reg_loss: None,
@@ -58,7 +58,7 @@ pub struct Bias(pub bool);
 impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for Bias
 where
     T: Float,
-    D: Alloc<'a, T> + GraphReturn + 'a + RandOp<T>,
+    D: Alloc<'a, T> + 'a + RandOp<T>,
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
         LinearConfig {
@@ -73,7 +73,7 @@ pub struct L2<T>(pub T);
 impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for L2<T>
 where
     T: Float,
-    D: Alloc<'a, T> + GraphReturn + 'a + RandOp<T>,
+    D: Alloc<'a, T>  + 'a + RandOp<T>,
 {
     fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
         LinearConfig {
@@ -82,3 +82,21 @@ where
         }
     }
 }
+
+macro_rules! impl_into_linear_conf {
+    ($($impl_type:ty),*) => {
+        $(
+            impl<'a, T: Float, D: Alloc<'a, T>  + 'a + RandOp<T>, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for &'a $impl_type {
+                fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
+                    LinearConfig {
+                        init: self,
+                        ..Default::default()
+                    }
+                }
+            }        
+        )*
+    };
+}
+
+impl_into_linear_conf!{super::RandomUniform<T>, Glorot}
+

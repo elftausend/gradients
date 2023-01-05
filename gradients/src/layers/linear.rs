@@ -166,7 +166,7 @@ mod tests {
         let linear = Linear::<f32, 8, 16>::new(
             &device,
             LinearConfig {
-                init: Glorot::new(),
+                init: &Glorot,
                 bias: false,
                 ..Default::default()
             },

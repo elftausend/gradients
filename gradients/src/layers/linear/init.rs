@@ -7,23 +7,25 @@ pub trait Init<'a, T, D: Device, const I: usize, const O: usize> {
     fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T, D>;
 }
 
+#[derive(Debug)]
 pub struct RandomUniform<T> {
     pub min: T,
     pub max: T,
 }
 
+
 impl<T> RandomUniform<T> {
-    pub fn new(min: T, max: T) -> Box<RandomUniform<T>> {
-        Box::new(RandomUniform { min, max })
+    pub fn new(min: T, max: T) -> RandomUniform<T> {
+        RandomUniform { min, max }
     }
-    pub fn one() -> Box<RandomUniform<T>>
+    pub fn one() -> RandomUniform<T>
     where
         T: Float,
     {
-        Box::new(RandomUniform {
+        RandomUniform {
             min: -T::one(),
             max: T::one(),
-        })
+        }
     }
 }
 
@@ -48,8 +50,9 @@ where
 pub struct Glorot;
 
 impl Glorot {
-    pub fn new() -> Box<Self> {
-        Box::new(Self {})
+    #[inline]
+    pub fn new() -> Self {
+        Glorot
     }
 }
 
