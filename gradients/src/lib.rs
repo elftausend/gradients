@@ -111,6 +111,7 @@ pub trait Bounds<'a, T>:
     + RandOp<T>
     + nn::ActivationOps<T>
     + nn::SoftmaxOps<T>
+    + SumOverOps<T>
 {
 }
 
@@ -128,7 +129,8 @@ impl<
             + Alloc<'a, T>
             + RandOp<T>
             + nn::ActivationOps<T>
-            + nn::SoftmaxOps<T>,
+            + nn::SoftmaxOps<T>
+            + SumOverOps<T>,
     > Bounds<'a, T> for D
 {
 }

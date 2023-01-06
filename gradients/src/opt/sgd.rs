@@ -1,5 +1,5 @@
 use crate::Param;
-use custos::{Alloc, CDatatype, Device, GraphReturn, MainMemory, CPU, prelude::Number};
+use custos::{prelude::Number, Alloc, CDatatype, Device, GraphReturn, MainMemory, CPU};
 use custos_math::{AdditionalOps, AssignOps, BaseOps, Matrix};
 
 #[cfg(feature = "opencl")]
@@ -48,9 +48,7 @@ where
     }
 }
 
-pub trait SGDOp<T: Number, D: Device = Self>:
-    BaseOps<T> + AssignOps<T> + AdditionalOps<T>
-{
+pub trait SGDOp<T: Number, D: Device = Self>: BaseOps<T> + AssignOps<T> + AdditionalOps<T> {
     fn step(&self, sgd: &mut SGD<T, D>, params: Vec<Param<T, D>>)
     where
         D: BaseOps<T> + AssignOps<T> + AdditionalOps<T>,

@@ -28,7 +28,7 @@ fn test_xor() -> custos::Result<()> {
     let mut net = Xor {
         lin1: Linear::new(&device, ()),
         lin2: Linear::new(&device, ()),
-        ..Default::default()
+        ..WithDevice::with(&device)
     };
 
     let mut adam = Adam::new(0.001);

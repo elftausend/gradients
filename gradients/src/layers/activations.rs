@@ -43,9 +43,7 @@ pub struct Softmax<'a, T, D: Device> {
     activated: Option<Matrix<'a, T, D>>,
 }
 
-impl<'a, T: Clone, D: CloneBuf<'a, T> + SoftmaxOps<T>>
-    Softmax<'a, T, D>
-{
+impl<'a, T: Clone, D: CloneBuf<'a, T> + SoftmaxOps<T>> Softmax<'a, T, D> {
     pub fn new() -> Self {
         Softmax { activated: None }
     }

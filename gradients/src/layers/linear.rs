@@ -2,16 +2,21 @@ mod config;
 mod init;
 mod l2_reg;
 
-use std::cell::RefCell;
+use std::{
+    cell::RefCell,
+    ops::{AddAssign, Mul},
+};
 
 pub use config::*;
 pub use init::{Glorot, RandomUniform};
 pub use l2_reg::*;
 
-use custos::{number::Float, Alloc, CDatatype, CloneBuf, Device, GenericBlas, ShallowCopy};
+use custos::{
+    number::Float, prelude::Number, Alloc, CDatatype, CloneBuf, Device, GenericBlas, ShallowCopy,
+};
 use custos_math::{
     AdditionalOps, AssignOps, BaseOps, CudaTranspose, Gemm, Matrix, RandOp, RowOp, SumOps,
-    TransposeOp,
+    SumOverOps, TransposeOp,
 };
 
 use crate::{GetParam, Param, WithDevice};
@@ -82,7 +87,7 @@ where
 impl<'a, T, D: Device, const I: usize, const O: usize, const SAMPLES: usize>
     Linear<'a, T, I, O, D, SAMPLES>
 where
-    T: Float + GenericBlas + CDatatype,
+    T: AddAssign + Mul<Output = T> + Copy,
 {
     pub fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
     where
@@ -111,8 +116,8 @@ where
 
     pub fn backward(&mut self, grad: &Matrix<'a, T, D>) -> Matrix<'a, T, D>
     where
-        T: CudaTranspose,
-        D: TransposeOp<T> + AdditionalOps<T> + AssignOps<T> + Gemm<T> + RowOp<T> + SumOps<T>,
+        T: Number,
+        D: TransposeOp<T> + AdditionalOps<T> + AssignOps<T> + Gemm<T> + RowOp<T> + SumOverOps<T>,
     {
         if self.bias.is_some() {
             self.dbias = Some(grad.sum_rows());
