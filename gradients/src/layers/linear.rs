@@ -4,7 +4,7 @@ mod l2_reg;
 
 use std::{
     cell::RefCell,
-    ops::{AddAssign, Mul},
+    ops::{AddAssign, Mul}, marker::PhantomData,
 };
 
 pub use config::*;
@@ -12,16 +12,147 @@ pub use init::{Glorot, RandomUniform};
 pub use l2_reg::*;
 
 use custos::{
-    number::Float, prelude::Number, Alloc, CDatatype, CloneBuf, Device, GenericBlas, ShallowCopy,
+    number::Float, prelude::Number, Alloc, CDatatype, CloneBuf, Device, GenericBlas, ShallowCopy, Dim2, CPU, ToDim, MayDim2, RawConv, Shape, IsShapeIndep,
 };
 use custos_math::{
     AdditionalOps, AssignOps, BaseOps, CudaTranspose, Gemm, Matrix, RandOp, RowOp, SumOps,
     SumOverOps, TransposeOp,
 };
 
-use crate::{GetParam, Param, WithDevice};
+use crate::{GetParam, Param, WithDevice, Activation, Params};
 
 type LinearParams<'a, T, D> = (Matrix<'a, T, D>, Option<Matrix<'a, T, D>>);
+
+#[rustfmt::skip]
+pub struct Linear2<'a, T, const I: usize, const O: usize, D = CPU, A = (), const SAMPLES: usize=1> 
+where 
+    D: Device, 
+    //A: Activation<'a, T, D, Dim2<SAMPLES, O>>
+{
+    weights: Matrix<'a, T, D, Dim2<I, O>>,
+    bias: Option<Matrix<'a, T, D, Dim2<1, O>>>,
+    inputs: Option<Matrix<'a, T, D, Dim2<SAMPLES, I>>>,
+    activation_inputs: Option<Matrix<'a, T, D, Dim2<SAMPLES, O>>>,
+    dweights: Option<Matrix<'a, T, D>>,
+    dbias: Option<Matrix<'a, T, D>>,
+    pub l2_reg: T,
+    _p: PhantomData<A>
+}
+
+impl<'a, T, const I: usize, const O: usize, D, A, const SAMPLES: usize>
+    Linear2<'a, T, I, O, D, A, SAMPLES>
+where
+    T: Number,
+    D: Device,
+    // A: Activation<'a, T, D, Dim2<SAMPLES, O>>,
+{
+    pub fn new(device: &'a D) -> Self
+    where
+        D: Alloc<'a, T, Dim2<I, O>>,
+    {
+        Linear2 {
+            weights: Matrix::new(device, (I, O)),
+            bias: None,
+            inputs: None,
+            activation_inputs: None,
+            dweights: None,
+            dbias: None,
+            l2_reg: T::default(),
+            _p: PhantomData,
+        }
+    }
+
+    pub fn forward<IS>(
+        &mut self,
+        inputs: &Matrix<'a, T, D, IS>,
+    ) -> Matrix<'a, T, D, Dim2<SAMPLES, O>>
+    where
+        D: CloneBuf<'a, T, IS>
+            + CloneBuf<'a, T, Dim2<SAMPLES, O>>
+            + Gemm<T, IS, Dim2<I, O>, Dim2<SAMPLES, O>>
+            + RowOp<T, Dim2<SAMPLES, O>, Dim2<1, O>, D>
+            + ToDim<T, IS, Dim2<SAMPLES, I>>,
+        D::Ptr<T, IS>: ShallowCopy,
+        D::Ptr<T, Dim2<SAMPLES, O>>: ShallowCopy,
+        IS: MayDim2<SAMPLES, I>,
+        A: Activation<'a, T, D, Dim2<SAMPLES, O>>,
+    {
+        self.inputs = Some(inputs.shallow_or_clone().to_dims());
+
+        let mut forward = inputs.gemm(&self.weights);
+
+        if let Some(bias) = &self.bias {
+            forward.add_row_mut(bias);
+        }
+
+        self.activation_inputs = Some(forward.shallow_or_clone());
+
+        // activation function
+        A::forward(forward)
+    }
+
+    pub fn backward<IS>(&mut self, grads: Matrix<'a, T, D, IS>) -> Matrix<'a, T, D>
+    where
+        D: TransposeOp<T, Dim2<I, O>>
+            + RawConv // TODO: IsShapeIndep
+            + TransposeOp<T, Dim2<SAMPLES, I>>
+            + ToDim<T, IS, Dim2<SAMPLES, O>>
+            + AdditionalOps<T>
+            + AssignOps<T>
+            + Gemm<T>
+            + RowOp<T>
+            + SumOverOps<T>,
+        A: Activation<'a, T, D>,
+        IS: Shape,
+    {
+        let grads = grads.to_dims::<()>();
+
+        // activation fn backwards
+        let grads = A::backward(
+            self.activation_inputs.as_mut().unwrap().as_dims_mut(),
+            grads,
+        );
+
+        if self.bias.is_some() {
+            self.dbias = Some(grads.sum_rows());
+        }
+
+        let mut dweights = self.inputs.as_ref().unwrap().T().gemm(&grads);
+
+        if self.l2_reg > T::zero() {
+            dweights += self.weights.as_dims() * (self.l2_reg * T::two());
+
+            if let Some(dbias) = &mut self.dbias {
+                *dbias += self.bias.as_ref().unwrap().as_dims() * (self.l2_reg * T::two())
+            }
+        }
+        self.dweights = Some(dweights);
+
+        grads.gemm(&self.weights.T())
+    }
+
+    pub fn params<'b>(&'b mut self) -> Params<'b, T, D>
+    where
+        D: IsShapeIndep,
+    {
+        let dweights = self
+            .dweights
+            .as_ref()
+            .expect(".backward() on this layer should be called at this moment");
+
+        let weights = self.weights.as_dims_mut();
+
+        let bias = self.bias.as_mut().map(|bias| bias.as_dims_mut());
+
+        Params {
+            weights,
+            bias,
+            dweights,
+            dbias: self.dbias.as_ref(),
+        }
+    }
+}
+
 
 // TODO: remove default types
 pub struct Linear<

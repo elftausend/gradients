@@ -86,14 +86,8 @@ where
             _p: PhantomData,
         }
     }
-    pub fn forward<const N: usize, IS2: MayDim2<N, I>>(
-        &self,
-        inputs: &Matrix<T, D, IS2>,
-    ) -> Matrix<T, D, Dim2<N, O>> {
-        todo!()
-    }
 
-    pub fn forward_samples<IS>(
+    pub fn forward<IS>(
         &mut self,
         inputs: &Matrix<'a, T, D, IS>,
     ) -> Matrix<'a, T, D, Dim2<SAMPLES, O>>
@@ -160,13 +154,6 @@ where
         self.dweights = Some(dweights);
 
         grads.gemm(&self.weights.T())
-    }
-
-    pub fn forward_const_n<const N: usize, IS: MayDim2<N, I>, OS: MayDim2<N, O>>(
-        &self,
-        inputs: &Matrix<T, D, IS>,
-    ) -> Matrix<T, D, OS> {
-        todo!()
     }
 
     pub fn params<'b>(&'b mut self) -> Params<'b, T, D>
@@ -243,8 +230,8 @@ fn test_stack_cpu_network() {
     let inputs = Matrix::from((&device, 1, 10, [3f32; 1 * 10]));
 
     for _ in 0..1000 {
-        let out = network.lin1.forward_samples(&inputs);
-        let out = network.lin2.forward_samples(&out);
+        let out = network.lin1.forward(&inputs);
+        let out = network.lin2.forward(&out);
 
         let (loss, grad) = out.cce(&out);
 
@@ -265,8 +252,8 @@ fn test_forward_stack() {
 
     let inputs = Matrix::from((&device, 2, 10, [3f32; 2 * 10]));
 
-    let x = lin1.forward_samples(&inputs);
-    let a = lin2.forward_samples(&x);
+    let x = lin1.forward(&inputs);
+    let a = lin2.forward(&x);
 
     let grad = Matrix::from((&device, 2, 10, [3f32; 2 * 10]));
     let out = lin2.backward(grad);
@@ -286,8 +273,8 @@ fn test_forward_stack() {
     let mut lin1 = Linear2::<f32, 10, 100, Stack, ReLU>::new(&device);
     let mut lin2 = Linear2::<f32, 100, 90, Stack, ReLU>::new(&device);
 
-    let out = lin1.forward_samples(&inputs);
-    let out = lin2.forward_samples(&out);
+    let out = lin1.forward(&inputs);
+    let out = lin2.forward(&out);
 
     //let lin1 = Linear::<f32, Stack, Dim2<10, 100>, Dim2<1, 100>>::new();
     //let lin2 = Linear::<f32, Stack>::new();

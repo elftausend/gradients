@@ -1,10 +1,52 @@
 use crate::{GetParam, WithDevice};
-use custos::{CloneBuf, Device, ShallowCopy};
+use custos::{CloneBuf, Device, ShallowCopy, Shape};
 use custos_math::{
     nn::{ActivationOps, SoftmaxOps},
-    BaseOps, Matrix,
+    BaseOps, Matrix, AssignOps,
 };
 use gradients_derive::NoParams;
+
+pub trait Activation<'a, T, D: Device, S: Shape = ()> {
+    fn forward(inputs: Matrix<'a, T, D, S>) -> Matrix<'a, T, D, S>;
+    fn backward(
+        inputs: &mut Matrix<'a, T, D, S>,
+        grads: Matrix<'a, T, D, S>,
+    ) -> Matrix<'a, T, D, S>;
+}
+
+impl<'a, T, D: Device + 'a, S: Shape> Activation<'a, T, D, S> for () {
+    #[inline]
+    fn forward(inputs: Matrix<'a, T, D, S>) -> Matrix<'a, T, D, S> {
+        inputs
+    }
+
+    #[inline]
+    fn backward(
+        _inputs: &mut Matrix<'a, T, D, S>,
+        grads: Matrix<'a, T, D, S>,
+    ) -> Matrix<'a, T, D, S> {
+        grads
+    }
+}
+
+pub struct ReLU2;
+
+impl<'a, T, D: ActivationOps<T, S> + AssignOps<T, S>, S: Shape> Activation<'a, T, D, S> for ReLU2 {
+    #[inline]
+    fn forward(mut inputs: Matrix<'a, T, D, S>) -> Matrix<'a, T, D, S> {
+        inputs.relu_mut();
+        inputs
+    }
+
+    fn backward(
+        inputs: &mut Matrix<'a, T, D, S>,
+        mut grads: Matrix<'a, T, D, S>,
+    ) -> Matrix<'a, T, D, S> {
+        inputs.relu_grad_mut();
+        grads *= &*inputs;
+        grads
+    }
+}
 
 #[derive(NoParams)]
 pub struct ReLU<'a, T, D: Device> {
@@ -37,6 +79,7 @@ impl<'a, T, D: Device> Default for ReLU<'a, T, D> {
         }
     }
 }
+
 
 #[derive(NoParams)]
 pub struct Softmax<'a, T, D: Device> {
