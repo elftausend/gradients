@@ -2,7 +2,7 @@ use crate::{GetParam, WithDevice};
 use custos::{CloneBuf, Device, ShallowCopy, Shape};
 use custos_math::{
     nn::{ActivationOps, SoftmaxOps},
-    BaseOps, Matrix, AssignOps,
+    AssignOps, BaseOps, Matrix,
 };
 use gradients_derive::NoParams;
 
@@ -79,7 +79,6 @@ impl<'a, T, D: Device> Default for ReLU<'a, T, D> {
         }
     }
 }
-
 
 #[derive(NoParams)]
 pub struct Softmax<'a, T, D: Device> {

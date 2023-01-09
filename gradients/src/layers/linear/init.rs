@@ -1,10 +1,14 @@
-use custos::{number::Float, Alloc, Device};
+use custos::{number::Float, Alloc, Device, Dim2, WithShape};
 use custos_math::{Matrix, RandOp};
 
-use super::LinearParams;
+use super::{LinearParams, LinearParams2};
 
 pub trait Init<'a, T, D: Device, const I: usize, const O: usize> {
     fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T, D>;
+}
+
+pub trait Init2<'a, T, D: Device, const I: usize, const O: usize> {
+    fn init2(&self, device: &'a D, with_bias: bool) -> LinearParams2<'a, T, D, I, O>;
 }
 
 #[derive(Debug)]
@@ -25,6 +29,26 @@ impl<T> RandomUniform<T> {
             min: -T::one(),
             max: T::one(),
         }
+    }
+}
+
+impl<'a, T, D, const I: usize, const O: usize> Init2<'a, T, D, I, O> for RandomUniform<T>
+where
+    T: Copy,
+    D: Alloc<'a, T, Dim2<I, O>> + RandOp<T, Dim2<I, O>> + 'a,
+    custos::Buffer<'a, T, D, Dim2<I, O>>: WithShape<&'a D, ()>,
+    custos::Buffer<'a, T, D, Dim2<1, O>>: WithShape<&'a D, ()>,
+{
+    fn init2(&self, device: &'a D, with_bias: bool) -> LinearParams2<'a, T, D, I, O> {
+        let mut weights = Matrix::with(device, ());
+        weights.rand(self.min, self.max);
+
+        let mut bias = None;
+        if with_bias {
+            bias = Some(Matrix::with(device, ()));
+        }
+
+        (weights, bias)
     }
 }
 
@@ -52,6 +76,29 @@ impl Glorot {
     #[inline]
     pub fn new() -> Self {
         Glorot
+    }
+}
+
+impl<'a, T, D, const I: usize, const O: usize> Init2<'a, T, D, I, O> for Glorot
+where
+    T: Float,
+    D: Alloc<'a, T, Dim2<I, O>> + RandOp<T, Dim2<I, O>> + 'a,
+    custos::Buffer<'a, T, D, Dim2<I, O>>: WithShape<&'a D, ()>,
+    custos::Buffer<'a, T, D, Dim2<1, O>>: WithShape<&'a D, ()>,
+{
+    fn init2(&self, device: &'a D, with_bias: bool) -> LinearParams2<'a, T, D, I, O> {
+        let mut weights = Matrix::with(device, ());
+
+        let glorot = (T::from_usize(6) / T::from_usize(I + O)).sqrt();
+
+        weights.rand(-glorot, glorot);
+
+        let mut bias = None;
+        if with_bias {
+            bias = Some(Matrix::with(device, ()));
+        }
+
+        (weights, bias)
     }
 }
 

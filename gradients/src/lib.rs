@@ -43,7 +43,6 @@ pub struct Params<'a, T, D: Device> {
     dbias: Option<&'a Matrix<'a, T, D>>,
 }
 
-
 pub struct Param<'a, T, D: Device = CPU> {
     pub weights: Matrix<'a, T, D>,
     pub bias: Option<Matrix<'a, T, D>>,
@@ -73,7 +72,7 @@ pub trait NeuralNetwork<'a, T, D: Device> {
     fn params(&mut self) -> Vec<Param<'a, T, D>>;
 }
 
-pub fn create_sine<'a, D: Alloc<'a, f32> + GraphReturn>(
+pub fn create_sine<'a, D: Alloc<'a, f32> + IsShapeIndep>(
     device: &'a D,
     min: usize,
     max: usize,
@@ -91,7 +90,7 @@ pub fn create_sine<'a, D: Alloc<'a, f32> + GraphReturn>(
     (x, y)
 }
 
-pub fn create_line<'a, T: Float, D: Alloc<'a, T> + GraphReturn>(
+pub fn create_line<'a, T: Float, D: Alloc<'a, T> + IsShapeIndep>(
     device: &'a D,
     min: usize,
     max: usize,

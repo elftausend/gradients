@@ -4,7 +4,8 @@ mod l2_reg;
 
 use std::{
     cell::RefCell,
-    ops::{AddAssign, Mul}, marker::PhantomData,
+    marker::PhantomData,
+    ops::{AddAssign, Mul},
 };
 
 pub use config::*;
@@ -12,16 +13,22 @@ pub use init::{Glorot, RandomUniform};
 pub use l2_reg::*;
 
 use custos::{
-    number::Float, prelude::Number, Alloc, CDatatype, CloneBuf, Device, GenericBlas, ShallowCopy, Dim2, CPU, ToDim, MayDim2, RawConv, Shape, IsShapeIndep,
+    number::Float, prelude::Number, Alloc, CDatatype, CloneBuf, Device, Dim2, GenericBlas,
+    IsShapeIndep, MayDim2, RawConv, ShallowCopy, Shape, ToDim, CPU,
 };
 use custos_math::{
     AdditionalOps, AssignOps, BaseOps, CudaTranspose, Gemm, Matrix, RandOp, RowOp, SumOps,
     SumOverOps, TransposeOp,
 };
 
-use crate::{GetParam, Param, WithDevice, Activation, Params};
+use crate::{Activation, GetParam, Param, Params, WithDevice};
 
 type LinearParams<'a, T, D> = (Matrix<'a, T, D>, Option<Matrix<'a, T, D>>);
+
+type LinearParams2<'a, T, D, const I: usize, const O: usize> = (
+    Matrix<'a, T, D, Dim2<I, O>>,
+    Option<Matrix<'a, T, D, Dim2<1, O>>>,
+);
 
 #[rustfmt::skip]
 pub struct Linear2<'a, T, const I: usize, const O: usize, D = CPU, A = (), const SAMPLES: usize=1> 
@@ -46,13 +53,14 @@ where
     D: Device,
     // A: Activation<'a, T, D, Dim2<SAMPLES, O>>,
 {
-    pub fn new(device: &'a D) -> Self
+    pub fn new(device: &'a D, config: LinearConfig2<'a, T, D, I, O>) -> Self
     where
         D: Alloc<'a, T, Dim2<I, O>>,
     {
+        let (weights, bias) = config.init_params2(device);
         Linear2 {
-            weights: Matrix::new(device, (I, O)),
-            bias: None,
+            weights,
+            bias,
             inputs: None,
             activation_inputs: None,
             dweights: None,
@@ -152,7 +160,6 @@ where
         }
     }
 }
-
 
 // TODO: remove default types
 pub struct Linear<
