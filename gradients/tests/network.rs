@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use custos_math::nn::{mse, mse_grad};
+use custos_math::nn::{mse_grad, mse_loss};
 use gradients::{create_sine, prelude::*, NeuralNetwork};
 //use gradients_derive::NeuralNetwork;
 
@@ -39,7 +39,7 @@ fn test_xor() -> custos::Result<()> {
 
     for epoch in range(500) {
         let preds = net.forward(&xs);
-        let loss = mse(&preds, &ys);
+        let loss = mse_loss(&preds, &ys);
         println!("epoch: {epoch}, loss: {loss}");
 
         let grad = mse_grad(&preds, &ys);
@@ -71,7 +71,7 @@ fn test_sine() {
         let x = relu2.forward(&x);
         let x = lin3.forward(&x);
 
-        let loss = mse(&x, &y);
+        let loss = mse_loss(&x, &y);
 
         if epoch % 100 == 0 {
             println!("epoch: {epoch}, loss: {loss:?}");

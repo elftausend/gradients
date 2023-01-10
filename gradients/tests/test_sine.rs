@@ -32,8 +32,8 @@ fn test_sine_derive() {
 
     for epoch in range(1000) {
         let pred = net.forward(&x);
-        let loss = mse(&pred, &y);
-        let grad = mse_grad(&pred, &y);
+        let (loss, grad) = mse(&pred, &y);
+
         net.backward(&grad);
         opt.step(&device, net.params());
 

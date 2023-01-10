@@ -37,10 +37,10 @@ pub trait WithDevice<'a, T, D: Device = CPU> {
 }
 
 pub struct Params<'a, T, D: Device> {
-    weights: &'a mut Matrix<'a, T, D>,
-    bias: Option<&'a mut Matrix<'a, T, D>>,
-    dweights: &'a Matrix<'a, T, D>,
-    dbias: Option<&'a Matrix<'a, T, D>>,
+    pub weights: &'a mut Matrix<'a, T, D>,
+    pub bias: Option<&'a mut Matrix<'a, T, D>>,
+    pub dweights: &'a Matrix<'a, T, D>,
+    pub dbias: Option<&'a Matrix<'a, T, D>>,
 }
 
 pub struct Param<'a, T, D: Device = CPU> {

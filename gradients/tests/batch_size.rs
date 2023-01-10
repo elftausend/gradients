@@ -37,7 +37,7 @@ fn test_batch_size() -> custos::Result<()> {
         for (x, y) in &dataset {
             let preds = net.forward(&x);
 
-            epoch_loss += mse(&preds, &y);
+            epoch_loss += mse_loss(&preds, &y);
 
             let grad = mse_grad(&preds, &y);
             net.backward(&grad);

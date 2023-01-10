@@ -32,7 +32,7 @@ fn test_large_xor() -> custos::Result<()> {
 
     for epoch in range(500) {
         let preds = net.forward(&xs);
-        let loss = mse(&preds, &ys);
+        let loss = mse_loss(&preds, &ys);
         println!("epoch: {epoch}, loss: {loss}");
 
         let grad = mse_grad(&preds, &ys);

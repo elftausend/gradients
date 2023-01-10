@@ -22,7 +22,7 @@ fn test_some_net() {
 
     for epoch in range(0) {
         let preds = net.forward(&x);
-        let loss = mse(&preds, &y);
+        let loss = mse_loss(&preds, &y);
 
         println!("epoch: {epoch}, loss: {loss}");
 

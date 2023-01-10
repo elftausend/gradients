@@ -22,7 +22,7 @@ fn main() {
 
     for epoch in range(1800) {
         let pred = net.forward(&x);
-        let loss = mse(&pred, &y);
+        let loss = mse_loss(&pred, &y);
         let grad = mse_grad(&pred, &y);
         net.backward(&grad);
         opt.step(&device, net.params());
