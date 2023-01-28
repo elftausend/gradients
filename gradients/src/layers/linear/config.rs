@@ -31,7 +31,7 @@ where
     fn default() -> Self {
         Self {
             init: &Glorot, // Glorot
-            bias: true,
+            bias: true, // false
             l2_reg: T::default(),
             l2_reg_loss: None,
         }

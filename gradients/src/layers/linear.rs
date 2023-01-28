@@ -13,11 +13,11 @@ pub use init::{Glorot, RandomUniform};
 pub use l2_reg::*;
 
 use custos::{
-    number::Float, prelude::Number, Alloc, CDatatype, CloneBuf, Device, Dim2, GenericBlas,
-    IsShapeIndep, MayDim2, RawConv, ShallowCopy, Shape, ToDim, CPU,
+    number::Float, prelude::Number, Alloc, CloneBuf, Device, Dim2,
+    IsShapeIndep, MayDim2, RawConv, ShallowCopy, Shape, ToDim, CPU, CommonPtrs,
 };
 use custos_math::{
-    AdditionalOps, AssignOps, BaseOps, CudaTranspose, Gemm, Matrix, RandOp, RowOp, SumOps,
+    AdditionalOps, AssignOps, BaseOps, Gemm, Matrix, RandOp, RowOp, SumOps,
     SumOverOps, TransposeOp,
 };
 
@@ -36,7 +36,7 @@ where
     D: Device, 
     //A: Activation<'a, T, D, Dim2<SAMPLES, O>>
 {
-    weights: Matrix<'a, T, D, Dim2<I, O>>,
+    pub weights: Matrix<'a, T, D, Dim2<I, O>>,
     bias: Option<Matrix<'a, T, D, Dim2<1, O>>>,
     inputs: Option<Matrix<'a, T, D, Dim2<SAMPLES, I>>>,
     activation_inputs: Option<Matrix<'a, T, D, Dim2<SAMPLES, O>>>,
@@ -84,8 +84,14 @@ where
         D::Ptr<T, Dim2<SAMPLES, O>>: ShallowCopy,
         IS: MayDim2<SAMPLES, I>,
         A: Activation<'a, T, D, Dim2<SAMPLES, O>>,
+        // debug: <D as custos::Device>::Ptr<T, Dim2<SAMPLES, I>>: CommonPtrs<T>
     {
+        // this shallow clone is not always fine (create inputs that live shorter than Linear):
+        // (shallow clone of cached vars is ok)
         self.inputs = Some(inputs.shallow_or_clone().to_dims());
+        //println!("Use inputs ptr: {:?}", self.inputs.as_ref().unwrap().data.ptrs().0);
+        
+        //self.inputs = Some(inputs.clone().to_dims());
 
         let mut forward = inputs.gemm(&self.weights);
 
@@ -93,7 +99,8 @@ where
             forward.add_row_mut(bias);
         }
 
-        self.activation_inputs = Some(forward.shallow_or_clone());
+        //self.activation_inputs = Some(forward.shallow_or_clone());
+        self.activation_inputs = Some(forward.clone());
 
         // activation function
         A::forward(forward)

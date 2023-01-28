@@ -18,9 +18,10 @@ fn main() {
 
     let (x, y) = create_sine(&device, 0, 1000);
 
-    let mut opt = Adam::new(2e-3);
+    // let mut opt = Adam::new(2e-3);
+    let mut opt = SGD::new(0.01).momentum(0.);
 
-    for epoch in range(1800) {
+    for epoch in range(18000) {
         let pred = net.forward(&x);
         let loss = mse_loss(&pred, &y);
         let grad = mse_grad(&pred, &y);
@@ -30,7 +31,7 @@ fn main() {
         println!("epoch: {epoch}, loss: {loss}");
     }
 
-    let mut plot = Plot::new((x.read(), y.read()));
-    plot.add((x.read(), net.forward(&x).read(), "-r"));
-    plot.show()
+    // let mut plot = Plot::new((x.read(), y.read()));
+    // plot.add((x.read(), net.forward(&x).read(), "-r"));
+    // plot.show()
 }
