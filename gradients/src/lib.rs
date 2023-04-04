@@ -1,5 +1,5 @@
 mod accuracy;
-mod batch;
+//mod batch;
 mod layers;
 mod ml;
 mod onehot;
@@ -15,7 +15,7 @@ pub mod purpur {
 pub use gradients_derive::*;
 
 pub use accuracy::*;
-pub use batch::*;
+//pub use batch::*;
 pub use layers::*;
 pub use ml::*;
 pub use onehot::*;
@@ -100,8 +100,9 @@ pub fn create_line<T: Float, D: Alloc<T> + GraphReturn>(
 
 pub mod prelude {
     pub use crate::{
-        correct_classes, linear::*, network, nn::*, range, Adam, Batch, LinearReg, Matrix,
-        OneHotMat, OnehotOp, PolynomialReg, ReLU, Softmax, Tanh, WithDevice, CPU, SGD,
+        correct_classes, network, nn::*, range, Adam, Matrix, OneHotMat,
+        PolynomialReg, ReLU, Softmax, Tanh, CPU, SGD, WithDevice, linear::*,
+        OnehotOp, LinearReg
     };
     pub use purpur::*;
 

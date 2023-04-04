@@ -50,6 +50,7 @@ where
     type IntoIter = Iter<'a, T, U, D>;
 
     fn into_iter(self) -> Self::IntoIter {
+
         let remainder = self.samples % self.batch_size;
         let iterations = self.samples / self.batch_size;
 

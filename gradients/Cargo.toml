@@ -13,15 +13,16 @@ repository = "https://github.com/elftausend/gradients"
 
 [dependencies]
 
-#custos = { version="=0.5.0", default-features = false }
-custos = { path = "../../custos", default-features = false }
-custos-math = { path = "../../custos-math", default-features = false }
-#custos-math = { version="=0.5.0", default-features = false }
+custos = { version="=0.5.0", default-features = false }
+#custos = { path = "../../custos", default-features = false, features = ["blas", "macro"] }
+#custos-math = { path = "../../custos-math", default-features = false, features = ["blas"] }
+custos-math = { version="=0.5.0", default-features = false }
 purpur = "0.1.0"
 
 #gradients-derive = { version = "=0.3.4" } 
 gradients-derive = { path = "../gradients-derive" }
 [features]
+# TODO: fix cuda with bias etc
 default = ["opencl"]
 opencl = ["custos/opencl", "custos-math/opencl"]
 cuda = ["custos/cuda", "custos-math/cuda"]

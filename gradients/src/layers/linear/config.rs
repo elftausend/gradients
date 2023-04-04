@@ -81,3 +81,20 @@ where
         }
     }
 }
+
+pub struct LinearInit<'a, T, D, const I: usize, const O: usize> {
+    init: Box<dyn Init<'a, T, D, I, O>>,
+}
+
+impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for LinearInit<'a, T, D, I, O> 
+where
+    T: Float,
+    D: Alloc<T> + GraphReturn + 'a
+{
+    fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
+        LinearConfig { 
+            init: self.init,
+            ..Default::default()
+        }
+    }
+}

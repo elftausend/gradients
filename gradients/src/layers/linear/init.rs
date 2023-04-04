@@ -1,7 +1,7 @@
 use custos::{number::Float, Alloc, GraphReturn};
 use custos_math::Matrix;
 
-use super::LinearParams;
+use super::{LinearParams, IntoLinearConfig, LinearConfig};
 
 pub trait Init<'a, T, D, const I: usize, const O: usize> {
     fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T>;
@@ -26,6 +26,20 @@ impl<T> RandomUniform<T> {
         })
     }
 }
+
+impl<'a, T, D, const I: usize, const O: usize> IntoLinearConfig<'a, T, D, I, O> for Box<RandomUniform<T>>
+where
+    T: Float + 'static,
+    D: Alloc<T> + GraphReturn + 'a
+{
+    fn into_config(self) -> LinearConfig<'a, T, D, I, O> {
+        LinearConfig { 
+            init: self,
+            ..Default::default()
+        }
+    }
+}
+
 
 impl<'a, T, D, const I: usize, const O: usize> Init<'a, T, D, I, O> for RandomUniform<T>
 where

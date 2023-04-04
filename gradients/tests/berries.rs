@@ -20,7 +20,9 @@ fn test_berries_net() -> Result<(), std::io::Error> {
 
     trans.apply("../../gradients-fallback/datasets/berries_aug_6xx/train")?;
 
-    let device = CPU::new();
+    //let device = CPU::new();
+   let device = gradients::CLDevice::new(0).unwrap();
+
 
     let x = Matrix::from((
         &device,
@@ -37,9 +39,9 @@ fn test_berries_net() -> Result<(), std::io::Error> {
     let y = device.onehot(&y);
 
     let mut net = Network {
-        lin1: Linear::new(&device, ()),
-        lin2: Linear::new(&device, ()),
-        lin3: Linear::new(&device, ()),
+        lin1: Linear::new(&device, RandomUniform::new(-0.1, 0.1)),
+        lin2: Linear::new(&device, RandomUniform::new(-0.1, 0.1)),
+        lin3: Linear::new(&device, RandomUniform::new(-0.1, 0.1)),
         ..Default::default()
     };
 

@@ -87,6 +87,8 @@ impl<'a, T> Default for Tanh<'a, T> {
     }
 }
 
+/* 
+
 #[derive(NoParams)]
 pub struct Sigmoid<'a, T> {
     activated: Option<Matrix<'a, T>>,
@@ -118,3 +120,4 @@ impl<'a, T> Default for Sigmoid<'a, T> {
         }
     }
 }
+*/
