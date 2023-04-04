@@ -57,17 +57,17 @@ fn add_lifetimes_derive_net(name: Ident, fields: Punctuated<Field, Comma>) -> To
                                 emit_error! { lit_tokens,
                                     format!("The output and input size of {prev_ident:?} (output size: {prev_out}) and {ident:?} (input size: {input}) do not match.",
                                  
-                                        prev_ident=prev_out_size_info.1.as_ref().unwrap(), 
+                                        prev_ident=prev_out_size_info.1.as_ref().unwrap().to_string(), 
                                         prev_out=prev_out_size, 
-                                        ident=name.as_ref().unwrap(), 
+                                        ident=name.as_ref().unwrap().to_string(), 
                                         input=lit_tokens
                                     );                              
                                     note=format!("The input size of {ident:?} must be equal to the output size of {prev_ident:?}.",
-                                            ident=name.as_ref().unwrap(), 
-                                            prev_ident=prev_out_size_info.1.as_ref().unwrap(), 
+                                            ident=name.as_ref().unwrap().to_string(),
+                                            prev_ident=prev_out_size_info.1.as_ref().unwrap().to_string(), 
                                     );
                                     help=format!("Set the input size of {ident:?} to {prev_out}.",
-                                        ident=name.as_ref().unwrap(),
+                                        ident=name.as_ref().unwrap().to_string(),
                                         prev_out=prev_out_size,
                                     );
                                 }
@@ -207,7 +207,7 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
         }
 
         impl<'a, D: gradients::Bounds<'a, T>, T:Float+gradients::CDatatype+gradients::GenericBlas + gradients::matrix_multiply::MatrixMultiply + gradients::CudaTranspose> NeuralNetwork<'a, T, D> for #name<'a, T, D>
-        where <D as Device>::Ptr<T, ()>: custos_math::custos::ShallowCopy
+        where <D as Device>::Ptr<T, ()>: gradients::ShallowCopy
         {
             fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D> {
                 #forward_chain

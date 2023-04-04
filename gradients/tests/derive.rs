@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use gradients::{prelude::*, NeuralNetwork, custos};
 
-use custos::range;
+use gradients::range;
 use purpur::{CSVLoader, Converter};
 
 #[derive(NeuralNetwork)]
@@ -16,10 +16,10 @@ pub struct Network<'a, T, D: Device> {
 }
 
 #[test]
-fn test_net() -> custos::Result<()> {
-    let device = custos::CPU::new();
-    //let device = custos::CudaDevice::new(0)?;
-    //let device = custos::CudaDevice::new(0)?;
+fn test_net() -> gradients::Result<()> {
+    let device = gradients::CPU::new();
+    //let device = gradients::CudaDevice::new(0)?;
+    //let device = gradients::CudaDevice::new(0)?;
 
     let mut net = Network {
         lin1: Linear::new(&device, ()),

@@ -48,7 +48,7 @@ impl<T: CDatatype + Number> OnehotOp<T> for custos_math::custos::OpenCL {
 }
 
 #[cfg(feature = "cuda")]
-impl<T: CDatatype> OnehotOp<T> for custos::CudaDevice {
+impl<T: CDatatype> OnehotOp<T> for custos_math::custos::CudaDevice {
     fn onehot(&self, x: &Matrix<T>) -> Matrix<T> {
         custos_math::cu_to_cpu_s(self, x, |device, x| device.onehot(x))
     }

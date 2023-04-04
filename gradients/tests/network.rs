@@ -16,10 +16,10 @@ struct Xor<'a, T, D: Device> {
 }
 
 #[test]
-fn test_xor() -> custos::Result<()> {
-    //let device = custos::CPU::new();
-    let device = custos::OpenCL::new(0)?;
-    //let device = custos::CudaDevice::new(0)?;
+fn test_xor() -> gradients::Result<()> {
+    //let device = gradients::CPU::new();
+    let device = gradients::OpenCL::new(0)?;
+    //let device = gradients::CudaDevice::new(0)?;
 
     let xs = Matrix::from((&device, 4, 2, [0f32, 0., 0., 1., 1., 0., 1., 1.]));
 
@@ -54,7 +54,7 @@ fn test_xor() -> custos::Result<()> {
 
 #[test]
 fn test_sine() {
-    let device = custos::CPU::new();
+    let device = gradients::CPU::new();
     //let device = OpenCL::get(0).unwrap().select();
 
     let (x, y) = create_sine(&device, 0, 1000);
@@ -93,7 +93,7 @@ fn test_sine() {
 
 #[test]
 fn test_mnist() {
-    let device = custos::CPU::new();
+    let device = gradients::CPU::new();
     //let device = OpenCL::get(0).unwrap().select();
 
     let loader = CSVLoader::new(true);

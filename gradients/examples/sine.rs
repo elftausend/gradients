@@ -13,6 +13,7 @@ struct SineNet {
 
 fn main() {
     let device = CPU::new();
+    //let device = gradients::OpenCL::new(0).unwrap();
 
     let mut net = SineNet::with(&device);
 
@@ -20,6 +21,8 @@ fn main() {
 
     // let mut opt = Adam::new(2e-3);
     let mut opt = SGD::new(0.01).momentum(0.);
+
+    let start = std::time::Instant::now();
 
     for epoch in range(18000) {
         let pred = net.forward(&x);

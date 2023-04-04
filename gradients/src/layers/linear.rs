@@ -9,7 +9,7 @@ use std::{
 };
 
 pub use config::*;
-pub use init::{Glorot, RandomUniform};
+pub use init::*;
 pub use l2_reg::*;
 
 use custos_math::custos::{
@@ -175,7 +175,7 @@ pub struct Linear<
     T,
     const I: usize,
     const O: usize,
-    D: Device = custos::CPU,
+    D: Device = custos_math::custos::CPU,
     const SAMPLES: usize = 1,
 > {
     pub weights: Matrix<'a, T, D>,

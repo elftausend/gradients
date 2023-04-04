@@ -13,10 +13,10 @@ struct LargeXor {
 }
 
 #[test]
-fn test_large_xor() -> custos::Result<()> {
-    let device = custos::CPU::new();
-    //let device = custos::OpenCL::new(0)?;
-    //let device = custos::CudaDevice::new(0)?;
+fn test_large_xor() -> gradients::Result<()> {
+    let device = gradients::CPU::new();
+    //let device = gradients::OpenCL::new(0)?;
+    //let device = gradients::CudaDevice::new(0)?;
 
     let xs = Matrix::from((&device, 4, 2, [0., 0., 0., 1., 1., 0., 1., 1.]));
 

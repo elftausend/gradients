@@ -25,8 +25,8 @@ impl<'a, T, D, const I: usize, const O: usize> Default for LinearConfig2<'a, T, 
 where
     T: Float,
     D: Alloc<'a, T, Dim2<I, O>> + RandOp<T, Dim2<I, O>> + 'a,
-    custos::Buffer<'a, T, D, Dim2<I, O>>: WithShape<&'a D, ()>,
-    custos::Buffer<'a, T, D, Dim2<1, O>>: WithShape<&'a D, ()>,
+    crate::Buffer<'a, T, D, Dim2<I, O>>: WithShape<&'a D, ()>,
+    crate::Buffer<'a, T, D, Dim2<1, O>>: WithShape<&'a D, ()>,
 {
     fn default() -> Self {
         Self {

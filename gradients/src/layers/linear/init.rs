@@ -1,5 +1,6 @@
+use custos_math::custos::IsShapeIndep;
 use custos_math::custos::{number::Float, Alloc, Device, Dim2, WithShape};
-use custos_math::{Matrix, RandOp, custos};
+use custos_math::{Matrix, RandOp};
 
 use super::{LinearParams, LinearParams2};
 
@@ -10,6 +11,29 @@ pub trait Init<'a, T, D: Device, const I: usize, const O: usize> {
 pub trait Init2<'a, T, D: Device, const I: usize, const O: usize> {
     fn init2(&self, device: &'a D, with_bias: bool) -> LinearParams2<'a, T, D, I, O>;
 }
+
+#[derive(Debug)]
+pub struct Value<T> {
+    pub val: T
+}
+
+impl<'a, T, D, const I: usize, const O: usize> Init<'a, T, D, I, O> for Value<T>
+where
+    T: Float,
+    D: Alloc<'a, T> + RandOp<T> + IsShapeIndep,
+{
+    fn init(&self, device: &'a D, with_bias: bool) -> LinearParams<'a, T, D> {
+        let mut weights = Matrix::from((device, I, O, vec![self.val; I * O]));
+    
+        let mut bias = None;
+        if with_bias {
+            bias = Some(Matrix::from((device, 1, O)));
+        }
+
+        (weights, bias)
+    }
+}
+
 
 #[derive(Debug)]
 pub struct RandomUniform<T> {
@@ -36,8 +60,8 @@ impl<'a, T, D, const I: usize, const O: usize> Init2<'a, T, D, I, O> for RandomU
 where
     T: Copy,
     D: Alloc<'a, T, Dim2<I, O>> + RandOp<T, Dim2<I, O>> + 'a,
-    custos::Buffer<'a, T, D, Dim2<I, O>>: WithShape<&'a D, ()>,
-    custos::Buffer<'a, T, D, Dim2<1, O>>: WithShape<&'a D, ()>,
+    crate::Buffer<'a, T, D, Dim2<I, O>>: WithShape<&'a D, ()>,
+    crate::Buffer<'a, T, D, Dim2<1, O>>: WithShape<&'a D, ()>,
 {
     fn init2(&self, device: &'a D, with_bias: bool) -> LinearParams2<'a, T, D, I, O> {
         let mut weights = Matrix::with(device, ());
@@ -83,8 +107,8 @@ impl<'a, T, D, const I: usize, const O: usize> Init2<'a, T, D, I, O> for Glorot
 where
     T: Float,
     D: Alloc<'a, T, Dim2<I, O>> + RandOp<T, Dim2<I, O>> + 'a,
-    custos::Buffer<'a, T, D, Dim2<I, O>>: WithShape<&'a D, ()>,
-    custos::Buffer<'a, T, D, Dim2<1, O>>: WithShape<&'a D, ()>,
+    crate::Buffer<'a, T, D, Dim2<I, O>>: WithShape<&'a D, ()>,
+    crate::Buffer<'a, T, D, Dim2<1, O>>: WithShape<&'a D, ()>,
 {
     fn init2(&self, device: &'a D, with_bias: bool) -> LinearParams2<'a, T, D, I, O> {
         let mut weights = Matrix::with(device, ());
