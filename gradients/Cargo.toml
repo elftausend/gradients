@@ -15,7 +15,7 @@ repository = "https://github.com/elftausend/gradients"
 
 #custos = { version="=0.5.0", default-features = false }
 #custos = { path = "../../custos", default-features = false }
-custos-math = { path = "../../custos-math", default-features = false, features=["fastrand", "cpu", "blas"] }
+custos-math = { path = "../../custos-math", default-features = false, features=["fastrand", "cpu", "blas",] }
 #custos-math = { version="=0.5.0", default-features = false }
 purpur = "0.1.0"
 
