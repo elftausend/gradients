@@ -6,9 +6,12 @@ mod onehot;
 mod opt;
 
 //exports of dependencies
-use custos::number::Float;
-pub use custos::*;
 pub use custos_math::*;
+
+pub use custos_math::custos::{CloneBuf, GenericBlas, prelude::Float};
+pub use ::custos_math::custos::*;
+
+
 pub mod purpur {
     pub use purpur::*;
 }

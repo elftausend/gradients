@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use gradients::prelude::*;
+use gradients::{prelude::*, custos};
 
 #[network]
 struct LargeXor {

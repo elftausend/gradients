@@ -119,12 +119,12 @@ pub fn derive_params(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
 fn impl_params(name: Ident) -> TokenStream {
     quote! {
-        impl<'a, T, D: custos::Device> GetParam<'a, T, D> for #name<'a, T, D>
+        impl<'a, T, D: custos_math::custos::Device> GetParam<'a, T, D> for #name<'a, T, D>
         where
-            <D as Device>::Ptr<T, ()>: custos::ShallowCopy
+            <D as Device>::Ptr<T, ()>: custos_math::custos::ShallowCopy
         {}
-        impl<'a, T, D: custos::Device> WithDevice<'a, T, D> for #name<'a, T, D> {}
-        impl<'a, T, D: custos::Device> #name<'a, T, D> {
+        impl<'a, T, D: custos_math::custos::Device> WithDevice<'a, T, D> for #name<'a, T, D> {}
+        impl<'a, T, D: custos_math::custos::Device> #name<'a, T, D> {
             pub fn with_device<'b>(_dev: &'b D) -> #name<'a, T, D> {
                 Self::default()
             }
@@ -207,7 +207,7 @@ fn impl_neural_network(name: Ident, fields: Punctuated<Field, Comma>) -> TokenSt
         }
 
         impl<'a, D: gradients::Bounds<'a, T>, T:Float+gradients::CDatatype+gradients::GenericBlas + gradients::matrix_multiply::MatrixMultiply + gradients::CudaTranspose> NeuralNetwork<'a, T, D> for #name<'a, T, D>
-        where <D as Device>::Ptr<T, ()>: custos::ShallowCopy
+        where <D as Device>::Ptr<T, ()>: custos_math::custos::ShallowCopy
         {
             fn forward(&mut self, inputs: &Matrix<'a, T, D>) -> Matrix<'a, T, D> {
                 #forward_chain

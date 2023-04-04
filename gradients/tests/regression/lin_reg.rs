@@ -1,4 +1,4 @@
-use custos::{range, CPU};
+use gradients::{range, CPU};
 use custos_math::{nn::mse_grad, Matrix};
 use gradients::LinearReg;
 use graplot::Scatter;

@@ -30,9 +30,9 @@ fn test_some_net() {
         net.backward(&grad);
         //sgd.step(&device, net.params());
 
-        let graph = device.graph.borrow();
+        let graph = device.graph();
         for node in &graph.nodes {
-            let trace = graph.trace_cache_path(node);
+            let trace = graph.trace_cache_path_raw(node);
             println!("trace: {trace:?}");
         }
         //let cts = device.graph().cache_traces();

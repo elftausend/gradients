@@ -1,6 +1,6 @@
 use std::{cell::RefCell, fmt::Display};
 
-use custos::{number::Float, Alloc};
+use custos_math::custos::{number::Float, Alloc};
 use custos_math::RandOp;
 
 use crate::linear::{IntoLinearConfig, LinearConfig};

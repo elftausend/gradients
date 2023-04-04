@@ -1,5 +1,5 @@
-use custos::{number::Float, Alloc, Device, Dim2, WithShape};
-use custos_math::{Matrix, RandOp};
+use custos_math::custos::{number::Float, Alloc, Device, Dim2, WithShape};
+use custos_math::{Matrix, RandOp, custos};
 
 use super::{LinearParams, LinearParams2};
 

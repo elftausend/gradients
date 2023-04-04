@@ -1,4 +1,4 @@
-use custos::{number::Float, CDatatype, CacheBuf, ClearBuf, Device};
+use custos_math::custos::{number::Float, CDatatype, ClearBuf, Device, Alloc};
 use custos_math::{AdditionalOps, AssignOps, BaseOps, FnsOps, Matrix, SumOps};
 
 fn single_predict<T: Float>(coeffs: &[T], x: T) -> T {
@@ -20,7 +20,7 @@ pub struct PolynomialReg<'a, T, D: Device> {
 
 impl<'a, T: CDatatype + Float, D> PolynomialReg<'a, T, D>
 where
-    D: CacheBuf<'a, T> + FnsOps<T> + AdditionalOps<T> + AssignOps<T> + ClearBuf<T>,
+    D: FnsOps<T> + AdditionalOps<T> + AssignOps<T> + ClearBuf<T>,
 {
     pub fn new(xs: &'a Matrix<'a, T, D>, ys: &'a Matrix<'a, T, D>, degree: usize) -> Self {
         PolynomialReg {
@@ -34,8 +34,12 @@ where
         single_predict(&self.coeffs, x)
     }
 
-    pub fn predict(&self, xs: &'a Matrix<'a, T, D>) -> Matrix<'a, T, D> {
-        let mut sum = Matrix::from((custos::cached::<T, D>(xs.device(), xs.size()), xs.dims()));
+    pub fn predict(&self, xs: &'a Matrix<'a, T, D>) -> Matrix<'a, T, D> 
+    where
+        D: for<'b> Alloc<'b, T>
+    {
+        
+        let mut sum = Matrix::from((xs.device().retrieve(xs.size(), ()), xs.dims()));
         sum.clear();
 
         let mut pow = self.coeffs.len();
@@ -49,7 +53,7 @@ where
 
     pub fn step(&mut self, lr: T) -> T
     where
-        D: BaseOps<T> + SumOps<T>,
+        D: BaseOps<T> + SumOps<T> + for<'b> Alloc<'b, T>,
     {
         let y_preds = self.predict(self.xs);
         let loss = y_preds - self.ys;

@@ -12,9 +12,9 @@ pub use config::*;
 pub use init::{Glorot, RandomUniform};
 pub use l2_reg::*;
 
-use custos::{
+use custos_math::custos::{
     number::Float, prelude::Number, Alloc, CloneBuf, Device, Dim2,
-    IsShapeIndep, MayDim2, RawConv, ShallowCopy, Shape, ToDim, CPU, CommonPtrs,
+    IsShapeIndep, MayDim2, PtrConv, ShallowCopy, Shape, ToDim, CPU, CommonPtrs, self,
 };
 use custos_math::{
     AdditionalOps, AssignOps, BaseOps, Gemm, Matrix, RandOp, RowOp, SumOps,
@@ -109,7 +109,7 @@ where
     pub fn backward<IS>(&mut self, grads: Matrix<'a, T, D, IS>) -> Matrix<'a, T, D>
     where
         D: TransposeOp<T, Dim2<I, O>>
-            + RawConv // TODO: IsShapeIndep
+            + PtrConv // TODO: IsShapeIndep
             + TransposeOp<T, Dim2<SAMPLES, I>>
             + ToDim<T, IS, Dim2<SAMPLES, O>>
             + AdditionalOps<T>
@@ -119,6 +119,7 @@ where
             + SumOverOps<T>,
         A: Activation<'a, T, D>,
         IS: Shape,
+        D::Ptr<T, IS>: ShallowCopy
     {
         let grads = grads.to_dims::<()>();
 
@@ -307,7 +308,7 @@ impl<'a, T, D: Device, const I: usize, const O: usize> Default for Linear<'a, T,
 #[cfg(test)]
 mod tests {
     use crate::linear::{Glorot, Linear, LinearConfig};
-    use custos::CPU;
+    use custos_math::custos::CPU;
 
     #[test]
     fn test_bias() {

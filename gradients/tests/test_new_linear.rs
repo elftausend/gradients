@@ -24,7 +24,7 @@ pub trait SGDOp<T: Number, D: Device = Self>:
 }
 
 impl<T: Number> SGDOp<T> for CPU {}
-impl<T: CDatatype> SGDOp<T> for gradients::OpenCL {}
+impl<T: CDatatype + Number> SGDOp<T> for gradients::OpenCL {}
 
 #[test]
 fn test_new_linear_sine2() {

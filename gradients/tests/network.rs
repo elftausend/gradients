@@ -4,7 +4,7 @@ use custos_math::nn::{mse_grad, mse_loss};
 use gradients::{create_sine, prelude::*, NeuralNetwork};
 //use gradients_derive::NeuralNetwork;
 
-use custos::range;
+use gradients::custos;
 use purpur::{CSVLoader, CSVReturn};
 
 #[derive(NeuralNetwork)]

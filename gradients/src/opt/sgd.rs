@@ -1,9 +1,9 @@
 use crate::Param;
-use custos::{prelude::Number, Alloc, CDatatype, Device, GraphReturn, MainMemory, CPU};
+use custos_math::custos::{prelude::Number, Alloc, CDatatype, Device, GraphReturn, MainMemory, CPU};
 use custos_math::{AdditionalOps, AssignOps, BaseOps, Matrix};
 
 #[cfg(feature = "opencl")]
-use custos::{opencl::enqueue_kernel, OpenCL};
+use custos_math::custos::{opencl::enqueue_kernel, OpenCL};
 
 pub struct SGD<'a, T, D: Device = CPU> {
     lr: T,
@@ -87,7 +87,7 @@ impl<T: Number, D: MainMemory> SGDOp<T, D> for CPU {
 }
 
 #[cfg(feature = "opencl")]
-impl<T: CDatatype> SGDOp<T> for OpenCL {
+impl<T: CDatatype + Number> SGDOp<T> for OpenCL {
     fn step_momentum(&self, sgd: &mut SGD<T, Self>, params: Vec<Param<T, Self>>) {
         let src = format!(
             "

@@ -1,12 +1,12 @@
 use crate::Param;
-use custos::{number::Float, Alloc, CDatatype, Device, GraphReturn, CPU};
+use custos_math::custos::{number::Float, Alloc, CDatatype, Device, GraphReturn, CPU, prelude::Number};
 use custos_math::Matrix;
 
 #[cfg(feature = "cuda")]
 use custos::cuda::launch_kernel1d;
 
 #[cfg(feature = "opencl")]
-use custos::{opencl::enqueue_kernel, OpenCL};
+use custos_math::custos::{opencl::enqueue_kernel, OpenCL};
 
 pub struct Adam<'a, T, D: Device = CPU> {
     lr: T,
@@ -187,7 +187,7 @@ impl<'a, T: CDatatype> AdamOp<'a, T> for custos::CudaDevice {
 }
 
 #[cfg(feature = "opencl")]
-impl<'a, T: CDatatype> AdamOp<'a, T> for OpenCL {
+impl<'a, T: CDatatype + Number> AdamOp<'a, T> for OpenCL {
     fn step(&self, adam: &mut Adam<T, Self>, mut params: Vec<Param<T, Self>>) {
         let src = format!("__kernel void adam(
             __global {dt}* value, 

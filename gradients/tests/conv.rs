@@ -1,4 +1,4 @@
-use custos::CPU;
+use gradients::CPU;
 use gradients::{Conv2D, Matrix};
 
 #[test]

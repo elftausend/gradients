@@ -1,4 +1,4 @@
-use custos::{range, CPU};
+use gradients::{range, CPU};
 use custos_math::Matrix;
 use gradients::{LinearReg, PolynomialReg};
 use graplot::Scatter;

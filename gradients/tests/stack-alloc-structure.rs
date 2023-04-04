@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use gradients::{
     number::Number, prelude::ActivationOps, AdditionalOps, Alloc, AssignOps, CDatatype, CloneBuf,
-    Device, Dim2, Gemm, IsShapeIndep, Matrix, MayDim2, RawConv, RowOp, ShallowCopy, Shape, Stack,
+    Device, Dim2, Gemm, IsShapeIndep, Matrix, MayDim2, PtrConv, RowOp, ShallowCopy, Shape, Stack,
     SumOverOps, ToDim, TransposeOp, CPU,
 };
 
@@ -119,7 +119,7 @@ where
     pub fn backward<IS>(&mut self, grads: Matrix<'a, T, D, IS>) -> Matrix<'a, T, D>
     where
         D: TransposeOp<T, Dim2<I, O>>
-            + RawConv // TODO: IsShapeIndep
+            + PtrConv // TODO: IsShapeIndep
             + TransposeOp<T, Dim2<SAMPLES, I>>
             + ToDim<T, IS, Dim2<SAMPLES, O>>
             + AdditionalOps<T>
@@ -128,6 +128,7 @@ where
             + RowOp<T>
             + SumOverOps<T>,
         A: Activation<'a, T, D>,
+        D::Ptr<T, IS>: ShallowCopy,
         IS: Shape,
     {
         let grads = grads.to_dims::<()>();
@@ -214,7 +215,7 @@ pub trait SGDOp<T: Number, D: Device = Self>:
 }
 
 impl<T: Number> SGDOp<T> for CPU {}
-impl<T: CDatatype> SGDOp<T> for gradients::OpenCL {}
+impl<T: CDatatype + Number> SGDOp<T> for gradients::OpenCL {}
 
 #[test]
 fn test_stack_cpu_network() {

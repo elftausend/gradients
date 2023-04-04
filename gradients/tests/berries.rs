@@ -1,4 +1,4 @@
-use custos::{range, CPU};
+use custos_math::custos::{range, CPU};
 use gradients::{prelude::*, NeuralNetwork};
 use purpur::{Apply, Converter, ImageReturn, Transforms};
 

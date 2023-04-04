@@ -5,7 +5,7 @@ use super::{
     LinearParams, LinearParams2,
 };
 use crate::linear::Glorot;
-use custos::{number::Float, Alloc, Device, Dim2, WithShape};
+use custos_math::custos::{number::Float, Alloc, Device, Dim2, WithShape, self};
 use custos_math::RandOp;
 
 pub struct LinearConfig2<'a, T, D, const I: usize, const O: usize> {

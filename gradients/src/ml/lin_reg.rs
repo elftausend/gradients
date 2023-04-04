@@ -1,4 +1,4 @@
-use custos::CDatatype;
+use custos_math::custos::{CDatatype, prelude::Number};
 use custos_math::Matrix;
 
 pub struct LinearReg<'a, T> {
@@ -8,7 +8,7 @@ pub struct LinearReg<'a, T> {
     pub d: T,
 }
 
-impl<'a, T: CDatatype> LinearReg<'a, T> {
+impl<'a, T: CDatatype + Number> LinearReg<'a, T> {
     pub fn new(xs: &'a Matrix<'a, T>, ys: &'a Matrix<'a, T>) -> LinearReg<'a, T> {
         LinearReg {
             xs,

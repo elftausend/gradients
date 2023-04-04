@@ -1,4 +1,4 @@
-use custos::Read;
+use custos_math::custos::Read;
 use custos_math::Matrix;
 
 pub fn find_idxs<T: Copy + Default + PartialEq, D: Read<T>>(

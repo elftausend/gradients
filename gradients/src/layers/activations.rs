@@ -1,5 +1,5 @@
 use crate::{GetParam, WithDevice};
-use custos::{CloneBuf, Device, ShallowCopy, Shape};
+use custos_math::custos::{CloneBuf, Device, ShallowCopy, Shape};
 use custos_math::{
     nn::{ActivationOps, SoftmaxOps},
     AssignOps, BaseOps, Matrix,

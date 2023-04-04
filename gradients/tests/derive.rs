@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use gradients::{prelude::*, NeuralNetwork};
+use gradients::{prelude::*, NeuralNetwork, custos};
 
 use custos::range;
 use purpur::{CSVLoader, Converter};

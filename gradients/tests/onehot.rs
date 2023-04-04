@@ -1,4 +1,4 @@
-use custos::{OpenCL, CPU};
+use gradients::{OpenCL, CPU};
 use custos_math::Matrix;
 use gradients::OneHotMat;
 

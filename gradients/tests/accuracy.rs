@@ -1,4 +1,4 @@
-use custos::CPU;
+use gradients::{custos, CPU};
 use custos_math::Matrix;
 use gradients::find_idxs;
 

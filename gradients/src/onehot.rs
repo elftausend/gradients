@@ -1,4 +1,4 @@
-use custos::{number::Number, CDatatype, Device, MainMemory, Shape, CPU};
+use custos_math::custos::{number::Number, CDatatype, Device, MainMemory, Shape, CPU};
 use custos_math::Matrix;
 use purpur::utils::max;
 
@@ -41,7 +41,7 @@ impl<T: Number, IS: Shape, OS: Shape, D: MainMemory> OnehotOp<T, IS, OS, D> for 
 }
 
 #[cfg(feature = "opencl")]
-impl<T: CDatatype> OnehotOp<T> for custos::OpenCL {
+impl<T: CDatatype + Number> OnehotOp<T> for custos_math::custos::OpenCL {
     fn onehot(&self, x: &Matrix<T, Self>) -> Matrix<T, Self> {
         cl_to_cpu_s(self, x, |device, x| device.onehot(x))
     }
