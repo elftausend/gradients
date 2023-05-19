@@ -7,6 +7,7 @@ pub struct Batch<'a, T, U, D> {
     batch_size: usize,
     samples: usize,
     features: usize,
+    out_size: usize,
     device: &'a D,
 }
 
@@ -16,6 +17,7 @@ impl<'a, T, U, D> Batch<'a, T, U, D> {
         batch_size: usize,
         samples: usize,
         features: usize,
+        out_size: usize,
         x: Vec<T>,
         y: Vec<U>,
     ) -> Self {
@@ -24,6 +26,7 @@ impl<'a, T, U, D> Batch<'a, T, U, D> {
             batch_size,
             samples,
             features,
+            out_size,
             x,
             y,
         }
@@ -65,6 +68,7 @@ where
             batch_size: self.batch_size,
             features: self.features,
             device: self.device,
+            out_size: self.out_size,
             remainder,
             iterations,
             current_iter: 0,
@@ -78,6 +82,7 @@ pub struct Iter<'a, T, U, D> {
     y: &'a [U],
     batch_size: usize,
     features: usize,
+    out_size: usize,
     device: &'a D,
     batch_progress: usize,
     remainder: usize,
@@ -116,7 +121,7 @@ where
         let mut buf_x = self.device.retrieve(x.len(), ());
         buf_x.write(x);
 
-        let y = &self.y[self.batch_progress..self.batch_progress + batch_size];
+        let y = &self.y[self.batch_progress..self.batch_progress + batch_size * self.out_size];
 
         let mut buf_y = self.device.retrieve(y.len(), ());
         buf_y.write(y);
@@ -125,7 +130,7 @@ where
 
         Some((
             (buf_x, batch_size, self.features).into(),
-            (buf_y, batch_size, 1).into(),
+            (buf_y, batch_size, self.out_size).into(),
         ))
     }
 }

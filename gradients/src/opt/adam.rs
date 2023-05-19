@@ -71,6 +71,7 @@ fn adam_step_cpu<T: Float>(
     lr: T,
     iters: u64,
 ) {
+    println!("dvalues len: {}, values len: {}", dvalues.len(), values.len());
     for i in 0..values.len() {
         momentum[i] = momentum[i] * beta1 + dvalues[i] * (T::one() - beta1);
         let value_momentum_corrected = momentum[i] / (T::one() - beta1.powi((iters + 1) as i32));
