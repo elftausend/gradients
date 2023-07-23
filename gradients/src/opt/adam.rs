@@ -1,9 +1,10 @@
 use crate::Param;
+use custos_math::custos::CUDA;
 use custos_math::custos::{number::Float, Alloc, CDatatype, Device, GraphReturn, CPU, prelude::Number};
 use custos_math::Matrix;
 
 #[cfg(feature = "cuda")]
-use custos::cuda::launch_kernel1d;
+use custos_math::custos::cuda::launch_kernel1d;
 
 #[cfg(feature = "opencl")]
 use custos_math::custos::{opencl::enqueue_kernel, OpenCL};
@@ -112,8 +113,8 @@ impl<'a, T: Float> AdamOp<'a, T> for CPU {
 }
 
 #[cfg(feature = "cuda")]
-impl<'a, T: CDatatype> AdamOp<'a, T> for custos::CudaDevice {
-    fn step(&self, adam: &mut Adam<T>, mut params: Vec<Param<T>>) {
+impl<'a, T: CDatatype + Number> AdamOp<'a, T> for CUDA {
+    fn step(&self, adam: &mut Adam<T, Self>, mut params: Vec<Param<T, Self>>) {
         let src = format!(
             r#"extern "C" __global__ void adam(
                 {dt}* value, 
@@ -163,25 +164,27 @@ impl<'a, T: CDatatype> AdamOp<'a, T> for custos::CudaDevice {
             )
             .unwrap();
 
-            launch_kernel1d(
-                layer_data.bias.size(),
-                self,
-                &src,
-                "adam",
-                &[
-                    &layer_data.bias.as_buf(),
-                    &layer_data.dbias.as_buf(),
-                    &adam.bias_momentum[idx].as_buf(),
-                    &adam.bias_cache[idx].as_buf(),
-                    &adam.beta1,
-                    &adam.beta2,
-                    &adam.epsilon,
-                    &adam.iters,
-                    &adam.lr,
-                    &layer_data.bias.size(),
-                ],
-            )
-            .unwrap();
+            if let Some(bias) = &layer_data.bias {
+                launch_kernel1d(
+                    bias.size(),
+                    self,
+                    &src,
+                    "adam",
+                    &[
+                        bias.as_buf(),
+                        layer_data.dbias.as_buf(),
+                        adam.bias_momentum[idx].as_buf(),
+                        adam.bias_cache[idx].as_buf(),
+                        &adam.beta1,
+                        &adam.beta2,
+                        &adam.epsilon,
+                        &adam.iters,
+                        &adam.lr,
+                        &bias.size(),
+                    ],
+                )
+                .unwrap();
+            }        
         }
     }
 }

@@ -35,8 +35,8 @@ impl<'a, T, U, D> Batch<'a, T, U, D> {
     pub fn iter(&'a self) -> Iter<'a, T, U, D>
     where
         D: for<'b> Alloc<'b, T> + CacheReturn + for<'b> Alloc<'b, U> + PtrConv + WriteBuf<T> + WriteBuf<U>,
-        T: Copy + 'a,
-        U: Copy + 'a,
+        T: Clone + 'a,
+        U: Clone + 'a,
     {
         self.into_iter()
     }
@@ -45,8 +45,8 @@ impl<'a, T, U, D> Batch<'a, T, U, D> {
 impl<'a, T, U, D> IntoIterator for &'a Batch<'a, T, U, D>
 where
     D: for<'b >Alloc<'b, T> + CacheReturn + for<'b> Alloc<'b, U> + PtrConv + WriteBuf<T> + WriteBuf<U>,
-    T: Copy + 'a,
-    U: Copy + 'a,
+    T: Clone + 'a,
+    U: Clone + 'a,
 {
     type Item = (Matrix<'a, T, D>, Matrix<'a, U, D>);
 
@@ -94,8 +94,8 @@ pub struct Iter<'a, T, U, D> {
 impl<'a, T, U, D> Iterator for Iter<'a, T, U, D>
 where
     D: for<'b> Alloc<'b, T> + CacheReturn + for<'b> Alloc<'b, U> + PtrConv + WriteBuf<T> + WriteBuf<U>,
-    T: Copy + 'a,
-    U: Copy + 'a,
+    T: Clone + 'a,
+    U: Clone + 'a,
 {
     type Item = (Matrix<'a, T, D>, Matrix<'a, U, D>);
 
