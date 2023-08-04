@@ -164,25 +164,27 @@ impl<'a, T: CDatatype> AdamOp<'a, T> for custos::CudaDevice {
             )
             .unwrap();
 
-            launch_kernel1d(
-                layer_data.bias.size(),
-                self,
-                &src,
-                "adam",
-                &[
-                    &layer_data.bias.as_buf(),
-                    &layer_data.dbias.as_buf(),
-                    &adam.bias_momentum[idx].as_buf(),
-                    &adam.bias_cache[idx].as_buf(),
-                    &adam.beta1,
-                    &adam.beta2,
-                    &adam.epsilon,
-                    &adam.iters,
-                    &adam.lr,
-                    &layer_data.bias.size(),
-                ],
-            )
-            .unwrap();
+            if let Some(bias) = &layer_data.bias {
+                launch_kernel1d(
+                    bias.size(),
+                    self,
+                    &src,
+                    "adam",
+                    &[
+                        bias.as_buf(),
+                        &layer_data.dbias.as_buf(),
+                        &adam.bias_momentum[idx].as_buf(),
+                        &adam.bias_cache[idx].as_buf(),
+                        &adam.beta1,
+                        &adam.beta2,
+                        &adam.epsilon,
+                        &adam.iters,
+                        &adam.lr,
+                        &bias.size(),
+                    ],
+                )
+                .unwrap();
+            }
         }
     }
 }

@@ -23,7 +23,7 @@ purpur = "0.1.0"
 gradients-derive = { path = "../gradients-derive" }
 [features]
 # TODO: fix cuda with bias etc
-default = ["opencl"]
+default = ["opencl", "cuda"]
 opencl = ["custos/opencl", "custos-math/opencl"]
 cuda = ["custos/cuda", "custos-math/cuda"]
 realloc = ["custos/realloc", "custos-math/realloc"]
