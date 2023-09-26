@@ -17,8 +17,8 @@ fn test_mnist_from_example() -> Result<(), Box<dyn std::error::Error>> {
     // let device = gradients::CPU::new(); // use cpu (no framework specific features enabled):
     // let device = gradients::CudaDevice::new(0)?; // use cuda device (cuda feature enabled):
     // use opencl device (opencl feature enabled):
-    //let device = OpenCL::new(0).unwrap();
-    let device = gradients::CPU::new();
+    let device = gradients::OpenCL::new(1).unwrap();
+    // let device = gradients::CPU::new();
 
     let mut net = Network::with(&device);
 

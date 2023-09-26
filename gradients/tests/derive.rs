@@ -17,23 +17,19 @@ pub struct Network<'a, T, D: Device> {
 
 #[test]
 fn test_net() -> gradients::Result<()> {
-    let device = gradients::CPU::new();
+    //let device = gradients::CPU::new();
+    let device = gradients::CUDA::new(0).unwrap();
     //let device = gradients::CudaDevice::new(0)?;
     //let device = gradients::CudaDevice::new(0)?;
 
-    let mut net = Network {
-        lin1: Linear::new(&device, ()),
-        lin2: Linear::new(&device, ()),
-        lin3: Linear::new(&device, ()),
-        ..Default::default()
-    };
+    let mut net = Network::with(&device);
     let loader = CSVLoader::new(true);
 
     let loaded_data =
         loader.load("../../gradients-fallback/datasets/digit-recognizer/train.csv")?;
     //let loaded_data = loader.load("../../../datasets/mnist/mnist_train.csv").unwrap();
 
-    let i = Matrix::<f32>::from((
+    let i = Matrix::<f32, _>::from((
         &device,
         (loaded_data.sample_count, loaded_data.features),
         &loaded_data.x,
@@ -43,20 +39,21 @@ fn test_net() -> gradients::Result<()> {
     let y = Matrix::from((&device, (loaded_data.sample_count, 1), &loaded_data.y));
     let y = y.onehot();
 
-    let mut opt = gradients::Adam::<f32>::new(0.002);
+    let mut opt = gradients::Adam::<f32, _>::new(0.002);
     //let mut opt = gradients::SGD::new(0.1).momentum(0.5);
 
     let start = Instant::now();
 
     for epoch in range(100) {
         let preds = net.forward(&i);
-        let correct_training = correct_classes(&loaded_data.y.as_usize(), &preds) as f32;
+        //let correct_training = correct_classes(&loaded_data.y.as_usize(), &preds) as f32;
 
         let (loss, grad) = preds.cce(&y);
-        println!(
+        println!("epoch: {epoch}, loss: {loss}");
+        /*println!(
             "epoch: {epoch}, loss: {loss}, training_acc: {acc}",
             acc = correct_training / loaded_data.sample_count() as f32
-        );
+        );*/
 
         net.backward(&grad);
         opt.step(&device, net.params());

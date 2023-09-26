@@ -34,12 +34,12 @@ fn test_berries_net() -> Result<(), std::io::Error> {
         ir.get_classes_for_imgs().as_f32(),
     ));
     let y = device.onehot(&y);
-
+    let ru = RandomUniform::new(-0.1, 0.1);
     let mut net = Network {
-        lin1: Linear::new(&device, ()),
-        lin2: Linear::new(&device, ()),
-        lin3: Linear::new(&device, ()),
-        ..Default::default()
+        lin1: Linear::new(&device, &ru),
+        lin2: Linear::new(&device, &ru),
+        lin3: Linear::new(&device, &ru),
+        ..WithDevice::with(&device)
     };
 
     let mut opt = Adam::new(1e-4);

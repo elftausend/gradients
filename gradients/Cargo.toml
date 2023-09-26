@@ -22,7 +22,7 @@ purpur = "0.1.0"
 #gradients-derive = { version = "=0.3.4" } 
 gradients-derive = { path = "../gradients-derive" }
 [features]
-default = ["cpu", "opencl", "cuda"]
+default = ["cpu", "opencl", "cuda", "realloc"]
 cpu = ["custos-math/cpu"]
 stack = ["custos-math/stack"]
 opencl = ["custos-math/opencl"]
