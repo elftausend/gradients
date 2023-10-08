@@ -1,5 +1,5 @@
 use custos_math::custos::Read;
-use custos_math::Matrix;
+use custos_math::{Matrix, MaxOps};
 
 pub fn find_idxs<T: Copy + Default + PartialEq, D: Read<T>>(
     search_for: &Matrix<T, D>,
@@ -11,9 +11,9 @@ pub fn find_idxs<T: Copy + Default + PartialEq, D: Read<T>>(
     purpur::utils::find_idxs(rows, &search_for, &search_with)
 }
 
-pub fn correct_classes<T: Copy + Default + PartialOrd>(
+pub fn correct_classes<T: Copy + Default + PartialOrd, D: Read<T> + MaxOps<T, D>>(
     targets: &[usize],
-    search_for: &Matrix<T>,
+    search_for: &Matrix<T, D>,
 ) -> usize {
     let search_with = search_for.max_cols();
     let idxs = find_idxs(search_for, &search_with);

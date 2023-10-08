@@ -42,7 +42,7 @@ fn test_mnist_from_example() -> Result<(), Box<dyn std::error::Error>> {
 
     for epoch in range(80) {
         let preds = net.forward(&i);
-        //let correct_training = correct_classes(&loaded_data.y.as_usize(), &preds) as f32;
+        let correct_training = correct_classes(&loaded_data.y.as_usize(), &preds) as f32;
 
         let (loss, grad) = preds.cce(&y);
         println!(
